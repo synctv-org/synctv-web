@@ -1,4 +1,5 @@
-#SyncTV Web
+# SyncTV Web
+
 Provides a Web UI for [SyncTV](https://github.com/synctv-org/synctv)
 
 English | [中文](./README-CN.md)

@@ -1,4 +1,5 @@
-#SyncTV Web
+# SyncTV Web
+
 这是[SyncTV](https://github.com/synctv-org/synctv)的前端界面
 
 [English](./README.md) | 中文
