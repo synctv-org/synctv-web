@@ -1,0 +1,172 @@
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { ElNotification } from "element-plus";
+import { roomStore } from "@/stores/room";
+import router from "@/router/index";
+import { useRoute } from "vue-router";
+import { joinRoomApi } from "@/services/apis/room";
+const route = useRoute();
+const room = roomStore();
+
+// 是否为弹窗加载
+const isModal = computed(() => {
+  return route.name === "joinRoom" ? false : true;
+});
+
+const props = defineProps<{
+  item?: {
+    roomId: string;
+    password: string;
+    username: string;
+    userPassword: string;
+  };
+}>();
+
+const formData = ref({
+  roomId: localStorage.getItem("roomId") || "",
+  password: localStorage.getItem("password") || "",
+  username: localStorage.getItem("uname") || "",
+  userPassword: localStorage.getItem("uPasswd") || ""
+});
+
+if (props.item) formData.value = props.item;
+
+const savePwd = ref(localStorage.getItem("uPasswd") ? true : false);
+
+const { state: joinRoomToken, execute: reqJoinRoomApi } = joinRoomApi();
+
+const JoinRoom = async () => {
+  if (formData.value?.username === "" || formData.value?.roomId === "") {
+    ElNotification({
+      title: "错误",
+      message: "请填写表单完整",
+      type: "error"
+    });
+    return;
+  }
+  try {
+    await reqJoinRoomApi({
+      data: formData.value,
+      params: {
+        autoNew: true
+      }
+    });
+    if (!joinRoomToken.value)
+      return ElNotification({
+        title: "错误",
+        message: "服务器并未返回token",
+        type: "error"
+      });
+    localStorage.setItem("token", joinRoomToken.value?.token);
+    ElNotification({
+      title: "加入成功",
+      type: "success"
+    });
+    room.login = true;
+
+    localStorage.setItem("uname", formData.value.username);
+    savePwd.value && localStorage.setItem("uPasswd", formData.value.userPassword);
+    localStorage.setItem("roomId", formData.value.roomId);
+    savePwd.value && localStorage.setItem("password", formData.value.password);
+    localStorage.setItem("login", "true");
+
+    router.replace("/cinema");
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "错误",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+</script>
+
+<template>
+  <div :class="isModal ? 'room-dialog' : 'room'">
+    <form @submit.prevent="" :class="!isModal && 'sm:w-96 ' + 'w-full'">
+      <input
+        class="l-input"
+        type="text"
+        v-model="formData.username"
+        placeholder="用户名"
+        required
+      />
+      <br />
+      <input
+        class="l-input"
+        type="password"
+        v-model="formData.userPassword"
+        placeholder="密码"
+        required
+      />
+      <br />
+      <input class="l-input" type="text" v-model="formData.roomId" placeholder="房间名" required />
+      <br />
+      <input class="l-input" type="password" v-model="formData.password" placeholder="房间密码" />
+      <br />
+      <div>
+        <input class="w-auto" type="checkbox" v-model="savePwd" />
+        <label title="明文保存到本机哦~">&nbsp;记住密码</label>
+      </div>
+      <button class="btn m-[10px]" @click="JoinRoom()">
+        {{ "加入" }}
+      </button>
+    </form>
+  </div>
+</template>
+
+<style lang="less" scoped>
+.room {
+  text-align: center;
+  margin-top: 5vmax;
+
+  form {
+    margin: auto;
+
+    input {
+      width: 70%;
+
+      &:hover {
+        padding: 10px 15px;
+        width: 74%;
+      }
+    }
+
+    .btn {
+      padding: 10px 15px;
+      width: 70%;
+
+      &:hover {
+        padding: 12px 15px;
+      }
+    }
+  }
+}
+
+.room-dialog {
+  text-align: center;
+
+  form {
+    margin: auto;
+
+    input {
+      width: 80%;
+
+      &:hover {
+        padding: 10px 15px;
+        width: 84%;
+      }
+    }
+
+    .btn {
+      padding: 10px 15px;
+      width: 80%;
+
+      &:hover {
+        padding: 12px 15px;
+      }
+    }
+  }
+}
+</style>

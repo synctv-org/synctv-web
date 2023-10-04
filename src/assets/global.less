@@ -1,0 +1,183 @@
+@private-color: rgb(23, 108, 255);
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  font-family: MiSans;
+  transition: background 0.5s;
+  @apply dark:bg-black dark:text-zinc-200;
+}
+
+.el-main {
+  transition: all 0.6s;
+}
+
+.l-input {
+  margin: 10px;
+  padding: 10px 8px;
+  border: 2px solid #4b4b4b;
+  border-radius: 0.5rem;
+  transition: all 0.3s;
+  @apply dark:bg-zinc-900;
+  &:hover {
+    border: 2px solid @private-color;
+  }
+  &:focus {
+    @apply outline-none;
+    border: 2px solid @private-color;
+    box-shadow: 0 0 10px #176cff70;
+  }
+}
+
+.l-input-violet {
+  @apply p-2 rounded-lg border-2 border-violet-500 bg-violet-50 text-violet-800 dark:bg-violet-950 dark:text-violet-200;
+  transition: all 0.3s;
+  &:hover {
+    @apply border-violet-600;
+  }
+  &:focus {
+    @apply border-violet-500 outline-none shadow-md;
+    box-shadow: 0 0 10px #c4b5fd;
+  }
+}
+
+.l-input-slate {
+  @apply p-2 rounded-lg border-2 border-slate-500 bg-slate-100 text-slate-800 dark:bg-gray-800 dark:text-slate-200;
+  transition: all 0.3s;
+  &:hover {
+    @apply border-slate-600;
+  }
+  &:focus {
+    @apply border-slate-500 outline-none shadow-md;
+    box-shadow: 0 0 10px #94a3b8;
+  }
+}
+
+a {
+  @apply transition-all duration-500 text-blue-500 hover:text-blue-300;
+}
+
+.btn {
+  padding: 6px 10px;
+  transition: all 0.3s;
+  @apply bg-blue-600 text-white cursor-pointer border-2 border-solid rounded-lg dark:border-blue-900;
+  &:hover {
+    box-shadow: 0 0 10px #176cff70;
+    border: 2px solid @private-color;
+    padding: 6px 15px;
+    color: @private-color;
+
+    background-color: rgba(23, 108, 255, 0.16);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    filter: grayscale(0.2);
+    &:hover {
+      padding: 6px 10px;
+    }
+  }
+}
+
+.btn-dense {
+  padding: 4px 8px;
+  @apply text-sm;
+
+  &:hover {
+    padding: 5px 9px;
+  }
+}
+
+.btn-success {
+  @apply bg-green-600 dark:border-green-900;
+  &:hover {
+    @apply border-green-600 text-green-600 bg-green-100 shadow-green-500 shadow-lg dark:bg-green-950 dark:border-green-800;
+    box-shadow: 0 0 10px #8cebaf;
+  }
+}
+
+.btn-warning {
+  @apply bg-yellow-500 dark:border-yellow-800;
+  &:hover {
+    @apply border-yellow-500 text-yellow-600 bg-yellow-100 shadow-yellow-500 shadow-lg dark:bg-[#493c08] dark:backdrop-blur-sm;
+    box-shadow: 0 0 10px #facc15;
+  }
+}
+
+.btn-error {
+  @apply bg-red-500 dark:border-red-800;
+  &:hover {
+    @apply border-red-500 text-red-600 bg-red-100 shadow-red-500 shadow-lg dark:bg-[#4b0000];
+    box-shadow: 0 0 10px #ef4444;
+  }
+}
+
+// 通知样式
+#notifyBox {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  width: 233px;
+  .notifyyy {
+    background-color: #176cff;
+    margin: 10px;
+  }
+}
+
+// 卡片
+.card {
+  border-radius: 1.3rem;
+  transition: all 0.5s;
+  @apply bg-gray-100 dark:bg-zinc-900;
+
+  .card-title {
+    @apply pl-5 p-4 text-xl font-bold;
+  }
+
+  .card-body {
+    @apply px-5;
+  }
+
+  .card-footer {
+    @apply p-5 flex justify-end;
+  }
+}
+
+// 播放器
+.artplayer-app {
+  aspect-ratio: 16/9;
+}
+
+.art-video-player {
+  height: 100% !important;
+}
+
+.art-danmuku-emitter,
+.art-layer-danmuku-emitter {
+  display: none !important;
+}
+.art-video-player {
+  margin-bottom: 0 !important;
+}
+
+@media (max-width: 640px) {
+  .el-main {
+    padding: 0 !important;
+
+    .el-row {
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+
+      .el-col {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+    }
+  }
+
+  .art-control-fullscreenWeb {
+    display: none !important;
+  }
+}

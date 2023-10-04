@@ -1,0 +1,985 @@
+<script setup lang="ts">
+import axios, { type AxiosResponse } from "axios";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useWebSocket, useWindowSize } from "@vueuse/core";
+import Player from "@/components/Player.vue";
+import ArtPlayer from "artplayer";
+import { roomStore } from "@/stores/room";
+import { ElNotification, ElMessage } from "element-plus";
+import router from "@/router";
+import { updateRoomPasswordApi, delRoomApi } from "@/services/apis/room";
+import {
+  movieListApi,
+  pushMovieApi,
+  editMovieInfoApi,
+  delMovieApi,
+  swapMovieApi,
+  movieStatusApi,
+  changeCurrentMovieApi,
+  clearMovieListApi,
+  liveInfoApi
+} from "@/services/apis/movie";
+import type { BaseMovieInfo, MovieInfo, EditMovieInfo, MovieStatus } from "@/types/Movie";
+import type { WsMessage } from "@/types/Room";
+import { WsMessageType } from "@/types/Room";
+
+const { width: WindowWidth } = useWindowSize();
+const room = roomStore();
+
+// 检查是否登录
+(() => !room.login && router.push("/"))();
+
+// 获取房间信息
+const roomID = localStorage.roomId;
+let password = localStorage.password;
+
+// 启动websocket连接
+const { status, data, send, close } = useWebSocket(`ws://${window.location.host}/api/room/ws`, {
+  protocols: [localStorage.token],
+  autoReconnect: {
+    retries: 3,
+    delay: 1000,
+    onFailed() {
+      ElMessage.error("Websocket 自动重连失败！");
+    }
+  }
+});
+
+// 更新房间密码
+const { state: newToken, execute: reqUpdateRoomPasswordApi } = updateRoomPasswordApi();
+const changePassword = async () => {
+  try {
+    await reqUpdateRoomPasswordApi({
+      data: {
+        password: password
+      },
+      headers: { Authorization: localStorage.token }
+    });
+
+    ElNotification({
+      title: "更新成功",
+      type: "success"
+    });
+    if (newToken.value) {
+      localStorage.setItem("token", newToken.value.token);
+      localStorage.setItem("password", password);
+      setInterval(() => {
+        window.location.reload();
+      }, 500);
+    }
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "更新失败",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+// 显示房间密码
+let isShowPassword = ref(false);
+
+// 删除房间
+const { execute: reqDelRoomApi } = delRoomApi();
+const deleteRoom = async () => {
+  try {
+    await reqDelRoomApi({
+      data: {
+        roomId: localStorage.roomId
+      },
+      headers: { Authorization: localStorage.token }
+    });
+
+    ElNotification({
+      title: "删除成功",
+      type: "success"
+    });
+    setInterval(() => {
+      localStorage.removeItem("RoomID");
+      localStorage.removeItem("password");
+      localStorage.removeItem("login");
+      localStorage.removeItem("token");
+      window.location.href = window.location.origin;
+    }, 500);
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "删除失败",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+// 获取影片列表
+let movieList = ref<MovieInfo[]>([]);
+const { state: _movieList, isLoading: movieListLoading, execute: reqMovieListApi } = movieListApi();
+/**
+ * @argument updateStatus 是否更新当前正在播放的影片（包括状态）
+ */
+const getMovieList = async (updateStatus: boolean) => {
+  try {
+    await reqMovieListApi({
+      headers: { Authorization: localStorage.token }
+    });
+
+    if (_movieList.value) {
+      localStorage.getItem("dev") === "114514" && console.log(_movieList.value);
+      room.movieList = movieList.value = _movieList.value.movies;
+      if (updateStatus) {
+        room.currentMovie = _movieList.value.current.movie;
+        room.currentMovieStatus = _movieList.value.current.status;
+      }
+    }
+  } catch (err: any) {
+    localStorage.getItem("dev") === "114514" && console.log(err);
+    if (err.response.status === 401) {
+      ElNotification({
+        title: "身份验证失败，请重新进入房间",
+        message: err.message,
+        type: "error"
+      });
+      setInterval(() => {
+        localStorage.removeItem("roomId");
+        localStorage.removeItem("password");
+        localStorage.removeItem("login");
+        localStorage.removeItem("token");
+        window.location.href = window.location.origin;
+      }, 500);
+    }
+    ElNotification({
+      title: "获取影片列表失败",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+// 清空影片列表
+const { execute: reqClearMovieListApi } = clearMovieListApi();
+const clearMovieList = async (id: number) => {
+  try {
+    await reqClearMovieListApi({
+      headers: { Authorization: localStorage.token }
+    });
+    ElNotification({
+      title: "已清空",
+      type: "success"
+    });
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "清除成功",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+// 新影片信息
+let newMovieInfo = ref<BaseMovieInfo>({
+  name: "",
+  live: false,
+  proxy: false,
+  url: "",
+  rtmpSource: false,
+  type: "",
+  headers: null
+});
+
+// 直播相关
+const liveInfoDialog = ref(false);
+const liveInfoForm = ref({
+  host: "",
+  port: 0,
+  app: "",
+  token: ""
+});
+const { state: liveInfo, execute: reqLiveInfoApi } = liveInfoApi();
+const getLiveInfo = async (id: number) => {
+  try {
+    await reqLiveInfoApi({
+      data: {
+        id: id
+      },
+      headers: { Authorization: localStorage.token }
+    });
+
+    liveInfoDialog.value = true;
+    if (liveInfo.value) liveInfoForm.value = liveInfo.value;
+    console.log(liveInfo.value);
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "获取失败",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+watch(
+  () => newMovieInfo.value.live,
+  () => {
+    !newMovieInfo.value.live ? (newMovieInfo.value.rtmpSource = false) : void 0;
+  }
+);
+
+// 把视频链接添加到列表
+const { execute: reqPushMovieApi } = pushMovieApi();
+const pushMovie = async (dir: string) => {
+  if (newMovieInfo.value.live) {
+    if (newMovieInfo.value.name === "")
+      return ElNotification({
+        title: "添加失败",
+        message: "请填写表单完整",
+        type: "error"
+      });
+  } else {
+    if (newMovieInfo.value.url === "" || newMovieInfo.value.name === "")
+      return ElNotification({
+        title: "添加失败",
+        message: "请填写表单完整",
+        type: "error"
+      });
+  }
+
+  try {
+    await reqPushMovieApi({
+      params: {
+        pos: dir
+      },
+      data: newMovieInfo.value,
+      headers: { Authorization: localStorage.token }
+    });
+
+    ElNotification({
+      title: "添加成功",
+      type: "success"
+    });
+    newMovieInfo.value.name = newMovieInfo.value.url = "";
+    getMovieList(false);
+  } catch (err: any) {
+    console.log(err);
+    ElNotification({
+      title: "添加失败",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+// 获取当前影片状态
+const { state: movieStatus, execute: reqMovieStatusApi } = movieStatusApi();
+const getCurrentMovieStatus = async () => {
+  try {
+    await reqMovieStatusApi({
+      headers: { Authorization: localStorage.token }
+    });
+    if (movieStatus.value) {
+      setCurrentMovieStatus(movieStatus.value.current.status);
+    }
+  } catch (err: any) {
+    console.error(err.message);
+    ElNotification({
+      title: "获取失败",
+      type: "error",
+      message: err.response.data.error || err.message
+    });
+  }
+};
+
+// 设置影片状态
+const setCurrentMovieStatus = (movieStatus: MovieStatus) => {
+  room.currentMovieStatus.playing === movieStatus.playing
+    ? void 0
+    : (room.currentMovieStatus.playing = movieStatus.playing);
+  room.currentMovieStatus.rate === movieStatus.rate
+    ? void 0
+    : (room.currentMovieStatus.rate = movieStatus.rate);
+  if (
+    room.currentMovieStatus.seek - movieStatus.seek > 1 ||
+    room.currentMovieStatus.seek - movieStatus.seek > -2
+  )
+    room.currentMovieStatus.seek = movieStatus.seek;
+};
+
+// 当前影片信息
+let cMovieInfo = ref<EditMovieInfo>({
+  id: 0,
+  url: "",
+  name: "",
+  type: "",
+  headers: null
+});
+
+// 打开编辑对话框
+const editDialog = ref(false);
+const openEditDialog = (item: MovieInfo) => {
+  cMovieInfo.value.id = item.id;
+  cMovieInfo.value.url = item.url;
+  cMovieInfo.value.name = item.name;
+  cMovieInfo.value.type = item.type;
+  cMovieInfo.value.headers = item.headers;
+  editDialog.value = true;
+};
+
+// 编辑影片信息
+const { isLoading: editMovieInfoLoading, execute: reqEditMovieInfoApi } = editMovieInfoApi();
+const editMovieInfo = async () => {
+  try {
+    await reqEditMovieInfoApi({
+      data: cMovieInfo.value,
+      headers: { Authorization: localStorage.token }
+    });
+    ElNotification({
+      title: "更新成功",
+      type: "success"
+    });
+    editDialog.value = false;
+  } catch (err: any) {
+    console.error(err.message);
+    ElNotification({
+      title: "更新失败",
+      type: "error",
+      message: err.response.data.error || err.message
+    });
+  }
+};
+
+// 删除影片
+const { execute: reqDelMovieApi } = delMovieApi();
+const deleteMovie = async (ids: Array<number>) => {
+  try {
+    await reqDelMovieApi({
+      data: {
+        ids: ids
+      },
+      headers: { Authorization: localStorage.token }
+    });
+    for (const id of ids) {
+      movieList.value.splice(
+        movieList.value.findIndex((movie: MovieInfo) => movie["id"] === id),
+        1
+      );
+    }
+
+    ElNotification({
+      title: "删除成功",
+      type: "success"
+    });
+    selectMovies.value = [];
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "删除失败",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+// 交换两个影片的位置
+const selectMovies = ref<number[]>([]);
+const { execute: reqSwapMovieApi } = swapMovieApi();
+const swapMovie = async () => {
+  try {
+    await reqSwapMovieApi({
+      data: {
+        id1: selectMovies.value[0],
+        id2: selectMovies.value[1]
+      },
+      headers: { Authorization: localStorage.token }
+    });
+
+    ElNotification({
+      title: "交换成功",
+      type: "success"
+    });
+    selectMovies.value = [];
+    getMovieList(false);
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "交换失败",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+// 设置当前正在播放的影片
+const playerLoaded = ref(false);
+const playerOptions = ref({
+  url: "",
+  isLive: false
+});
+const { execute: reqChangeCurrentMovieApi } = changeCurrentMovieApi();
+const changeCurrentMovie = async (id: number) => {
+  // playerLoaded.value = false;
+  try {
+    await reqChangeCurrentMovieApi({
+      data: {
+        id: id
+      },
+      headers: { Authorization: localStorage.token }
+    });
+
+    ElNotification({
+      title: "设置成功",
+      type: "success"
+    });
+
+    // playerLoaded.value = true;
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "设置失败",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+let noPlayArea: HTMLElement | null;
+let playArea: HTMLElement | null;
+
+// 消息列表
+let chatArea: HTMLElement | null;
+let msgList = ref<string[]>([]);
+
+// 更新消息列表
+const updateMsgList = (msg: string) => {
+  msgList.value.push(msg);
+};
+
+// 监听ws信息变化
+watch(
+  () => data.value,
+  () => {
+    if (data.value === "")
+      return localStorage.getItem("dev") === "114514" && console.log("返回了空", data.value);
+
+    const jsonData: WsMessage = JSON.parse(data.value);
+    localStorage.getItem("dev") === "114514" && console.log(`-----Ws Message Start-----`);
+    localStorage.getItem("dev") === "114514" && console.log(jsonData);
+    localStorage.getItem("dev") === "114514" && console.log(`-----Ws Message End-----`);
+    switch (jsonData.type) {
+      // 聊天消息
+      case WsMessageType.MESSAGE: {
+        msgList.value.push(`${jsonData.sender}：${jsonData.message}`);
+        // jsonData.message.split("：")[0] !== "PLAYER" &&
+        room.danmuku = {
+          text: jsonData.message, // 弹幕文本
+          //time: Date.now(), // 发送时间，单位秒
+          color: "#fff", // 弹幕局部颜色
+          border: false // 是否显示描边
+          //mode: 0, // 弹幕模式: 0表示滚动, 1静止
+        };
+
+        // 自动滚动到最底部
+        if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+
+        if (msgList.value.length > 40)
+          return (msgList.value = [
+            "<p><b>SYSTEM：</b>已达到最大聊天记录长度，系统已自动清空...</p>"
+          ]);
+
+        break;
+      }
+
+      // 播放
+      case WsMessageType.PLAY: {
+        setCurrentMovieStatus({
+          playing: true,
+          seek: jsonData.seek,
+          rate: jsonData.rate
+        });
+        break;
+      }
+
+      // 暂停
+      case WsMessageType.PAUSE: {
+        setCurrentMovieStatus({
+          playing: false,
+          seek: jsonData.seek,
+          rate: jsonData.rate
+        });
+        break;
+      }
+
+      // 视频进度发生变化
+      case WsMessageType.SEEK: {
+        // room.currentMovie = jsonData.
+        if (
+          room.currentMovieStatus.seek - jsonData.seek > 1 ||
+          room.currentMovieStatus.seek - jsonData.seek < -2
+        )
+          room.currentMovieStatus.seek = jsonData.seek;
+        break;
+      }
+
+      // 设置正在播放的影片
+      case WsMessageType.CURRENT_MOVIE: {
+        room.currentMovie = jsonData.current.movie;
+        break;
+      }
+
+      // 播放列表更新
+      case WsMessageType.PLAY_LIST_UPDATE: {
+        getMovieList(false);
+        // jsonData.movies
+        //   ? (movieList.value = room.movieList = jsonData.movies)
+        //   : movieList.value.splice(0, 1);
+        break;
+      }
+
+      // ん？
+      case WsMessageType.PEOPLE_NUM: {
+        room.peopleNum < jsonData.peopleNum
+          ? msgList.value.push(
+              `<p><b>SYSTEM：</b>欢迎新成员加入，当前共有 ${jsonData.peopleNum} 人在观看</p>`
+            )
+          : room.peopleNum > jsonData.peopleNum
+          ? msgList.value.push(
+              `<p><b>SYSTEM：</b>有人离开了房间，当前还剩 ${jsonData.peopleNum} 人在观看</p>`
+            )
+          : "";
+        room.peopleNum = jsonData.peopleNum;
+        break;
+      }
+    }
+  }
+);
+
+// 发送消息（临时
+let sendText_ = ref("");
+const sendText = () => {
+  if (sendText_.value === "")
+    return ElMessage({
+      message: "发送的消息不能为空",
+      type: "warning"
+    });
+  const msg = JSON.stringify({
+    Type: 2,
+    Message: sendText_.value,
+    Time: Date.now()
+  });
+  send(msg);
+  sendText_.value = "";
+  chatArea!.scrollTop = chatArea!.scrollHeight;
+  localStorage.getItem("dev") === "114514" && console.log("sended:" + msg);
+};
+
+let player: ArtPlayer;
+
+function getInstance(art: ArtPlayer) {
+  player = art;
+}
+
+// 设置聊天框高度
+const resetChatAreaHeight = () => {
+  chatArea = document.querySelector(".chatArea");
+  noPlayArea = document.querySelector(".noPlayArea");
+  playArea = document.querySelector(".playArea");
+  const h = playArea ? playArea : noPlayArea;
+  chatArea && h && (chatArea.style.height = h.scrollHeight - 63 + "px");
+};
+
+onMounted(() => {
+  setTimeout(() => {
+    resetChatAreaHeight();
+  }, 233);
+
+  watch(WindowWidth, () => {
+    resetChatAreaHeight();
+  });
+
+  getMovieList(true);
+
+  // 监听当前正在播放影片变化
+  watch(
+    () => room.currentMovie,
+    () => {
+      const jsonData = room.currentMovie;
+      playerLoaded.value = false;
+      if (jsonData.pullKey !== "") {
+        jsonData.url = `${window.location.origin}/api/movie/live/${jsonData.pullKey}.flv`;
+        playerOptions.value = {
+          url: jsonData.url,
+          isLive: jsonData.live
+        };
+        setInterval(() => (playerLoaded.value = true), 20);
+      } else if (jsonData.url === "") {
+        // player.switchUrl("https://live.lazy.ink/hd.mp4");
+        playerLoaded.value = false;
+      } else {
+        localStorage.getItem("dev") === "114514" && console.log("变了！", jsonData.url);
+        playerOptions.value = {
+          url: jsonData.url,
+          isLive: jsonData.live
+        };
+
+        setInterval(() => (playerLoaded.value = true), 20);
+      }
+    }
+  );
+});
+
+onBeforeUnmount(() => {
+  if (player) player.destroy();
+  close();
+});
+</script>
+
+<template>
+  <el-row :gutter="20">
+    <el-col :md="18" class="mb-6 max-sm:my-2">
+      <div class="card max-sm:rounded-none">
+        <div
+          class="card-title flex flex-wrap justify-between max-sm:text-sm"
+          v-if="room.currentMovie.url !== ''"
+        >
+          {{ room.currentMovie.name }}
+          <small>👁‍🗨 {{ room.peopleNum }} </small>
+        </div>
+        <div class="card-title flex flex-wrap justify-between max-sm:text-sm" v-else>
+          当前没有影片播放，快去添加几部吧~<small class="font-normal"
+            >👁‍🗨 {{ room.peopleNum }}
+          </small>
+        </div>
+        <div class="card-body playArea max-sm:p-0" v-if="playerLoaded">
+          <div class="art-player">
+            <!-- 
+          https://www.llxz.cc/style/images/zhuye.mp4
+        -->
+            <Player
+              @set-player-status="send"
+              @ws-send="updateMsgList"
+              @get-instance="getInstance"
+              :options="playerOptions"
+            ></Player>
+          </div>
+        </div>
+        <div class="card-body noPlayArea max-sm:pb-3 max-sm:px-3" v-else>
+          <!-- <img class="mx-auto" src="../assets/something-lost.png" /> -->
+          <el-carousel height="37vmax" indicator-position="none" arrow="never" interval="5000">
+            <el-carousel-item v-for="item in 4" :key="item">
+              <img class="mx-auto" :src="'https://api.imlazy.ink/img?t=' + item" />
+            </el-carousel-item>
+          </el-carousel>
+        </div>
+        <div class="card-footer p-4 max-sm:hidden"></div>
+      </div>
+    </el-col>
+    <el-col :md="6" class="mb-6 max-sm:mb-2">
+      <div class="card h-full max-sm:rounded-none">
+        <div class="card-title">在线聊天</div>
+        <div class="card-body mb-2">
+          <div class="chatArea">
+            <div class="message" v-for="item in msgList" :key="item">
+              <div v-html="item"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer" style="justify-content: center; padding: 0.5rem">
+          <input
+            type="text"
+            @keyup.enter="sendText()"
+            v-model="sendText_"
+            placeholder="按 Enter 键即可发送..."
+            class="l-input w-full bg-transparent"
+          />
+          <button class="btn w-24 m-2.5 ml-0" @click="sendText()">发送</button>
+        </div>
+      </div>
+    </el-col>
+  </el-row>
+
+  <el-row :gutter="20">
+    <!-- 房间信息 -->
+    <el-col :lg="6" :md="8" :sm="9" :xs="24" class="mb-6 max-sm:mb-2">
+      <div class="card max-sm:rounded-none">
+        <div class="card-title">房间信息</div>
+
+        <div class="card-body">
+          <table class="table-auto i-table">
+            <tbody>
+              <tr>
+                <td width="100">连接状态</td>
+                <td>{{ status }}</td>
+              </tr>
+              <tr>
+                <td>房间ID</td>
+                <td>{{ roomID }}</td>
+              </tr>
+              <tr>
+                <td>房间密码</td>
+                <td>
+                  <input
+                    :type="isShowPassword ? 'text' : 'password'"
+                    v-model="password"
+                    class="w-full m-0 pl-1 inline-block bg-neutral-200 border border-neutral-200 rounded-md focus:outline-none hover:bg-neutral-100 transition-all text-sm dark:bg-neutral-700 dark:border-neutral-800"
+                  />
+                  <button
+                    class="inline-block absolute -translate-x-5 opacity-50 pr-0.5"
+                    @click="isShowPassword = !isShowPassword"
+                  >
+                    {{ isShowPassword ? "●" : "◯" }}
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>在线人数</td>
+                <td>{{ room.peopleNum }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card-footer flex-wrap justify-between">
+          <el-popconfirm
+            width="220"
+            confirm-button-text="是"
+            cancel-button-text="否"
+            title="你确定要删除这个房间吗？!"
+            @confirm="deleteRoom"
+          >
+            <template #reference>
+              <button class="btn btn-error">删除房间</button>
+            </template>
+          </el-popconfirm>
+
+          <el-popconfirm
+            width="220"
+            confirm-button-text="是"
+            cancel-button-text="否"
+            title="更新后，所有人将会被踢下线！"
+            @confirm="changePassword"
+          >
+            <template #reference>
+              <button class="btn btn-success">更新房间密码</button>
+            </template>
+          </el-popconfirm>
+        </div>
+      </div>
+    </el-col>
+
+    <!-- 影片列表 -->
+    <el-col :lg="12" :md="16" :sm="15" :xs="24" class="mb-6 max-sm:mb-2">
+      <div class="card max-sm:rounded-none">
+        <div class="card-title">影片列表（{{ movieList.length }}）</div>
+
+        <div class="card-body">
+          <el-skeleton v-if="movieListLoading" :rows="1" animated />
+          <div
+            v-else
+            v-for="item in movieList"
+            :key="item.name"
+            class="flex justify-around mb-2 rounded-lg bg-zinc-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800"
+          >
+            <div class="m-auto pl-2">
+              <input v-model="selectMovies" type="checkbox" :value="item['id']" />
+            </div>
+            <div class="overflow-hidden text-ellipsis m-auto p-2 w-7/12">
+              <b class="block text-base font-semibold" :title="`ID: ${item.id}`">
+                <el-tag class="mr-1" size="small" v-if="item.live"> 直播流 </el-tag>
+                {{ item["name"] }}
+                <button
+                  v-if="item.live"
+                  class="ml-1 font-normal text-sm border bg-rose-50 dark:bg-transparent border-rose-500 rounded-lg px-2 text-rose-500 hover:brightness-75 transition-all"
+                  @click="getLiveInfo(item['id'])"
+                >
+                  查看推流信息
+                </button>
+              </b>
+              <small class="truncate">{{ item["url"] || item["pullKey"] }}</small>
+            </div>
+
+            <div class="m-auto p-2">
+              <button class="btn btn-dense m-0 mr-1" @click="changeCurrentMovie(item['id'])">
+                播放
+                <PlayIcon class="inline-block" width="18px" />
+              </button>
+              <button class="btn btn-dense btn-warning m-0 mr-1" @click="openEditDialog(item)">
+                编辑
+                <EditIcon class="inline-block" width="16px" height="16px" />
+              </button>
+              <el-popconfirm
+                width="220"
+                confirm-button-text="是"
+                cancel-button-text="否"
+                title="你确定要删除这条影片吗？"
+                @confirm="deleteMovie([item['id']])"
+              >
+                <template #reference>
+                  <button class="btn btn-dense btn-error m-0 mr-1">
+                    删除
+                    <TrashIcon class="inline-block" width="16px" height="16px" />
+                  </button>
+                </template>
+              </el-popconfirm>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer justify-between">
+          <div>
+            <button class="btn mr-2" v-if="selectMovies.length === 2" @click="swapMovie">
+              交换位置
+            </button>
+
+            <el-popconfirm
+              v-if="selectMovies.length >= 2"
+              width="220"
+              confirm-button-text="是"
+              cancel-button-text="否"
+              title="你确定要删除这些影片吗？"
+              @confirm="deleteMovie(selectMovies)"
+            >
+              <template #reference>
+                <button class="btn btn-error">批量删除</button>
+              </template>
+            </el-popconfirm>
+          </div>
+
+          <div></div>
+          <div>
+            <el-popconfirm
+              width="220"
+              confirm-button-text="是"
+              cancel-button-text="否"
+              title="你确定要清空影片列表吗？!"
+              @confirm="clearMovieList"
+            >
+              <template #reference>
+                <button class="btn btn-error mr-2">清空列表</button>
+              </template>
+            </el-popconfirm>
+            <button class="btn btn-success" @click="getMovieList(true)">更新列表</button>
+          </div>
+        </div>
+      </div>
+    </el-col>
+
+    <!-- 添加影片 -->
+    <el-col :lg="6" :md="14" :xs="24" class="mb-6 max-sm:mb-2">
+      <div class="card max-sm:rounded-none">
+        <div class="card-title">添加影片</div>
+        <div class="card-body flex justify-around flex-wrap">
+          <input
+            type="text"
+            placeholder="影片Url"
+            class="l-input-violet mb-1.5 w-full"
+            v-if="!(newMovieInfo.live && newMovieInfo.rtmpSource)"
+            v-model="newMovieInfo.url"
+          />
+          <input
+            type="text"
+            placeholder="影片名称"
+            class="l-input-slate mt-1.5 w-full"
+            v-model="newMovieInfo.name"
+          />
+
+          <div class="mt-4 mb-0 flex flex-wrap justify-around w-full">
+            <div>
+              <input type="checkbox" v-model="newMovieInfo.live" />
+              <label>&nbsp;这是一条直播流</label>
+            </div>
+
+            <div>
+              <input
+                type="checkbox"
+                v-model="newMovieInfo.rtmpSource"
+                @click="newMovieInfo.live ? true : (newMovieInfo.live = true)"
+              />
+              <label>&nbsp;我想创建直播</label>
+            </div>
+
+            <!-- <div>
+              <input type="checkbox" v-model="newMovieInfo.proxy" />
+              <label>&nbsp;isProxy</label>
+            </div> -->
+          </div>
+        </div>
+        <div class="card-footer flex-wrap pt-3" style="justify-content: space-around">
+          <button class="btn" @click="pushMovie('front')">添加到列表最<b>前</b>面</button>
+          <button class="btn" @click="pushMovie('back')">添加到列表最<b>后</b>面</button>
+        </div>
+      </div>
+    </el-col>
+  </el-row>
+
+  <!-- 编辑影片对话框 -->
+  <el-dialog
+    v-model="editDialog"
+    title="编辑影片"
+    width="443px"
+    class="rounded-lg dark:bg-zinc-800"
+  >
+    <el-form label-position="top">
+      <el-form-item label="Url：">
+        <input type="text" class="l-input m-0 p-0 pl-2 w-full" v-model="cMovieInfo.url" />
+      </el-form-item>
+      <el-form-item label="Name：">
+        <input type="text" class="l-input m-0 p-0 pl-2 w-full" v-model="cMovieInfo.name" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <button class="btn mr-2" @click="editDialog = false">取消</button>
+      <button class="btn btn-success contrast-50" disabled v-if="editMovieInfoLoading">
+        请求中...
+      </button>
+      <button class="btn btn-success" @click="editMovieInfo()" v-else>确定修改</button>
+    </template>
+  </el-dialog>
+
+  <!-- 直播推流信息 -->
+  <el-dialog
+    v-model="liveInfoDialog"
+    title="直播推流信息"
+    width="443px"
+    class="rounded-lg dark:bg-zinc-800"
+  >
+    <el-form label-position="top">
+      <el-form-item label="推流地址：">
+        <input
+          type="text"
+          class="l-input m-0 p-0 pl-2 w-full"
+          :value="`rtmp://${liveInfoForm.host}/${liveInfoForm.app}/`"
+        />
+      </el-form-item>
+      <el-form-item label="推流密钥：">
+        <input type="text" class="l-input m-0 p-0 pl-2 w-full" :value="liveInfoForm.token" />
+      </el-form-item>
+    </el-form>
+
+    <template #footer>
+      <button class="btn btn-success" @click="liveInfoDialog = false">我已知晓</button>
+    </template>
+  </el-dialog>
+</template>
+
+<style lang="less" scoped>
+.art-player {
+  // margin-bottom: 10px;
+}
+
+.chatArea {
+  overflow-y: scroll;
+  // height: 33vmax;
+}
+
+.i-table {
+  td {
+    padding: 2px 0 2px;
+  }
+}
+
+.a::after {
+  content: "";
+  width: 100%;
+  background-image: url("https://api.imlazy.ink/img/?");
+}
+</style>

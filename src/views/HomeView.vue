@@ -1,0 +1,20 @@
+<script setup lang="ts">
+import { roomStore } from "@/stores/room";
+import RoomList from "@/components/RoomList.vue";
+const room = roomStore();
+const devMode = localStorage.getItem("dev") === "114514" ? true : false;
+</script>
+
+<template>
+  <div class="text-center">
+    <h1 class="text-3xl">首页</h1>
+    <br />
+    <RoomList />
+    <button class="btn" @click="room.increment" v-if="devMode">
+      {{ room.count }}
+    </button>
+    <br />
+    <p class="text-zinc-400">*开发中页面，可能是最终品质</p>
+    <p>&copy; Copyright 2023 Lazy all right reserved</p>
+  </div>
+</template>
