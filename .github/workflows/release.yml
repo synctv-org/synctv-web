@@ -7,7 +7,6 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 jobs:
   build:
@@ -39,14 +38,14 @@ jobs:
         
       - name: Get version
         id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
           
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "${{ steps.get_version.outputs.VERSION }}"
-          title: "${{ steps.get_version.outputs.VERSION }}"
-          prerelease: true
+          automatic_release_tag: "v${{ steps.get_version.outputs.VERSION }}"
+          title: "Version ${{ steps.get_version.outputs.VERSION }}"
+          prerelease: false
           files: |
             dist.zip
             dist.tar.gz
