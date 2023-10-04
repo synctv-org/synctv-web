@@ -1,19 +1,19 @@
 #SyncTV Web
-Provides a Web UI for [SyncTV](https://github.com/synctv-org/synctv)
+这是[SyncTV](https://github.com/synctv-org/synctv)的前端界面
 
-English | [中文](./README-CN.md)
+[English](./README.md) | 中文
 
-## Screenshot
+## 截图
 
 ![NoFilms](https://cdn.imlazy.ink:233/img/tup/synctv/cinema-nofilms.jpg)
 ![Cinema](https://cdn.imlazy.ink:233/img/tup/synctv/cinema.jpg)
 
-## Install
+## 安装
 
-1. Download from `release`
-2. Put it into the [synctv](https://github.com/synctv-org/synctv)'s `public` folder
+1. 从`release`下载
+2. 放进[synctv](https://github.com/synctv-org/synctv)的`public`文件夹
 
-## Build
+## 手动构建
 
 ```bash
 git clone https://github.com/synctv-org/synctv-web
