@@ -6,7 +6,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   release:
@@ -29,17 +29,17 @@ jobs:
         run: |
           npm install
           npm run build
-          
+
       - name: Create dist.zip
         run: zip -r dist.zip dist
 
       - name: Create dist.tar.gz
         run: tar -zcvf dist.tar.gz dist
-        
+
       - name: Get version
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
-          
+
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
