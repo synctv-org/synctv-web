@@ -787,7 +787,7 @@ onBeforeUnmount(() => {
                 <el-tag class="mr-1" size="small" v-if="item.live"> 直播流 </el-tag>
                 {{ item["name"] }}
                 <button
-                  v-if="item.live"
+                  v-if="item.rtmpSource"
                   class="ml-1 font-normal text-sm border bg-rose-50 dark:bg-transparent border-rose-500 rounded-lg px-2 text-rose-500 hover:brightness-75 transition-all"
                   @click="getLiveInfo(item['id'])"
                 >
