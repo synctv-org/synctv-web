@@ -617,6 +617,7 @@ onMounted(() => {
       playerLoaded.value = false;
       if (jsonData.pullKey !== "") {
         jsonData.url = `${window.location.origin}/api/movie/live/${jsonData.pullKey}.flv`;
+        // jsonData.url = `${window.location.origin}/api/movie/live/${jsonData.pullKey}.m3u8`;
         playerOptions.value = {
           url: jsonData.url,
           isLive: jsonData.live

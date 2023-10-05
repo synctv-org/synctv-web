@@ -7,7 +7,8 @@ import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import type { PropType } from "vue";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import mpegts from "mpegts.js";
-import Hls from "hls.js";
+import Hls, { HdcpLevels } from "hls.js";
+import type { MediaKeySessionContext } from "hls.js"
 const room = roomStore();
 
 const artplayer = ref<HTMLDivElement>();
@@ -71,10 +72,11 @@ const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
       { type: "flv", url },
       {
         headers: {
-          Authorization: localStorage.token
+          Authorization: url.startsWith(window.location.origin) ? localStorage.token : ""
         }
       }
     );
+
     flv.attachMediaElement(player);
     flv.load();
     art.flv = flv;
@@ -84,10 +86,17 @@ const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
   }
 };
 
+const playM3u8Config = {
+  xhrSetup: function (xhr: XMLHttpRequest, url: string): void | Promise<void> {
+    // xhr.open("GET", url, true);
+    xhr.setRequestHeader('Authorization', url.startsWith(window.location.origin) ? localStorage.token : "");
+  },
+};
+
 const playM3u8 = (player: HTMLMediaElement, url: string, art: any) => {
   if (Hls.isSupported()) {
     if (art.hls) art.hls.destroy();
-    const hls = new Hls();
+    const hls = new Hls(playM3u8Config);
     hls.loadSource(url);
     hls.attachMedia(player);
     art.hls = hls;
