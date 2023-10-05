@@ -7,6 +7,7 @@ import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import type { PropType } from "vue";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import mpegts from "mpegts.js";
+import Hls from "hls.js";
 const room = roomStore();
 
 const artplayer = ref<HTMLDivElement>();
@@ -70,7 +71,7 @@ const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
       { type: "flv", url },
       {
         headers: {
-          Authorization: "Bearer " + localStorage.token
+          Authorization: localStorage.token
         }
       }
     );
@@ -80,6 +81,19 @@ const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
     art.on("destroy", () => flv.destroy());
   } else {
     art.notice.show = "Unsupported playback format: flv";
+  }
+};
+
+const playM3u8 = (player: HTMLMediaElement, url: string, art: any) => {
+  if (Hls.isSupported()) {
+    if (art.hls) art.hls.destroy();
+    const hls = new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(player);
+    art.hls = hls;
+    art.on("destroy", () => hls.destroy());
+  } else {
+    art.notice.show = "Unsupported playback format: m3u8";
   }
 };
 
@@ -123,7 +137,8 @@ onMounted(() => {
     // url: "",
     // type: "flv",
     customType: {
-      flv: playFlv
+      flv: playFlv,
+      m3u8: playM3u8
     }
   };
 
