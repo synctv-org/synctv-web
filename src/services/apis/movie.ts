@@ -4,6 +4,12 @@ import type { BaseMovieInfo, MovieInfo, EditMovieInfo, MovieStatus } from "@/typ
 // 获取影片列表
 export const movieListApi = useDefineApi<
   {
+    params: {
+      page: number;
+      max: number;
+      sort?: string;
+      order: string;
+    };
     headers: { Authorization: string };
   },
   {

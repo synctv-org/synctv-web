@@ -113,7 +113,11 @@ const deleteRoom = async () => {
 };
 
 // 获取影片列表
-let movieList = ref<MovieInfo[]>([]);
+const movieList = ref<MovieInfo[]>([]);
+const totalMovies = ref(0);
+const currentPage = ref(1);
+const pageSize = ref(10);
+const order = ref("desc");
 const { state: _movieList, isLoading: movieListLoading, execute: reqMovieListApi } = movieListApi();
 /**
  * @argument updateStatus 是否更新当前正在播放的影片（包括状态）
@@ -121,12 +125,18 @@ const { state: _movieList, isLoading: movieListLoading, execute: reqMovieListApi
 const getMovieList = async (updateStatus: boolean) => {
   try {
     await reqMovieListApi({
+      params: {
+        page: currentPage.value,
+        max: pageSize.value,
+        order: order.value
+      },
       headers: { Authorization: localStorage.token }
     });
 
     if (_movieList.value) {
       localStorage.getItem("dev") === "114514" && console.log(_movieList.value);
       room.movieList = movieList.value = _movieList.value.movies;
+      totalMovies.value = _movieList.value.total;
       if (updateStatus) {
         room.currentMovie = _movieList.value.current.movie;
         room.currentMovieStatus = _movieList.value.current.status;
@@ -824,11 +834,9 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div class="card-footer justify-between">
-          <div>
-            <button class="btn mr-2" v-if="selectMovies.length === 2" @click="swapMovie">
-              交换位置
-            </button>
+        <div class="card-footer justify-between flex-wrap overflow-hidden">
+          <div v-if="selectMovies.length === 2">
+            <button class="btn mr-2" @click="swapMovie">交换位置</button>
 
             <el-popconfirm
               v-if="selectMovies.length >= 2"
@@ -843,6 +851,17 @@ onBeforeUnmount(() => {
               </template>
             </el-popconfirm>
           </div>
+          <el-pagination
+            v-else
+            class="max-sm:mb-4"
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :pager-count="4"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="totalMovies"
+            @size-change="getMovieList(false)"
+            @current-change="getMovieList(false)"
+          />
 
           <div></div>
           <div>
