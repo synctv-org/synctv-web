@@ -97,7 +97,7 @@ const playMse = (player: HTMLMediaElement, url: string, art: any) => {
     art.flv = mse;
     art.on("destroy", () => mse.destroy());
   } else {
-    art.notice.show = "Unsupported playback format: flv";
+    art.notice.show = "Unsupported playback format: mse";
   }
 };
 
@@ -106,13 +106,12 @@ const playMpegts = (player: HTMLMediaElement, url: string, art: any) => {
     const mpegtsPlayer = mpegts.createPlayer(
       { type: "mpegts", url }
     );
-
     mpegtsPlayer.attachMediaElement(player);
     mpegtsPlayer.load();
     art.flv = mpegtsPlayer;
     art.on("destroy", () => mpegtsPlayer.destroy());
   } else {
-    art.notice.show = "Unsupported playback format: flv";
+    art.notice.show = "Unsupported playback format: mpegts";
   }
 };
 
@@ -127,7 +126,7 @@ const playM2ts = (player: HTMLMediaElement, url: string, art: any) => {
     art.flv = m2ts;
     art.on("destroy", () => m2ts.destroy());
   } else {
-    art.notice.show = "Unsupported playback format: flv";
+    art.notice.show = "Unsupported playback format: m2ts";
   }
 };
 
@@ -178,7 +177,6 @@ onMounted(() => {
     autoPlayback: false, // 使用自动回放功能
     autoOrientation: true, // 移动端的网页全屏时，根据视频尺寸和视口尺寸，旋转播放器
     airplay: false, // 隔空播放
-    // isLive: room.currentMovie.live,
     plugins: [
       artplayerPluginDanmuku({
         // 弹幕数组
@@ -186,16 +184,15 @@ onMounted(() => {
         speed: 4
       })
     ],
-    // type: 'm3u8',
     ...Props.options,
-    // url: "",
-    // type: "flv",
     customType: {
       flv: playFlv,
       m3u8: playM3u8,
       mes: playMse,
-      mpegts: playMpegts,
+      ts: playMpegts,
       m2ts: playM2ts,
+      m2t: playM2ts,
+      mts: playM2ts,
     }
   };
 
