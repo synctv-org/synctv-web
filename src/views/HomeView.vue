@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { roomStore } from "@/stores/room";
 import RoomList from "@/components/RoomList.vue";
+import { isDev } from "@/utils/utils";
 const room = roomStore();
-const devMode = localStorage.getItem("dev") === "114514" ? true : false;
+const devMode = isDev() ? true : false;
 </script>
 
 <template>

@@ -22,6 +22,7 @@ import {
 import type { BaseMovieInfo, MovieInfo, EditMovieInfo, MovieStatus } from "@/types/Movie";
 import type { WsMessage } from "@/types/Room";
 import { WsMessageType } from "@/types/Room";
+import { getFileExtension, isDev } from "@/utils/utils";
 
 const { width: WindowWidth } = useWindowSize();
 const room = roomStore();
@@ -135,7 +136,7 @@ const getMovieList = async (updateStatus: boolean) => {
     });
 
     if (_movieList.value) {
-      localStorage.getItem("dev") === "114514" && console.log(_movieList.value);
+      isDev() && console.log(_movieList.value);
       room.movieList = movieList.value = _movieList.value.movies;
       totalMovies.value = _movieList.value.total;
       if (updateStatus) {
@@ -144,7 +145,7 @@ const getMovieList = async (updateStatus: boolean) => {
       }
     }
   } catch (err: any) {
-    localStorage.getItem("dev") === "114514" && console.log(err);
+    isDev() && console.log(err);
     if (err.response.status === 401) {
       ElNotification({
         title: "身份验证失败，请重新进入房间",
@@ -424,7 +425,8 @@ const swapMovie = async () => {
 const playerLoaded = ref(false);
 const playerOptions = ref({
   url: "",
-  isLive: false
+  isLive: false,
+  type: "",
 });
 const { execute: reqChangeCurrentMovieApi } = changeCurrentMovieApi();
 const changeCurrentMovie = async (id: number) => {
@@ -470,12 +472,12 @@ watch(
   () => data.value,
   () => {
     if (data.value === "")
-      return localStorage.getItem("dev") === "114514" && console.log("返回了空", data.value);
+      return isDev() && console.log("返回了空", data.value);
 
     const jsonData: WsMessage = JSON.parse(data.value);
-    localStorage.getItem("dev") === "114514" && console.log(`-----Ws Message Start-----`);
-    localStorage.getItem("dev") === "114514" && console.log(jsonData);
-    localStorage.getItem("dev") === "114514" && console.log(`-----Ws Message End-----`);
+    isDev() && console.log(`-----Ws Message Start-----`);
+    isDev() && console.log(jsonData);
+    isDev() && console.log(`-----Ws Message End-----`);
     switch (jsonData.type) {
       // 聊天消息
       case WsMessageType.MESSAGE: {
@@ -580,7 +582,7 @@ const sendText = () => {
   send(msg);
   sendText_.value = "";
   chatArea!.scrollTop = chatArea!.scrollHeight;
-  localStorage.getItem("dev") === "114514" && console.log("sended:" + msg);
+  isDev() && console.log("sended:" + msg);
 };
 
 let player: ArtPlayer;
@@ -596,6 +598,13 @@ const resetChatAreaHeight = () => {
   playArea = document.querySelector(".playArea");
   const h = playArea ? playArea : noPlayArea;
   chatArea && h && (chatArea.style.height = h.scrollHeight - 63 + "px");
+};
+
+const parseVideoType = (movie: MovieInfo) => {
+  if (movie.type) {
+    return movie.type;
+  }
+  return getFileExtension(movie.url)
 };
 
 onMounted(() => {
@@ -620,17 +629,19 @@ onMounted(() => {
         // jsonData.url = `${window.location.origin}/api/movie/live/${jsonData.pullKey}.m3u8`;
         playerOptions.value = {
           url: jsonData.url,
-          isLive: jsonData.live
+          isLive: jsonData.live,
+          type: parseVideoType(jsonData),
         };
         setInterval(() => (playerLoaded.value = true), 20);
       } else if (jsonData.url === "") {
         // player.switchUrl("https://live.lazy.ink/hd.mp4");
         playerLoaded.value = false;
       } else {
-        localStorage.getItem("dev") === "114514" && console.log("变了！", jsonData.url);
+        isDev() && console.log("变了！", jsonData.url);
         playerOptions.value = {
           url: jsonData.url,
-          isLive: jsonData.live
+          isLive: jsonData.live,
+          type: parseVideoType(jsonData),
         };
 
         setInterval(() => (playerLoaded.value = true), 20);

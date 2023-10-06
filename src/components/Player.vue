@@ -7,8 +7,8 @@ import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import type { PropType } from "vue";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import mpegts from "mpegts.js";
-import Hls, { HdcpLevels } from "hls.js";
-import type { MediaKeySessionContext } from "hls.js"
+import Hls from "hls.js";
+import { isDev } from "@/utils/utils";
 const room = roomStore();
 
 const artplayer = ref<HTMLDivElement>();
@@ -36,9 +36,9 @@ const Emits = defineEmits(["get-instance", "set-player-status", "ws-send"]);
 //     setTimeout(() => {
 //       if (jsonData.url === "") {
 //         art.switchUrl("https://live.lazy.ink/hd.mp4");
-//         localStorage.getItem("dev") === "114514" && console.log("视频为空！");
+//         isDev() && console.log("视频为空！");
 //       } else {
-//         localStorage.getItem("dev") === "114514" &&
+//         isDev() &&
 //           console.log("变了！", jsonData.url);
 
 //         art.option.type = "";
@@ -81,6 +81,51 @@ const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
     flv.load();
     art.flv = flv;
     art.on("destroy", () => flv.destroy());
+  } else {
+    art.notice.show = "Unsupported playback format: flv";
+  }
+};
+
+const playMse = (player: HTMLMediaElement, url: string, art: any) => {
+  if (mpegts.isSupported()) {
+    const mse = mpegts.createPlayer(
+      { type: "mse", url }
+    );
+
+    mse.attachMediaElement(player);
+    mse.load();
+    art.flv = mse;
+    art.on("destroy", () => mse.destroy());
+  } else {
+    art.notice.show = "Unsupported playback format: flv";
+  }
+};
+
+const playMpegts = (player: HTMLMediaElement, url: string, art: any) => {
+  if (mpegts.isSupported()) {
+    const mpegtsPlayer = mpegts.createPlayer(
+      { type: "mpegts", url }
+    );
+
+    mpegtsPlayer.attachMediaElement(player);
+    mpegtsPlayer.load();
+    art.flv = mpegtsPlayer;
+    art.on("destroy", () => mpegtsPlayer.destroy());
+  } else {
+    art.notice.show = "Unsupported playback format: flv";
+  }
+};
+
+const playM2ts = (player: HTMLMediaElement, url: string, art: any) => {
+  if (mpegts.isSupported()) {
+    const m2ts = mpegts.createPlayer(
+      { type: "m2ts", url }
+    );
+
+    m2ts.attachMediaElement(player);
+    m2ts.load();
+    art.flv = m2ts;
+    art.on("destroy", () => m2ts.destroy());
   } else {
     art.notice.show = "Unsupported playback format: flv";
   }
@@ -147,7 +192,10 @@ onMounted(() => {
     // type: "flv",
     customType: {
       flv: playFlv,
-      m3u8: playM3u8
+      m3u8: playM3u8,
+      mes: playMse,
+      mpegts: playMpegts,
+      m2ts: playM2ts,
     }
   };
 
@@ -170,7 +218,7 @@ onMounted(() => {
     watch(
       () => room.currentMovieStatus.seek,
       () => {
-        localStorage.getItem("dev") === "114514" &&
+        isDev() &&
           console.log("seek变了：", room.currentMovieStatus.seek);
 
         if (!room.currentMovie.live)
@@ -181,7 +229,7 @@ onMounted(() => {
     watch(
       () => room.currentMovieStatus.rate,
       () => {
-        localStorage.getItem("dev") === "114514" &&
+        isDev() &&
           console.log("rate变了：", room.currentMovieStatus.rate);
 
         if (!room.currentMovie.live) {
@@ -200,8 +248,8 @@ onMounted(() => {
       }
     }, 100);
 
-    localStorage.getItem("dev") === "114514" && console.log("art.seek:", art.currentTime);
-    localStorage.getItem("dev") === "114514" &&
+    isDev() && console.log("art.seek:", art.currentTime);
+    isDev() &&
       console.log("room.seek:", room.currentMovieStatus.seek);
 
     Emits("ws-send", "PLAYER：视频已就绪");
@@ -223,14 +271,14 @@ onMounted(() => {
     art.on("play", () => {
       vPlayAndPause(3);
       isPlaying.value = true;
-      localStorage.getItem("dev") === "114514" && console.log("视频播放,seek:", art.currentTime);
+      isDev() && console.log("视频播放,seek:", art.currentTime);
     });
 
     // 视频暂停
     art.on("pause", () => {
       vPlayAndPause(4);
       isPlaying.value = false;
-      localStorage.getItem("dev") === "114514" &&
+      isDev() &&
         console.log("视频暂停中，，seek:", art.currentTime);
     });
 
@@ -245,7 +293,7 @@ onMounted(() => {
             Rate: art.playbackRate
           })
         );
-      localStorage.getItem("dev") === "114514" && console.log("视频空降，:", art.currentTime);
+      isDev() && console.log("视频空降，:", art.currentTime);
     }, 1000);
 
     art.on("seek", (currentTime) => {
