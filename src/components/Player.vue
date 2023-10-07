@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useDebounceFn } from "@vueuse/core";
 import { roomStore } from "@/stores/room";
 import Artplayer from "artplayer";
 import type { Option } from "artplayer/types/option";
@@ -8,7 +7,6 @@ import type { PropType } from "vue";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import mpegts from "mpegts.js";
 import Hls from "hls.js";
-import { isDev } from "@/utils/utils";
 const room = roomStore();
 
 const artplayer = ref<HTMLDivElement>();
@@ -26,7 +24,8 @@ const Props = defineProps({
   }
 });
 
-const Emits = defineEmits(["get-instance", "set-player-status", "ws-send"]);
+const Emits = defineEmits(["get-instance"]);
+
 // 监听当前正在播放影片变化
 // watch(
 //   () => room.currentMovie,
@@ -182,7 +181,7 @@ onMounted(() => {
         // 弹幕数组
         danmuku: [],
         speed: 4
-      })
+      }),
     ],
     ...Props.options,
     customType: {
@@ -198,113 +197,6 @@ onMounted(() => {
 
   art = new Artplayer(option);
 
-  const isPlaying = ref(false);
-
-  const onReady = () => {
-    watch(
-      () => room.currentMovieStatus.playing,
-      () => {
-        // 非直播流才同步
-        if (!room.currentMovie.live) {
-          if (room.currentMovieStatus.playing === isPlaying.value) return;
-          room.currentMovieStatus.playing ? art.play() : art.pause();
-        }
-      }
-    );
-
-    watch(
-      () => room.currentMovieStatus.seek,
-      () => {
-        isDev() &&
-          console.log("seek变了：", room.currentMovieStatus.seek);
-
-        if (!room.currentMovie.live)
-          room.currentMovieStatus.seek === 0 ? false : (art.seek = room.currentMovieStatus.seek);
-      }
-    );
-
-    watch(
-      () => room.currentMovieStatus.rate,
-      () => {
-        isDev() &&
-          console.log("rate变了：", room.currentMovieStatus.rate);
-
-        if (!room.currentMovie.live) {
-          room.currentMovieStatus.rate === art.playbackRate
-            ? void 0
-            : (art.playbackRate = room.currentMovieStatus.rate);
-        }
-      }
-    );
-
-    setTimeout(() => {
-      if (!room.currentMovie.live) {
-        art.seek = room.currentMovieStatus.seek;
-        room.currentMovieStatus.playing ? art.play() : art.pause();
-        console.log("seek同步成功:", room.currentMovieStatus.seek);
-      }
-    }, 100);
-
-    isDev() && console.log("art.seek:", art.currentTime);
-    isDev() &&
-      console.log("room.seek:", room.currentMovieStatus.seek);
-
-    Emits("ws-send", "PLAYER：视频已就绪");
-    // art.off('ready', onReady);
-
-    // 视频播放
-    const vPlayAndPause = useDebounceFn((type: number) => {
-      if (!room.currentMovie.live)
-        Emits(
-          "set-player-status",
-          JSON.stringify({
-            Type: type,
-            Seek: art.currentTime,
-            Rate: art.playbackRate
-          })
-        );
-    }, 1000);
-
-    art.on("play", () => {
-      vPlayAndPause(3);
-      isPlaying.value = true;
-      isDev() && console.log("视频播放,seek:", art.currentTime);
-    });
-
-    // 视频暂停
-    art.on("pause", () => {
-      vPlayAndPause(4);
-      isPlaying.value = false;
-      isDev() &&
-        console.log("视频暂停中，，seek:", art.currentTime);
-    });
-
-    // 空降
-    const debouncedFn = useDebounceFn((currentTime: number) => {
-      if (!room.currentMovie.live)
-        Emits(
-          "set-player-status",
-          JSON.stringify({
-            Type: 9,
-            Seek: currentTime,
-            Rate: art.playbackRate
-          })
-        );
-      isDev() && console.log("视频空降，:", art.currentTime);
-    }, 1000);
-
-    art.on("seek", (currentTime) => {
-      debouncedFn(currentTime);
-    });
-
-    // 倍速
-    art.on("video:ratechange", () => {
-      console.log(art.playbackRate);
-
-      isPlaying.value ? vPlayAndPause(3) : vPlayAndPause(4);
-    });
-  };
-  art.on("ready", onReady);
   Emits("get-instance", art);
 });
 

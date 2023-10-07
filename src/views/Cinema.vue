@@ -23,6 +23,7 @@ import type { BaseMovieInfo, MovieInfo, EditMovieInfo, MovieStatus } from "@/typ
 import type { WsMessage } from "@/types/Room";
 import { WsMessageType } from "@/types/Room";
 import { getFileExtension, isDev } from "@/utils/utils";
+import { sync } from "@/plugins/sync"
 
 const { width: WindowWidth } = useWindowSize();
 const room = roomStore();
@@ -283,39 +284,24 @@ const pushMovie = async (dir: string) => {
 };
 
 // 获取当前影片状态
-const { state: movieStatus, execute: reqMovieStatusApi } = movieStatusApi();
-const getCurrentMovieStatus = async () => {
-  try {
-    await reqMovieStatusApi({
-      headers: { Authorization: localStorage.token }
-    });
-    if (movieStatus.value) {
-      setCurrentMovieStatus(movieStatus.value.current.status);
-    }
-  } catch (err: any) {
-    console.error(err.message);
-    ElNotification({
-      title: "获取失败",
-      type: "error",
-      message: err.response.data.error || err.message
-    });
-  }
-};
-
-// 设置影片状态
-const setCurrentMovieStatus = (movieStatus: MovieStatus) => {
-  room.currentMovieStatus.playing === movieStatus.playing
-    ? void 0
-    : (room.currentMovieStatus.playing = movieStatus.playing);
-  room.currentMovieStatus.rate === movieStatus.rate
-    ? void 0
-    : (room.currentMovieStatus.rate = movieStatus.rate);
-  if (
-    room.currentMovieStatus.seek - movieStatus.seek > 1 ||
-    room.currentMovieStatus.seek - movieStatus.seek > -2
-  )
-    room.currentMovieStatus.seek = movieStatus.seek;
-};
+// const { state: movieStatus, execute: reqMovieStatusApi } = movieStatusApi();
+// const getCurrentMovieStatus = async () => {
+//   try {
+//     await reqMovieStatusApi({
+//       headers: { Authorization: localStorage.token }
+//     });
+//     if (movieStatus.value) {
+//       setAllStatus(movieStatus.value.current.status.playing, movieStatus.value.current.status.seek, movieStatus.value.current.status.rate);
+//     }
+//   } catch (err: any) {
+//     console.error(err.message);
+//     ElNotification({
+//       title: "获取失败",
+//       type: "error",
+//       message: err.response.data.error || err.message
+//     });
+//   }
+// };
 
 // 当前影片信息
 let cMovieInfo = ref<EditMovieInfo>({
@@ -467,6 +453,21 @@ const updateMsgList = (msg: string) => {
   msgList.value.push(msg);
 };
 
+const setAllStatus = (playing: boolean, seek: number, rate: number) => {
+  // playing必须比seek后设置，因为watch的顺序会变成先seek后playing，seek会导致playing状态不正确，导致playing无法设置
+  setStatus(seek, rate);
+  room.currentMovieStatus.playing = playing;
+};
+
+const setStatus = (seek: number, rate: number) => {
+  if (
+    room.currentMovieStatus.seek - seek > 2 ||
+    room.currentMovieStatus.seek - seek < -2
+  )
+    room.currentMovieStatus.seek = seek;
+  room.currentMovieStatus.rate = rate;
+}
+
 // 监听ws信息变化
 watch(
   () => data.value,
@@ -504,32 +505,24 @@ watch(
 
       // 播放
       case WsMessageType.PLAY: {
-        setCurrentMovieStatus({
-          playing: true,
-          seek: jsonData.seek,
-          rate: jsonData.rate
-        });
+        setAllStatus(true, jsonData.seek, jsonData.rate);
         break;
       }
 
       // 暂停
       case WsMessageType.PAUSE: {
-        setCurrentMovieStatus({
-          playing: false,
-          seek: jsonData.seek,
-          rate: jsonData.rate
-        });
+        setAllStatus(false, jsonData.seek, jsonData.rate);
         break;
       }
 
       // 视频进度发生变化
       case WsMessageType.SEEK: {
-        // room.currentMovie = jsonData.
-        if (
-          room.currentMovieStatus.seek - jsonData.seek > 1 ||
-          room.currentMovieStatus.seek - jsonData.seek < -2
-        )
-          room.currentMovieStatus.seek = jsonData.seek;
+        setStatus(jsonData.seek, jsonData.rate);
+        break;
+      }
+
+      case WsMessageType.RATE: {
+        setStatus(jsonData.seek, jsonData.rate);
         break;
       }
 
@@ -589,6 +582,10 @@ let player: ArtPlayer;
 
 function getInstance(art: ArtPlayer) {
   player = art;
+  player.plugins.add(sync({
+    "set-player-status": send,
+    "ws-send": updateMsgList,
+  }))
 }
 
 // 设置聊天框高度
@@ -673,8 +670,7 @@ onBeforeUnmount(() => {
             <!-- 
           https://www.llxz.cc/style/images/zhuye.mp4
         -->
-            <Player @set-player-status="send" @ws-send="updateMsgList" @get-instance="getInstance"
-              :options="playerOptions"></Player>
+            <Player @get-instance="getInstance" :options="playerOptions"></Player>
           </div>
         </div>
         <div class="card-body noPlayArea max-sm:pb-3 max-sm:px-3" v-else>
