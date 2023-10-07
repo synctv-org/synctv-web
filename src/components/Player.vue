@@ -67,14 +67,21 @@ watch(
 
 const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
   if (mpegts.isSupported()) {
-    const flv = mpegts.createPlayer(
-      { type: "flv", url },
-      {
-        headers: {
-          Authorization: url.startsWith(window.location.origin) ? localStorage.token : ""
+    let flv: mpegts.Player
+    if (url.startsWith(window.location.origin) && localStorage.token) {
+      flv = mpegts.createPlayer(
+        { type: "flv", url },
+        {
+          headers: {
+            Authorization: localStorage.token
+          }
         }
-      }
-    );
+      );
+    } else {
+      flv = mpegts.createPlayer(
+        { type: "flv", url }
+      );
+    }
 
     flv.attachMediaElement(player);
     flv.load();
@@ -132,7 +139,9 @@ const playM2ts = (player: HTMLMediaElement, url: string, art: any) => {
 const playM3u8Config = {
   xhrSetup: function (xhr: XMLHttpRequest, url: string): void | Promise<void> {
     // xhr.open("GET", url, true);
-    xhr.setRequestHeader('Authorization', url.startsWith(window.location.origin) ? localStorage.token : "");
+    if (url.startsWith(window.location.origin) && localStorage.token) {
+      xhr.setRequestHeader('Authorization', localStorage.token);
+    }
   },
 };
 
