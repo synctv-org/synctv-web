@@ -1,10 +1,11 @@
 import { ref, watch } from "vue";
 import type { WatchStopHandle } from "vue";
 import { roomStore } from "@/stores/room";
-import { devLog, getFileExtension } from "@/utils/utils";
+import { devLog } from "@/utils/utils";
+import Notify from "@/utils/notify";
 import { useDebounceFn } from "@vueuse/core";
 import { WsMessageType } from "@/types/Room";
-import type { BaseMovieInfo, MovieInfo, EditMovieInfo, MovieStatus } from "@/types/Movie";
+import { ElNotification, ElMessage } from "element-plus";
 const room = roomStore();
 
 interface callback {
@@ -63,7 +64,14 @@ export const sync = (cbk: callback) => {
           art.once("play", () => {
             art.on("play", publishPlayOrPause);
           });
-          art.play();
+          art.play().catch(() => {
+            art.muted = true;
+            art.play();
+            ElNotification({
+              title: "温馨提示",
+              message: "由于浏览器限制，播放器已静音，请手动开启声音"
+            });
+          });
         } else {
           art.off("pause", publishPlayOrPause);
           art.once("pause", () => {
@@ -154,7 +162,14 @@ export const sync = (cbk: callback) => {
       });
     } else {
       art.once("ready", () => {
-        art.play();
+        art.play().catch(() => {
+          art.muted = true;
+          art.play();
+          ElNotification({
+            title: "温馨提示",
+            message: "由于浏览器限制，播放器已静音，请手动开启声音"
+          });
+        });
         cbk["ws-send"]("PLAYER：视频已就绪");
       });
     }

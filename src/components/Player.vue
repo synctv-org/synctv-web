@@ -161,7 +161,6 @@ const playM3u8 = (player: HTMLMediaElement, url: string, art: any) => {
 
 const playerOption = computed<Option>(() => {
   return {
-    muted: true,
     container: artplayer.value!,
     volume: 0, // 音量
     autoSize: false, // 隐藏黑边
