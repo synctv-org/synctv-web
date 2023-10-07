@@ -22,7 +22,7 @@ import {
 import type { BaseMovieInfo, MovieInfo, EditMovieInfo, MovieStatus } from "@/types/Movie";
 import type { WsMessage } from "@/types/Room";
 import { WsMessageType } from "@/types/Room";
-import { getFileExtension, isDev } from "@/utils/utils";
+import { getFileExtension, devLog } from "@/utils/utils";
 import { sync } from "@/plugins/sync"
 
 const { width: WindowWidth } = useWindowSize();
@@ -137,7 +137,7 @@ const getMovieList = async (updateStatus: boolean) => {
     });
 
     if (_movieList.value) {
-      isDev() && console.log(_movieList.value);
+      devLog(_movieList.value);
       room.movieList = movieList.value = _movieList.value.movies;
       totalMovies.value = _movieList.value.total;
       if (updateStatus) {
@@ -146,7 +146,7 @@ const getMovieList = async (updateStatus: boolean) => {
       }
     }
   } catch (err: any) {
-    isDev() && console.log(err);
+    devLog(err);
     if (err.response.status === 401) {
       ElNotification({
         title: "身份验证失败，请重新进入房间",
@@ -473,12 +473,12 @@ watch(
   () => data.value,
   () => {
     if (data.value === "")
-      return isDev() && console.log("返回了空", data.value);
+      return devLog("返回了空", data.value);
 
     const jsonData: WsMessage = JSON.parse(data.value);
-    isDev() && console.log(`-----Ws Message Start-----`);
-    isDev() && console.log(jsonData);
-    isDev() && console.log(`-----Ws Message End-----`);
+    devLog(`-----Ws Message Start-----`);
+    devLog(jsonData);
+    devLog(`-----Ws Message End-----`);
     switch (jsonData.type) {
       // 聊天消息
       case WsMessageType.MESSAGE: {
@@ -575,7 +575,7 @@ const sendText = () => {
   send(msg);
   sendText_.value = "";
   chatArea!.scrollTop = chatArea!.scrollHeight;
-  isDev() && console.log("sended:" + msg);
+  devLog("sended:" + msg);
 };
 
 let player: ArtPlayer;
@@ -634,7 +634,7 @@ onMounted(() => {
         // player.switchUrl("https://live.lazy.ink/hd.mp4");
         playerLoaded.value = false;
       } else {
-        isDev() && console.log("变了！", jsonData.url);
+        devLog("变了！", jsonData.url);
         playerOptions.value = {
           url: jsonData.url,
           isLive: jsonData.live,

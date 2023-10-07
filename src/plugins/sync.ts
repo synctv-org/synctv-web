@@ -1,6 +1,6 @@
 import { ref, watch } from "vue";
 import { roomStore } from "@/stores/room";
-import { isDev } from "@/utils/utils";
+import { devLog } from "@/utils/utils";
 import { useDebounceFn } from "@vueuse/core";
 import { WsMessageType } from "@/types/Room";
 const room = roomStore();
@@ -26,7 +26,7 @@ export const sync = (cbk: callback) => {
             Rate: art.playbackRate
           })
         );
-      isDev() && console.log("视频空降，:", art.currentTime);
+      devLog("视频空降，:", art.currentTime);
     }, debounceTime);
 
     const setAndNoPublishSeek = (seek: number) => {
@@ -38,7 +38,7 @@ export const sync = (cbk: callback) => {
     };
 
     const publishPlayOrPause = useDebounceFn(() => {
-      // isDev() && console.log("视频播放,seek:", art.currentTime);
+      // devLog("视频播放,seek:", art.currentTime);
       if (room.currentMovie.live) return;
       if (art.playing) {
         cbk["set-player-status"](
@@ -60,7 +60,7 @@ export const sync = (cbk: callback) => {
     }, debounceTime);
 
     const setAndNoPublishPlayOrPause = (playing: boolean) => {
-      isDev() && console.log("视频播放(no publish),seek:", art.currentTime);
+      devLog("视频播放(no publish),seek:", art.currentTime);
       if (playing) {
         art.off("play", publishPlayOrPause);
         art.play();
@@ -85,7 +85,7 @@ export const sync = (cbk: callback) => {
             Rate: art.playbackRate
           })
         );
-      isDev() && console.log("视频倍速,seek:", art.currentTime);
+      devLog("视频倍速,seek:", art.currentTime);
     };
 
     const setAndNoPublishRate = (rate: number) => {
@@ -109,7 +109,7 @@ export const sync = (cbk: callback) => {
     watch(
       () => room.currentMovieStatus.seek,
       () => {
-        isDev() && console.log("seek变了：", room.currentMovieStatus.seek);
+        devLog("seek变了：", room.currentMovieStatus.seek);
         if (!room.currentMovie.live) setAndNoPublishSeek(room.currentMovieStatus.seek);
       }
     );
@@ -117,7 +117,7 @@ export const sync = (cbk: callback) => {
     watch(
       () => room.currentMovieStatus.rate,
       () => {
-        isDev() && console.log("rate变了：", room.currentMovieStatus.rate);
+        devLog("rate变了：", room.currentMovieStatus.rate);
 
         if (!room.currentMovie.live) {
           room.currentMovieStatus.rate === art.playbackRate
@@ -127,8 +127,8 @@ export const sync = (cbk: callback) => {
       }
     );
 
-    isDev() && console.log("art.seek:", art.currentTime);
-    isDev() && console.log("room.seek:", room.currentMovieStatus.seek);
+    devLog("art.seek:", art.currentTime);
+    devLog("room.seek:", room.currentMovieStatus.seek);
 
     art.once("ready", () => {
       if (!room.currentMovie.live) {

@@ -35,10 +35,9 @@ const Emits = defineEmits(["get-instance"]);
 //     setTimeout(() => {
 //       if (jsonData.url === "") {
 //         art.switchUrl("https://live.lazy.ink/hd.mp4");
-//         isDev() && console.log("视频为空！");
+//        devLog("视频为空！");
 //       } else {
-//         isDev() &&
-//           console.log("变了！", jsonData.url);
+//         devLog("变了！", jsonData.url);
 
 //         art.option.type = "";
 

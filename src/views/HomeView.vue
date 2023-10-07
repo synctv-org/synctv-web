@@ -3,7 +3,6 @@ import { roomStore } from "@/stores/room";
 import RoomList from "@/components/RoomList.vue";
 import { isDev } from "@/utils/utils";
 const room = roomStore();
-const devMode = isDev() ? true : false;
 </script>
 
 <template>
@@ -11,7 +10,7 @@ const devMode = isDev() ? true : false;
     <h1 class="text-3xl">首页</h1>
     <br />
     <RoomList />
-    <button class="btn" @click="room.increment" v-if="devMode">
+    <button class="btn" @click="room.increment" v-if="isDev()">
       {{ room.count }}
     </button>
     <br />
