@@ -23,7 +23,7 @@ import type { BaseMovieInfo, MovieInfo, EditMovieInfo, MovieStatus } from "@/typ
 import type { WsMessage } from "@/types/Room";
 import { WsMessageType } from "@/types/Room";
 import { getFileExtension, devLog } from "@/utils/utils";
-import { sync } from "@/plugins/sync"
+import { sync } from "@/plugins/sync";
 
 const { width: WindowWidth } = useWindowSize();
 const room = roomStore();
@@ -36,17 +36,20 @@ const roomID = localStorage.roomId;
 let password = localStorage.password;
 
 // 启动websocket连接
-const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
-const { status, data, send, close } = useWebSocket(`${wsProtocol}//${window.location.host}/api/room/ws`, {
-  protocols: [localStorage.token],
-  autoReconnect: {
-    retries: 3,
-    delay: 1000,
-    onFailed() {
-      ElMessage.error("Websocket 自动重连失败！");
+const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
+const { status, data, send, close } = useWebSocket(
+  `${wsProtocol}//${window.location.host}/api/room/ws`,
+  {
+    protocols: [localStorage.token],
+    autoReconnect: {
+      retries: 3,
+      delay: 1000,
+      onFailed() {
+        ElMessage.error("Websocket 自动重连失败！");
+      }
     }
   }
-});
+);
 
 // 更新房间密码
 const { state: newToken, execute: reqUpdateRoomPasswordApi } = updateRoomPasswordApi();
@@ -412,7 +415,7 @@ const playerLoaded = ref(false);
 const playerOptions = ref({
   url: "",
   isLive: false,
-  type: "",
+  type: ""
 });
 const { execute: reqChangeCurrentMovieApi } = changeCurrentMovieApi();
 const changeCurrentMovie = async (id: number) => {
@@ -460,20 +463,16 @@ const setAllStatus = (playing: boolean, seek: number, rate: number) => {
 };
 
 const setStatus = (seek: number, rate: number) => {
-  if (
-    room.currentMovieStatus.seek - seek > 2 ||
-    room.currentMovieStatus.seek - seek < -2
-  )
+  if (room.currentMovieStatus.seek - seek > 2 || room.currentMovieStatus.seek - seek < -2)
     room.currentMovieStatus.seek = seek;
   room.currentMovieStatus.rate = rate;
-}
+};
 
 // 监听ws信息变化
 watch(
   () => data.value,
   () => {
-    if (data.value === "")
-      return devLog("返回了空", data.value);
+    if (data.value === "") return devLog("返回了空", data.value);
 
     const jsonData: WsMessage = JSON.parse(data.value);
     devLog(`-----Ws Message Start-----`);
@@ -545,13 +544,13 @@ watch(
       case WsMessageType.PEOPLE_NUM: {
         room.peopleNum < jsonData.peopleNum
           ? msgList.value.push(
-            `<p><b>SYSTEM：</b>欢迎新成员加入，当前共有 ${jsonData.peopleNum} 人在观看</p>`
-          )
+              `<p><b>SYSTEM：</b>欢迎新成员加入，当前共有 ${jsonData.peopleNum} 人在观看</p>`
+            )
           : room.peopleNum > jsonData.peopleNum
-            ? msgList.value.push(
+          ? msgList.value.push(
               `<p><b>SYSTEM：</b>有人离开了房间，当前还剩 ${jsonData.peopleNum} 人在观看</p>`
             )
-            : "";
+          : "";
         room.peopleNum = jsonData.peopleNum;
         break;
       }
@@ -582,10 +581,12 @@ let player: ArtPlayer;
 
 function getInstance(art: ArtPlayer) {
   player = art;
-  player.plugins.add(sync({
-    "set-player-status": send,
-    "ws-send": updateMsgList,
-  }))
+  player.plugins.add(
+    sync({
+      "set-player-status": send,
+      "ws-send": updateMsgList
+    })
+  );
 }
 
 // 设置聊天框高度
@@ -601,7 +602,7 @@ const parseVideoType = (movie: MovieInfo) => {
   if (movie.type) {
     return movie.type;
   }
-  return getFileExtension(movie.url)
+  return getFileExtension(movie.url);
 };
 
 onMounted(() => {
@@ -627,7 +628,7 @@ onMounted(() => {
         playerOptions.value = {
           url: jsonData.url,
           isLive: jsonData.live,
-          type: parseVideoType(jsonData),
+          type: parseVideoType(jsonData)
         };
         setInterval(() => (playerLoaded.value = true), 20);
       } else if (jsonData.url === "") {
@@ -638,7 +639,7 @@ onMounted(() => {
         playerOptions.value = {
           url: jsonData.url,
           isLive: jsonData.live,
-          type: parseVideoType(jsonData),
+          type: parseVideoType(jsonData)
         };
 
         setInterval(() => (playerLoaded.value = true), 20);
@@ -657,12 +658,16 @@ onBeforeUnmount(() => {
   <el-row :gutter="20">
     <el-col :md="18" class="mb-6 max-sm:my-2">
       <div class="card max-sm:rounded-none">
-        <div class="card-title flex flex-wrap justify-between max-sm:text-sm" v-if="room.currentMovie.url !== ''">
+        <div
+          class="card-title flex flex-wrap justify-between max-sm:text-sm"
+          v-if="room.currentMovie.url !== ''"
+        >
           {{ room.currentMovie.name }}
           <small>👁‍🗨 {{ room.peopleNum }} </small>
         </div>
         <div class="card-title flex flex-wrap justify-between max-sm:text-sm" v-else>
-          当前没有影片播放，快去添加几部吧~<small class="font-normal">👁‍🗨 {{ room.peopleNum }}
+          当前没有影片播放，快去添加几部吧~<small class="font-normal"
+            >👁‍🗨 {{ room.peopleNum }}
           </small>
         </div>
         <div class="card-body playArea max-sm:p-0" v-if="playerLoaded">
@@ -695,8 +700,13 @@ onBeforeUnmount(() => {
           </div>
         </div>
         <div class="card-footer" style="justify-content: center; padding: 0.5rem">
-          <input type="text" @keyup.enter="sendText()" v-model="sendText_" placeholder="按 Enter 键即可发送..."
-            class="l-input w-full bg-transparent" />
+          <input
+            type="text"
+            @keyup.enter="sendText()"
+            v-model="sendText_"
+            placeholder="按 Enter 键即可发送..."
+            class="l-input w-full bg-transparent"
+          />
           <button class="btn w-24 m-2.5 ml-0" @click="sendText()">发送</button>
         </div>
       </div>
@@ -723,10 +733,15 @@ onBeforeUnmount(() => {
               <tr>
                 <td>房间密码</td>
                 <td>
-                  <input :type="isShowPassword ? 'text' : 'password'" v-model="password"
-                    class="w-full m-0 pl-1 inline-block bg-neutral-200 border border-neutral-200 rounded-md focus:outline-none hover:bg-neutral-100 transition-all text-sm dark:bg-neutral-700 dark:border-neutral-800" />
-                  <button class="inline-block absolute -translate-x-5 opacity-50 pr-0.5"
-                    @click="isShowPassword = !isShowPassword">
+                  <input
+                    :type="isShowPassword ? 'text' : 'password'"
+                    v-model="password"
+                    class="w-full m-0 pl-1 inline-block bg-neutral-200 border border-neutral-200 rounded-md focus:outline-none hover:bg-neutral-100 transition-all text-sm dark:bg-neutral-700 dark:border-neutral-800"
+                  />
+                  <button
+                    class="inline-block absolute -translate-x-5 opacity-50 pr-0.5"
+                    @click="isShowPassword = !isShowPassword"
+                  >
                     {{ isShowPassword ? "●" : "◯" }}
                   </button>
                 </td>
@@ -740,15 +755,25 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="card-footer flex-wrap justify-between">
-          <el-popconfirm width="220" confirm-button-text="是" cancel-button-text="否" title="你确定要删除这个房间吗？!"
-            @confirm="deleteRoom">
+          <el-popconfirm
+            width="220"
+            confirm-button-text="是"
+            cancel-button-text="否"
+            title="你确定要删除这个房间吗？!"
+            @confirm="deleteRoom"
+          >
             <template #reference>
               <button class="btn btn-error">删除房间</button>
             </template>
           </el-popconfirm>
 
-          <el-popconfirm width="220" confirm-button-text="是" cancel-button-text="否" title="更新后，所有人将会被踢下线！"
-            @confirm="changePassword">
+          <el-popconfirm
+            width="220"
+            confirm-button-text="是"
+            cancel-button-text="否"
+            title="更新后，所有人将会被踢下线！"
+            @confirm="changePassword"
+          >
             <template #reference>
               <button class="btn btn-success">更新房间密码</button>
             </template>
@@ -760,12 +785,16 @@ onBeforeUnmount(() => {
     <!-- 影片列表 -->
     <el-col :lg="12" :md="16" :sm="15" :xs="24" class="mb-6 max-sm:mb-2">
       <div class="card max-sm:rounded-none">
-        <div class="card-title">影片列表（{{ movieList.length }}）</div>
+        <div class="card-title">影片列表（{{ totalMovies }}）</div>
 
         <div class="card-body">
           <el-skeleton v-if="movieListLoading" :rows="1" animated />
-          <div v-else v-for="item in movieList" :key="item.name"
-            class="flex justify-around mb-2 rounded-lg bg-zinc-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800">
+          <div
+            v-else
+            v-for="item in movieList"
+            :key="item.name"
+            class="flex justify-around mb-2 rounded-lg bg-zinc-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800"
+          >
             <div class="m-auto pl-2">
               <input v-model="selectMovies" type="checkbox" :value="item['id']" />
             </div>
@@ -773,9 +802,11 @@ onBeforeUnmount(() => {
               <b class="block text-base font-semibold" :title="`ID: ${item.id}`">
                 <el-tag class="mr-1" size="small" v-if="item.live"> 直播流 </el-tag>
                 {{ item["name"] }}
-                <button v-if="item.rtmpSource"
+                <button
+                  v-if="item.rtmpSource"
                   class="ml-1 font-normal text-sm border bg-rose-50 dark:bg-transparent border-rose-500 rounded-lg px-2 text-rose-500 hover:brightness-75 transition-all"
-                  @click="getLiveInfo(item['id'])">
+                  @click="getLiveInfo(item['id'])"
+                >
                   查看推流信息
                 </button>
               </b>
@@ -791,8 +822,13 @@ onBeforeUnmount(() => {
                 编辑
                 <EditIcon class="inline-block" width="16px" height="16px" />
               </button>
-              <el-popconfirm width="220" confirm-button-text="是" cancel-button-text="否" title="你确定要删除这条影片吗？"
-                @confirm="deleteMovie([item['id']])">
+              <el-popconfirm
+                width="220"
+                confirm-button-text="是"
+                cancel-button-text="否"
+                title="你确定要删除这条影片吗？"
+                @confirm="deleteMovie([item['id']])"
+              >
                 <template #reference>
                   <button class="btn btn-dense btn-error m-0 mr-1">
                     删除
@@ -808,21 +844,40 @@ onBeforeUnmount(() => {
           <div v-if="selectMovies.length === 2">
             <button class="btn mr-2" @click="swapMovie">交换位置</button>
 
-            <el-popconfirm v-if="selectMovies.length >= 2" width="220" confirm-button-text="是" cancel-button-text="否"
-              title="你确定要删除这些影片吗？" @confirm="deleteMovie(selectMovies)">
+            <el-popconfirm
+              v-if="selectMovies.length >= 2"
+              width="220"
+              confirm-button-text="是"
+              cancel-button-text="否"
+              title="你确定要删除这些影片吗？"
+              @confirm="deleteMovie(selectMovies)"
+            >
               <template #reference>
                 <button class="btn btn-error">批量删除</button>
               </template>
             </el-popconfirm>
           </div>
-          <el-pagination v-else class="max-sm:mb-4" v-model:current-page="currentPage" v-model:page-size="pageSize"
-            :pager-count="4" layout="total, sizes, prev, pager, next, jumper" :total="totalMovies"
-            @size-change="getMovieList(false)" @current-change="getMovieList(false)" />
+          <el-pagination
+            v-else
+            class="max-sm:mb-4"
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :pager-count="4"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="totalMovies"
+            @size-change="getMovieList(false)"
+            @current-change="getMovieList(false)"
+          />
 
           <div></div>
           <div>
-            <el-popconfirm width="220" confirm-button-text="是" cancel-button-text="否" title="你确定要清空影片列表吗？!"
-              @confirm="clearMovieList">
+            <el-popconfirm
+              width="220"
+              confirm-button-text="是"
+              cancel-button-text="否"
+              title="你确定要清空影片列表吗？!"
+              @confirm="clearMovieList"
+            >
               <template #reference>
                 <button class="btn btn-error mr-2">清空列表</button>
               </template>
@@ -838,9 +893,19 @@ onBeforeUnmount(() => {
       <div class="card max-sm:rounded-none">
         <div class="card-title">添加影片</div>
         <div class="card-body flex justify-around flex-wrap">
-          <input type="text" placeholder="影片Url" class="l-input-violet mb-1.5 w-full"
-            v-if="!(newMovieInfo.live && newMovieInfo.rtmpSource)" v-model="newMovieInfo.url" />
-          <input type="text" placeholder="影片名称" class="l-input-slate mt-1.5 w-full" v-model="newMovieInfo.name" />
+          <input
+            type="text"
+            placeholder="影片Url"
+            class="l-input-violet mb-1.5 w-full"
+            v-if="!(newMovieInfo.live && newMovieInfo.rtmpSource)"
+            v-model="newMovieInfo.url"
+          />
+          <input
+            type="text"
+            placeholder="影片名称"
+            class="l-input-slate mt-1.5 w-full"
+            v-model="newMovieInfo.name"
+          />
 
           <div class="mt-4 mb-0 flex flex-wrap justify-around w-full">
             <div>
@@ -849,8 +914,11 @@ onBeforeUnmount(() => {
             </div>
 
             <div>
-              <input type="checkbox" v-model="newMovieInfo.rtmpSource"
-                @click="newMovieInfo.live ? true : (newMovieInfo.live = true)" />
+              <input
+                type="checkbox"
+                v-model="newMovieInfo.rtmpSource"
+                @click="newMovieInfo.live ? true : (newMovieInfo.live = true)"
+              />
               <label>&nbsp;我想创建直播</label>
             </div>
 
@@ -869,7 +937,12 @@ onBeforeUnmount(() => {
   </el-row>
 
   <!-- 编辑影片对话框 -->
-  <el-dialog v-model="editDialog" title="编辑影片" width="443px" class="rounded-lg dark:bg-zinc-800">
+  <el-dialog
+    v-model="editDialog"
+    title="编辑影片"
+    width="443px"
+    class="rounded-lg dark:bg-zinc-800"
+  >
     <el-form label-position="top">
       <el-form-item label="Url：">
         <input type="text" class="l-input m-0 p-0 pl-2 w-full" v-model="cMovieInfo.url" />
@@ -888,11 +961,19 @@ onBeforeUnmount(() => {
   </el-dialog>
 
   <!-- 直播推流信息 -->
-  <el-dialog v-model="liveInfoDialog" title="直播推流信息" width="443px" class="rounded-lg dark:bg-zinc-800">
+  <el-dialog
+    v-model="liveInfoDialog"
+    title="直播推流信息"
+    width="443px"
+    class="rounded-lg dark:bg-zinc-800"
+  >
     <el-form label-position="top">
       <el-form-item label="推流地址：">
-        <input type="text" class="l-input m-0 p-0 pl-2 w-full"
-          :value="`rtmp://${liveInfoForm.host}/${liveInfoForm.app}/`" />
+        <input
+          type="text"
+          class="l-input m-0 p-0 pl-2 w-full"
+          :value="`rtmp://${liveInfoForm.host}/${liveInfoForm.app}/`"
+        />
       </el-form-item>
       <el-form-item label="推流密钥：">
         <input type="text" class="l-input m-0 p-0 pl-2 w-full" :value="liveInfoForm.token" />
