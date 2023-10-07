@@ -528,6 +528,7 @@ watch(
       // 设置正在播放的影片
       case WsMessageType.CURRENT_MOVIE: {
         room.currentMovie = jsonData.current.movie;
+        room.currentMovieStatus = jsonData.current.status;
         break;
       }
 
@@ -615,6 +616,7 @@ const syncCurrent = () => {
           jsonData.url = `${window.location.origin}/api/movie/live/${jsonData.pullKey}.flv`;
           // jsonData.url = `${window.location.origin}/api/movie/live/${jsonData.pullKey}.m3u8`;
         }
+        console.log(jsonData);
         playerOptions.value = {
           url: jsonData.url,
           isLive: jsonData.live,
