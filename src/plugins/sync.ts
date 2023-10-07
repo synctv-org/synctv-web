@@ -100,10 +100,7 @@ export const sync = (cbk: callback) => {
       () => room.currentMovieStatus.playing,
       () => {
         if (!art.option.isLive) {
-          console.log("AAAAAAAA", room.currentMovieStatus.playing);
-          console.log("AAAAAAAA", art.playing);
           if (room.currentMovieStatus.playing === art.playing) return;
-          console.log("BBBBBBBBB");
           setAndNoPublishPlayOrPause(room.currentMovieStatus.playing);
         }
       }
