@@ -2,7 +2,7 @@
 import { roomStore } from "@/stores/room";
 import Artplayer from "artplayer";
 import type { Option } from "artplayer/types/option";
-import { onMounted, onBeforeUnmount, ref, watch } from "vue";
+import { onMounted, onBeforeUnmount, ref, watch, computed } from "vue";
 import type { PropType } from "vue";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import mpegts from "mpegts.js";
@@ -15,13 +15,15 @@ let art: Artplayer;
 
 interface options {
   url: string;
+  isLive: boolean;
+  type: string;
 }
 
 const Props = defineProps({
   options: {
     type: Object as PropType<options>,
     required: true
-  }
+  },
 });
 
 const Emits = defineEmits(["get-instance"]);
@@ -69,7 +71,7 @@ const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
     let flv: mpegts.Player
     if (url.startsWith(window.location.origin) && localStorage.token) {
       flv = mpegts.createPlayer(
-        { type: "flv", url },
+        { type: "flv", url, isLive: art.option.isLive },
         {
           headers: {
             Authorization: localStorage.token
@@ -78,7 +80,7 @@ const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
       );
     } else {
       flv = mpegts.createPlayer(
-        { type: "flv", url }
+        { type: "flv", url, isLive: art.option.isLive }
       );
     }
 
@@ -157,11 +159,11 @@ const playM3u8 = (player: HTMLMediaElement, url: string, art: any) => {
   }
 };
 
-onMounted(() => {
-  const option: Option = {
+const playerOption = computed<Option>(() => {
+  return {
+    muted: true,
     container: artplayer.value!,
     volume: 0, // 音量
-    autoplay: false, // 自动播放
     autoSize: false, // 隐藏黑边
     autoMini: false,
     theme: "#00a1d6",
@@ -201,20 +203,57 @@ onMounted(() => {
       m2t: playM2ts,
       mts: playM2ts,
     }
-  };
+  }
+})
 
-  art = new Artplayer(option);
+console.log(Props.options)
+
+const father = ref<HTMLDivElement>();
+
+onMounted(() => {
+  art = new Artplayer(playerOption.value);
 
   Emits("get-instance", art);
+  const needDestroy = (art: Artplayer, newOption: Option) => {
+    return art && (art.option.isLive !== newOption.isLive) || (art.option.type !== newOption.type)
+  }
+
+  watch(
+    () => Props.options,
+    () => {
+      if (needDestroy(art, playerOption.value)) {
+        console.log("destroy")
+        art.destroy();
+        const newDiv = document.createElement("div");
+        newDiv.setAttribute("class", "artplayer-app");
+        newDiv.setAttribute("ref", "artplayer");
+        while (father.value!.firstChild) {
+          father.value!.removeChild(father.value!.firstChild);
+        }
+        father.value!.appendChild(newDiv);
+        artplayer.value = newDiv;
+        art = new Artplayer(playerOption.value);
+        Emits("get-instance", art);
+      }
+    }
+  );
 });
 
 onBeforeUnmount(() => {
-  // art.destroy();
+  if (art.option.isLive) {
+    console.log("live play destroy")
+  } else {
+    console.log("player destroy")
+  }
+  art.destroy();
 });
 </script>
 
 <template>
-  <div class="artplayer-app" ref="artplayer"></div>
+  <div ref="father">
+    <div class="artplayer-app" ref="artplayer"></div>
+  </div>
 </template>
 
 <style></style>
+
