@@ -37,9 +37,10 @@ export const sync = (cbk: callback) => {
       });
     };
 
-    const publishPlay = useDebounceFn(() => {
-      isDev() && console.log("视频播放,seek:", art.currentTime);
-      if (!room.currentMovie.live)
+    const publishPlayOrPause = useDebounceFn(() => {
+      // isDev() && console.log("视频播放,seek:", art.currentTime);
+      if (room.currentMovie.live) return;
+      if (art.playing) {
         cbk["set-player-status"](
           JSON.stringify({
             Type: WsMessageType.PLAY,
@@ -47,20 +48,7 @@ export const sync = (cbk: callback) => {
             Rate: art.playbackRate
           })
         );
-    }, debounceTime);
-
-    const setAndNoPublishPlay = () => {
-      isDev() && console.log("视频播放(no publish),seek:", art.currentTime);
-      art.off("play", publishPlay);
-      art.play();
-      art.once("play", () => {
-        art.on("play", publishPlay);
-      });
-    };
-
-    const publishPause = useDebounceFn(() => {
-      isDev() && console.log("视频暂停,seek:", art.currentTime);
-      if (!room.currentMovie.live)
+      } else {
         cbk["set-player-status"](
           JSON.stringify({
             Type: WsMessageType.PAUSE,
@@ -68,15 +56,24 @@ export const sync = (cbk: callback) => {
             Rate: art.playbackRate
           })
         );
+      }
     }, debounceTime);
 
-    const setAndNoPublishPause = () => {
-      isDev() && console.log("视频暂停(no publish),seek:", art.currentTime);
-      art.off("pause", publishPause);
-      art.pause();
-      art.once("pause", () => {
-        art.on("pause", publishPause);
-      });
+    const setAndNoPublishPlayOrPause = (playing: boolean) => {
+      isDev() && console.log("视频播放(no publish),seek:", art.currentTime);
+      if (playing) {
+        art.off("play", publishPlayOrPause);
+        art.play();
+        art.once("play", () => {
+          art.on("play", publishPlayOrPause);
+        });
+      } else {
+        art.off("pause", publishPlayOrPause);
+        art.pause();
+        art.once("pause", () => {
+          art.on("pause", publishPlayOrPause);
+        });
+      }
     };
 
     const publishRate = () => {
@@ -107,7 +104,7 @@ export const sync = (cbk: callback) => {
           console.log("AAAAAAAA", art.playing);
           if (room.currentMovieStatus.playing === art.playing) return;
           console.log("BBBBBBBBB");
-          room.currentMovieStatus.playing ? setAndNoPublishPlay() : setAndNoPublishPause();
+          setAndNoPublishPlayOrPause(room.currentMovieStatus.playing);
         }
       }
     );
@@ -146,10 +143,10 @@ export const sync = (cbk: callback) => {
       // room.currentMovieStatus.playing ? setAndNoPublishPlay() : setAndNoPublishPause();
       cbk["ws-send"]("PLAYER：视频已就绪");
 
-      art.on("play", publishPlay);
+      art.on("play", publishPlayOrPause);
 
       // 视频暂停
-      art.on("pause", publishPause);
+      art.on("pause", publishPlayOrPause);
 
       // 空降
 
