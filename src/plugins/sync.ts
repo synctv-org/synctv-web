@@ -145,9 +145,9 @@ export const sync = (cbk: callback) => {
         console.log("seek同步成功:", art.currentTime);
       }
 
-      room.currentMovieStatus.playing
-        ? setAndNoPublishPlayOrPause(true)
-        : setAndNoPublishPlayOrPause(false);
+      // room.currentMovieStatus.playing
+      //   ? setAndNoPublishPlayOrPause(true)
+      //   : setAndNoPublishPlayOrPause(false);
       cbk["ws-send"]("PLAYER：视频已就绪");
 
       art.on("play", publishPlayOrPause);
