@@ -238,14 +238,6 @@ onMounted(() => {
   );
 });
 
-onBeforeUnmount(() => {
-  if (art.option.isLive) {
-    console.log("live play destroy")
-  } else {
-    console.log("player destroy")
-  }
-  art.destroy();
-});
 </script>
 
 <template>
