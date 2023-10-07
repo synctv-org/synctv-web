@@ -3,6 +3,7 @@ import { roomStore } from "@/stores/room";
 import { devLog } from "@/utils/utils";
 import { useDebounceFn } from "@vueuse/core";
 import { WsMessageType } from "@/types/Room";
+import { ElNotification } from "element-plus";
 const room = roomStore();
 
 interface callback {
@@ -131,13 +132,22 @@ export const sync = (cbk: callback) => {
     devLog("room.seek:", room.currentMovieStatus.seek);
 
     art.once("ready", () => {
+      // 必须设置静音，否则无法自动播放
+      art.muted = true;
+      ElNotification({
+        title: "温馨提示",
+        message: "由于浏览器限制，播放器已静音，请手动开启声音",
+        type: "info"
+      });
+
       if (!room.currentMovie.live) {
         setAndNoPublishSeek(room.currentMovieStatus.seek);
         console.log("seek同步成功:", art.currentTime);
       }
 
-      // 无效切换导致playing状态错误
-      // room.currentMovieStatus.playing ? setAndNoPublishPlay() : setAndNoPublishPause();
+      room.currentMovieStatus.playing
+        ? setAndNoPublishPlayOrPause(true)
+        : setAndNoPublishPlayOrPause(false);
       cbk["ws-send"]("PLAYER：视频已就绪");
 
       art.on("play", publishPlayOrPause);
