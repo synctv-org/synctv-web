@@ -618,8 +618,6 @@ const sendText = () => {
   devLog("sended:" + msg);
 };
 
-const playerMounted = ref(false);
-
 let player: ArtPlayer;
 
 const syncPlugin = sync({
@@ -630,7 +628,6 @@ const syncPlugin = sync({
 function getPlayerInstance(art: ArtPlayer) {
   player = art;
   player.plugins.add(syncPlugin);
-  playerMounted.value = true;
 }
 
 const parseVideoType = (movie: MovieInfo) => {
@@ -640,16 +637,9 @@ const parseVideoType = (movie: MovieInfo) => {
   return getFileExtension(movie.url);
 };
 
-watchOnce(
-  () => playerMounted.value,
-  () => {
-    getMovieList();
-  }
-);
-
 // 设置聊天框高度
 const resetChatAreaHeight = () => {
-  const h = playArea ? playArea : noPlayArea;
+  const h = playArea.value ? playArea : noPlayArea;
   chatArea && h && (chatArea.value.style.height = h.value.scrollHeight - 63 + "px");
 };
 
@@ -658,9 +648,13 @@ onMounted(() => {
     resetChatAreaHeight();
   }, 233);
 
-  watch(WindowWidth, () => {
-    resetChatAreaHeight();
-  });
+  watchers.push(
+    watch(WindowWidth, () => {
+      resetChatAreaHeight();
+    })
+  );
+
+  getMovieList();
 });
 
 onBeforeUnmount(() => {
@@ -695,7 +689,7 @@ const playerOption = computed(() => {
             >👁‍🗨 {{ room.peopleNum }}
           </small>
         </div>
-        <div class="card-body max-sm:p-0" ref="playArea" v-if="true">
+        <div class="card-body max-sm:p-0" ref="playArea" v-if="playerOption.url !== ''">
           <div class="art-player">
             <Player @get-instance="getPlayerInstance" :options="playerOption"></Player>
           </div>
