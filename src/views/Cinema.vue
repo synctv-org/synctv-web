@@ -698,7 +698,6 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  if (player) player.destroy();
   close();
 });
 </script>

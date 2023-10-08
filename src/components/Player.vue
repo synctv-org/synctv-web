@@ -23,7 +23,7 @@ const Props = defineProps({
   options: {
     type: Object as PropType<options>,
     required: true
-  },
+  }
 });
 
 const Emits = defineEmits(["get-instance"]);
@@ -68,7 +68,7 @@ watch(
 
 const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
   if (mpegts.isSupported()) {
-    let flv: mpegts.Player
+    let flv: mpegts.Player;
     if (url.startsWith(window.location.origin) && localStorage.token) {
       flv = mpegts.createPlayer(
         { type: "flv", url, isLive: art.option.isLive },
@@ -79,9 +79,7 @@ const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
         }
       );
     } else {
-      flv = mpegts.createPlayer(
-        { type: "flv", url, isLive: art.option.isLive }
-      );
+      flv = mpegts.createPlayer({ type: "flv", url, isLive: art.option.isLive });
     }
 
     flv.attachMediaElement(player);
@@ -95,9 +93,7 @@ const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
 
 const playMse = (player: HTMLMediaElement, url: string, art: any) => {
   if (mpegts.isSupported()) {
-    const mse = mpegts.createPlayer(
-      { type: "mse", url }
-    );
+    const mse = mpegts.createPlayer({ type: "mse", url });
 
     mse.attachMediaElement(player);
     mse.load();
@@ -110,9 +106,7 @@ const playMse = (player: HTMLMediaElement, url: string, art: any) => {
 
 const playMpegts = (player: HTMLMediaElement, url: string, art: any) => {
   if (mpegts.isSupported()) {
-    const mpegtsPlayer = mpegts.createPlayer(
-      { type: "mpegts", url }
-    );
+    const mpegtsPlayer = mpegts.createPlayer({ type: "mpegts", url });
     mpegtsPlayer.attachMediaElement(player);
     mpegtsPlayer.load();
     art.flv = mpegtsPlayer;
@@ -124,9 +118,7 @@ const playMpegts = (player: HTMLMediaElement, url: string, art: any) => {
 
 const playM2ts = (player: HTMLMediaElement, url: string, art: any) => {
   if (mpegts.isSupported()) {
-    const m2ts = mpegts.createPlayer(
-      { type: "m2ts", url }
-    );
+    const m2ts = mpegts.createPlayer({ type: "m2ts", url });
 
     m2ts.attachMediaElement(player);
     m2ts.load();
@@ -141,9 +133,9 @@ const playM3u8Config = {
   xhrSetup: function (xhr: XMLHttpRequest, url: string): void | Promise<void> {
     // xhr.open("GET", url, true);
     if (url.startsWith(window.location.origin) && localStorage.token) {
-      xhr.setRequestHeader('Authorization', localStorage.token);
+      xhr.setRequestHeader("Authorization", localStorage.token);
     }
-  },
+  }
 };
 
 const playM3u8 = (player: HTMLMediaElement, url: string, art: any) => {
@@ -190,7 +182,7 @@ const playerOption = computed<Option>(() => {
         // 弹幕数组
         danmuku: [],
         speed: 4
-      }),
+      })
     ],
     ...Props.options,
     customType: {
@@ -200,12 +192,12 @@ const playerOption = computed<Option>(() => {
       ts: playMpegts,
       m2ts: playM2ts,
       m2t: playM2ts,
-      mts: playM2ts,
+      mts: playM2ts
     }
-  }
-})
+  };
+});
 
-console.log(Props.options)
+console.log(Props.options);
 
 const father = ref<HTMLDivElement>();
 
@@ -214,14 +206,18 @@ onMounted(() => {
 
   Emits("get-instance", art);
   const needDestroy = (art: Artplayer, newOption: Option) => {
-    return art && (art.option.isLive !== newOption.isLive) || (art.option.type !== newOption.type) || (art.option.url !== newOption.url)
-  }
+    return (
+      (art && art.option.isLive !== newOption.isLive) ||
+      art.option.type !== newOption.type ||
+      art.option.url !== newOption.url
+    );
+  };
 
   watch(
     () => Props.options,
     () => {
       if (needDestroy(art, playerOption.value)) {
-        console.log("destroy")
+        console.log("destroy");
         art.destroy();
         const newDiv = document.createElement("div");
         newDiv.setAttribute("class", "artplayer-app");
@@ -234,12 +230,15 @@ onMounted(() => {
         art = new Artplayer(playerOption.value);
         Emits("get-instance", art);
       } else {
-        // 
+        //
       }
     }
   );
 });
 
+onBeforeUnmount(() => {
+  art.destroy();
+});
 </script>
 
 <template>
@@ -249,4 +248,3 @@ onMounted(() => {
 </template>
 
 <style></style>
-
