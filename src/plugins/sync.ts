@@ -99,79 +99,80 @@ export const sync = (cbk: callback) => {
         });
         art.playbackRate = rate;
       };
-      art.once("ready", () => {
+      setTimeout(() => {
         setAndNoPublishSeek(room.currentMovieStatus.seek);
         console.log("seek同步成功:", art.currentTime);
 
+        setAndNoPublishRate(room.currentMovieStatus.rate);
+        console.log("rate同步成功:", art.playbackRate);
+
         setAndNoPublishPlayOrPause(room.currentMovieStatus.playing);
         cbk["ws-send"]("PLAYER：视频已就绪");
+      }, 0);
 
-        art.on("play", publishPlayOrPause);
+      art.on("play", publishPlayOrPause);
 
-        // 视频暂停
-        art.on("pause", publishPlayOrPause);
+      // 视频暂停
+      art.on("pause", publishPlayOrPause);
 
-        // 空降
+      // 空降
 
-        art.on("seek", publishSeek);
+      art.on("seek", publishSeek);
 
-        // 倍速
-        art.on("video:ratechange", publishRate);
+      // 倍速
+      art.on("video:ratechange", publishRate);
 
-        const watchers: WatchStopHandle[] = [];
+      const watchers: WatchStopHandle[] = [];
 
-        watchers.push(
-          watch(
-            () => room.currentMovieStatus.playing,
-            () => {
-              if (room.currentMovieStatus.playing === art.playing) return;
-              setAndNoPublishPlayOrPause(room.currentMovieStatus.playing);
-            }
-          )
-        );
+      watchers.push(
+        watch(
+          () => room.currentMovieStatus.playing,
+          () => {
+            if (room.currentMovieStatus.playing === art.playing) return;
+            setAndNoPublishPlayOrPause(room.currentMovieStatus.playing);
+          }
+        )
+      );
 
-        watchers.push(
-          watch(
-            () => room.currentMovieStatus.seek,
-            () => {
-              devLog("seek变了：", room.currentMovieStatus.seek);
-              setAndNoPublishSeek(room.currentMovieStatus.seek);
-            }
-          )
-        );
+      watchers.push(
+        watch(
+          () => room.currentMovieStatus.seek,
+          () => {
+            devLog("seek变了：", room.currentMovieStatus.seek);
+            setAndNoPublishSeek(room.currentMovieStatus.seek);
+          }
+        )
+      );
 
-        watchers.push(
-          watch(
-            () => room.currentMovieStatus.rate,
-            () => {
-              devLog("rate变了：", room.currentMovieStatus.rate);
-              room.currentMovieStatus.rate === art.playbackRate
-                ? void 0
-                : setAndNoPublishRate(room.currentMovieStatus.rate);
-            }
-          )
-        );
+      watchers.push(
+        watch(
+          () => room.currentMovieStatus.rate,
+          () => {
+            devLog("rate变了：", room.currentMovieStatus.rate);
+            room.currentMovieStatus.rate === art.playbackRate
+              ? void 0
+              : setAndNoPublishRate(room.currentMovieStatus.rate);
+          }
+        )
+      );
 
-        art.on("destroy", () => {
-          art.off("play", publishPlayOrPause);
-          art.off("pause", publishPlayOrPause);
-          art.off("seek", publishSeek);
-          art.off("video:ratechange", publishRate);
-          watchers.forEach((watcher) => watcher());
-        });
+      art.on("destroy", () => {
+        art.off("play", publishPlayOrPause);
+        art.off("pause", publishPlayOrPause);
+        art.off("seek", publishSeek);
+        art.off("video:ratechange", publishRate);
+        watchers.forEach((watcher) => watcher());
       });
     } else {
-      art.once("ready", () => {
-        art.play().catch(() => {
-          art.muted = true;
-          art.play();
-          ElNotification({
-            title: "温馨提示",
-            message: "由于浏览器限制，播放器已静音，请手动开启声音"
-          });
+      art.play().catch(() => {
+        art.muted = true;
+        art.play();
+        ElNotification({
+          title: "温馨提示",
+          message: "由于浏览器限制，播放器已静音，请手动开启声音"
         });
-        cbk["ws-send"]("PLAYER：视频已就绪");
       });
+      cbk["ws-send"]("PLAYER：视频已就绪");
     }
   };
 };
