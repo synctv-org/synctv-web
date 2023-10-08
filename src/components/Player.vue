@@ -214,7 +214,7 @@ onMounted(() => {
 
   Emits("get-instance", art);
   const needDestroy = (art: Artplayer, newOption: Option) => {
-    return art && (art.option.isLive !== newOption.isLive) || (art.option.type !== newOption.type)
+    return art && (art.option.isLive !== newOption.isLive) || (art.option.type !== newOption.type) || (art.option.url !== newOption.url)
   }
 
   watch(
@@ -233,6 +233,8 @@ onMounted(() => {
         artplayer.value = newDiv;
         art = new Artplayer(playerOption.value);
         Emits("get-instance", art);
+      } else {
+        // 
       }
     }
   );
