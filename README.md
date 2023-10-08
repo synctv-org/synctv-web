@@ -6,13 +6,19 @@ English | [中文](./README-CN.md)
 
 ## Screenshot
 
-![NoFilms](https://cdn.imlazy.ink:233/img/tup/synctv/cinema-nofilms.jpg)
-![Cinema](https://cdn.imlazy.ink:233/img/tup/synctv/cinema.jpg)
+![Cinema](./screenshots/cinema.jpg)
 
-## Install
+## Development Environment
 
-1. Download from `release`
-2. Put it into the [synctv](https://github.com/synctv-org/synctv)'s `public` folder
+Please adjust the `vite.config.js` according to the actual situation first
+
+```bash
+git clone https://github.com/synctv-org/synctv-web
+cd synctv-web
+npm i
+npm run dev
+# http://localhost:8085
+```
 
 ## Build
 

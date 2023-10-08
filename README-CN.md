@@ -6,13 +6,19 @@
 
 ## 截图
 
-![NoFilms](https://cdn.imlazy.ink:233/img/tup/synctv/cinema-nofilms.jpg)
-![Cinema](https://cdn.imlazy.ink:233/img/tup/synctv/cinema.jpg)
+![Cinema](./screenshots/cinema.jpg)
 
-## 安装
+## 搭建开发环境
 
-1. 从`release`下载
-2. 放进[synctv](https://github.com/synctv-org/synctv)的`public`文件夹
+请先根据实际情况自行调整`vite.config.js`
+
+```bash
+git clone https://github.com/synctv-org/synctv-web
+cd synctv-web
+npm i
+npm run dev
+# http://localhost:8085
+```
 
 ## 手动构建
 
