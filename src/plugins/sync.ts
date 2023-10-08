@@ -69,6 +69,7 @@ export const sync = (cbk: callback) => {
             art.play();
             ElNotification({
               title: "温馨提示",
+              type: "info",
               message: "由于浏览器限制，播放器已静音，请手动开启声音"
             });
           });
@@ -169,6 +170,7 @@ export const sync = (cbk: callback) => {
         art.play();
         ElNotification({
           title: "温馨提示",
+          type: "info",
           message: "由于浏览器限制，播放器已静音，请手动开启声音"
         });
       });

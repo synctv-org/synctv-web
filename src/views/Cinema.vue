@@ -275,11 +275,13 @@ const getLiveInfo = async (id: number) => {
   }
 };
 
-watch(
-  () => newMovieInfo.value.live,
-  () => {
-    !newMovieInfo.value.live ? (newMovieInfo.value.rtmpSource = false) : void 0;
-  }
+watchers.push(
+  watch(
+    () => newMovieInfo.value.live,
+    () => {
+      !newMovieInfo.value.live ? (newMovieInfo.value.rtmpSource = false) : void 0;
+    }
+  )
 );
 
 // 把视频链接添加到列表
@@ -661,6 +663,8 @@ onBeforeUnmount(() => {
   close();
 });
 
+getMovieList();
+
 const playerOption = computed(() => {
   return {
     url: room.currentMovie.pullKey
@@ -695,12 +699,12 @@ const playerOption = computed(() => {
           </div>
         </div>
         <div class="card-body max-sm:pb-3 max-sm:px-3" ref="noPlayArea" v-else>
-          <!-- <img class="mx-auto" src="../assets/something-lost.png" /> -->
-          <el-carousel height="37vmax" indicator-position="none" arrow="never" interval="5000">
+          <img class="mx-auto" src="../assets/something-lost.webp" />
+          <!-- <el-carousel height="37vmax" indicator-position="none" arrow="never" interval="5000">
             <el-carousel-item v-for="item in 4" :key="item">
               <img class="mx-auto" :src="'https://api.imlazy.ink/img?t=' + item" />
             </el-carousel-item>
-          </el-carousel>
+          </el-carousel> -->
         </div>
         <div class="card-footer p-4 max-sm:hidden"></div>
       </div>
