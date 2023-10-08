@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import type { WatchStopHandle } from "vue";
+import type { WatchStopHandle, Ref } from "vue";
 import { useWebSocket, useWindowSize, watchOnce } from "@vueuse/core";
 import Player from "@/components/Player.vue";
 import ArtPlayer from "artplayer";
@@ -24,6 +24,7 @@ import type { WsMessage } from "@/types/Room";
 import { WsMessageType } from "@/types/Room";
 import { getFileExtension, devLog } from "@/utils/utils";
 import { sync } from "@/plugins/sync";
+import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 
 const watchers: WatchStopHandle[] = [];
 onBeforeUnmount(() => {
@@ -122,6 +123,18 @@ const deleteRoom = async () => {
   }
 };
 
+let msgList = ref<string[]>([]);
+
+// 更新消息列表
+const updateMsgList = (msg: string) => {
+  msgList.value.push(msg);
+};
+
+const syncPlugin = sync({
+  "set-player-status": send,
+  "ws-send": updateMsgList
+});
+
 // 获取影片列表
 const currentPage = ref(1);
 const pageSize = ref(10);
@@ -145,8 +158,8 @@ const getMovieList = async () => {
       devLog(movieList.value);
       room.movies = movieList.value.movies;
       room.totalMovies = movieList.value.total;
-      room.currentMovie = movieList.value.current.movie;
       room.currentMovieStatus = movieList.value.current.status;
+      room.currentMovie = movieList.value.current.movie;
     }
   } catch (err: any) {
     devLog(err);
@@ -483,23 +496,6 @@ const playArea = ref();
 
 // 消息列表
 const chatArea = ref();
-let msgList = ref<string[]>([]);
-
-// 更新消息列表
-const updateMsgList = (msg: string) => {
-  msgList.value.push(msg);
-};
-
-const setAllStatus = (status: MovieStatus) => {
-  // playing必须比seek后设置，因为watch的顺序会变成先seek后playing，seek会导致playing状态不正确，导致playing无法设置
-  room.currentMovieStatus.playing = status.playing;
-  setStatus(status.seek, status.rate);
-};
-
-const setStatus = (seek: number, rate: number) => {
-  room.currentMovieStatus.seek = seek;
-  room.currentMovieStatus.rate = rate;
-};
 
 // 监听ws信息变化
 watchers.push(
@@ -538,48 +534,43 @@ watchers.push(
 
         // 播放
         case WsMessageType.PLAY: {
-          setAllStatus({
-            playing: true,
-            seek: jsonData.seek,
-            rate: jsonData.rate
-          });
+          syncPlugin.setAndNoPublishSeek(jsonData.seek);
+          syncPlugin.setAndNoPublishRate(jsonData.rate);
+          syncPlugin.setAndNoPublishPlay();
           break;
         }
 
         // 暂停
         case WsMessageType.PAUSE: {
-          setAllStatus({
-            playing: false,
-            seek: jsonData.seek,
-            rate: jsonData.rate
-          });
+          syncPlugin.setAndNoPublishPause();
+          syncPlugin.setAndNoPublishSeek(jsonData.seek);
+          syncPlugin.setAndNoPublishRate(jsonData.rate);
           break;
         }
 
         // 视频进度发生变化
         case WsMessageType.SEEK: {
-          setStatus(jsonData.seek, jsonData.rate);
+          syncPlugin.setAndNoPublishSeek(jsonData.seek);
+          syncPlugin.setAndNoPublishRate(jsonData.rate);
           break;
         }
 
         case WsMessageType.RATE: {
-          setStatus(jsonData.seek, jsonData.rate);
+          syncPlugin.setAndNoPublishSeek(jsonData.seek);
+          syncPlugin.setAndNoPublishRate(jsonData.rate);
           break;
         }
 
         // 设置正在播放的影片
         case WsMessageType.CURRENT_MOVIE: {
           room.currentMovie = jsonData.current.movie;
-          setAllStatus(jsonData.current.status);
+          room.currentMovieStatus = jsonData.current.status;
           break;
         }
 
         // 播放列表更新
         case WsMessageType.PLAY_LIST_UPDATE: {
           getMovies();
-          // jsonData.movies
-          //   ? (movieList.value = room.movies = jsonData.movies)
-          //   : movieList.value.splice(0, 1);
           break;
         }
 
@@ -621,16 +612,10 @@ const sendText = () => {
   devLog("sended:" + msg);
 };
 
-let player: ArtPlayer;
+let player: Artplayer;
 
-const syncPlugin = sync({
-  "set-player-status": send,
-  "ws-send": updateMsgList
-});
-
-function getPlayerInstance(art: ArtPlayer) {
+function getPlayerInstance(art: Artplayer) {
   player = art;
-  player.plugins.add(syncPlugin);
 }
 
 const parseVideoType = (movie: MovieInfo) => {
@@ -671,7 +656,15 @@ const playerOption = computed(() => {
       : room.currentMovie.url,
     isLive: room.currentMovie.live,
     type: parseVideoType(room.currentMovie),
-    headers: room.currentMovie.headers
+    headers: room.currentMovie.headers,
+    plugins: [
+      artplayerPluginDanmuku({
+        // 弹幕数组
+        danmuku: [],
+        speed: 4
+      }),
+      syncPlugin.plugin
+    ]
   };
 });
 </script>

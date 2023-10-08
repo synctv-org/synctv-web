@@ -4,9 +4,9 @@ import Artplayer from "artplayer";
 import type { Option } from "artplayer/types/option";
 import { onMounted, onBeforeUnmount, ref, watch, computed } from "vue";
 import type { PropType, WatchStopHandle } from "vue";
-import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import mpegts from "mpegts.js";
 import Hls from "hls.js";
+import { deepEqualObject } from "@/utils/utils";
 const room = roomStore();
 
 const watchers: WatchStopHandle[] = [];
@@ -23,7 +23,8 @@ interface options {
   url: string;
   isLive: boolean;
   type: string;
-  headers: Record<string, string>;
+  headers: { [key: string]: string };
+  plugins: ((art: Artplayer) => unknown)[];
 }
 
 const Props = defineProps({
@@ -178,13 +179,6 @@ const playerOption = computed<Option>(() => {
     autoPlayback: false, // 使用自动回放功能
     autoOrientation: true, // 移动端的网页全屏时，根据视频尺寸和视口尺寸，旋转播放器
     airplay: false, // 隔空播放
-    plugins: [
-      artplayerPluginDanmuku({
-        // 弹幕数组
-        danmuku: [],
-        speed: 4
-      })
-    ],
     ...Props.options,
     customType: {
       flv: playFlv,
@@ -211,7 +205,7 @@ onMounted(() => {
       oldOption.isLive !== newOption.isLive ||
       oldOption.type !== newOption.type ||
       oldOption.url !== newOption.url ||
-      oldOption.headers !== newOption.headers
+      !deepEqualObject(oldOption.headers, newOption.headers)
     );
   };
 

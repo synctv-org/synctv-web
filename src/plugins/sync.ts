@@ -1,7 +1,7 @@
 import { ref, watch } from "vue";
-import type { WatchStopHandle } from "vue";
+import type { WatchStopHandle, Ref } from "vue";
 import { roomStore } from "@/stores/room";
-import { devLog } from "@/utils/utils";
+import { devLog, debounces } from "@/utils/utils";
 import Notify from "@/utils/notify";
 import { useDebounceFn } from "@vueuse/core";
 import { WsMessageType } from "@/types/Room";
@@ -16,91 +16,112 @@ interface callback {
   "ws-send": (msg: string) => void;
 }
 
-const debounceTime = 250;
+interface resould {
+  plugin: (art: Artplayer) => unknown;
+  setAndNoPublishSeek: (seek: number) => void;
+  setAndNoPublishPlay: () => void;
+  setAndNoPublishPause: () => void;
+  setAndNoPublishRate: (rate: number) => void;
+}
 
-export const sync = (cbk: callback) => {
-  return (art: Artplayer) => {
+const debounceTime = 500;
+
+export const sync = (cbk: callback): resould => {
+  const debounce = debounces(debounceTime);
+  let player: Artplayer;
+  const publishSeek = useDebounceFn((currentTime: number) => {
+    if (player.option.isLive) return;
+    cbk["set-player-status"](
+      JSON.stringify({
+        Type: WsMessageType.SEEK,
+        Seek: currentTime,
+        Rate: player.playbackRate
+      })
+    );
+    devLog("视频空降，:", player.currentTime);
+  }, debounceTime);
+
+  const setAndNoPublishSeek = (seek: number) => {
+    if (player.option.isLive || Math.abs(player.currentTime - seek) < 2) return;
+    player.currentTime = seek;
+  };
+
+  const publishPlay = () => {
+    if (player.option.isLive) return;
+    cbk["set-player-status"](
+      JSON.stringify({
+        Type: WsMessageType.PLAY,
+        Seek: player.currentTime,
+        Rate: player.playbackRate
+      })
+    );
+  };
+
+  const publishPlayDebounce = debounce(publishPlay);
+
+  const setAndNoPublishPlay = () => {
+    if (player.option.isLive || player.playing) return;
+    player.off("play", publishPlayDebounce);
+    player.once("play", () => {
+      player.on("play", publishPlayDebounce);
+    });
+    player.play().catch(() => {
+      player.muted = true;
+      player.play();
+      ElNotification({
+        title: "温馨提示",
+        type: "info",
+        message: "由于浏览器限制，播放器已静音，请手动开启声音"
+      });
+    });
+  };
+
+  const publishPause = () => {
+    if (player.option.isLive) return;
+    cbk["set-player-status"](
+      JSON.stringify({
+        Type: WsMessageType.PAUSE,
+        Seek: player.currentTime,
+        Rate: player.playbackRate
+      })
+    );
+  };
+
+  const publishPauseDebounce = debounce(publishPause);
+
+  const setAndNoPublishPause = () => {
+    if (player.option.isLive || !player.playing) return;
+    player.off("pause", publishPauseDebounce);
+    player.once("pause", () => {
+      player.on("pause", publishPauseDebounce);
+    });
+    player.pause();
+  };
+
+  const publishRate = () => {
+    if (player.option.isLive) return;
+    cbk["set-player-status"](
+      JSON.stringify({
+        Type: WsMessageType.RATE,
+        Seek: player.currentTime,
+        Rate: player.playbackRate
+      })
+    );
+    devLog("视频倍速,seek:", player.currentTime);
+  };
+
+  const setAndNoPublishRate = (rate: number) => {
+    if (player.option.isLive || player.playbackRate === rate) return;
+    player.off("video:ratechange", publishRate);
+    player.once("video:ratechange", () => {
+      player.on("video:ratechange", publishRate);
+    });
+    player.playbackRate = rate;
+  };
+
+  const plugin = (art: Artplayer) => {
+    player = art;
     if (!art.option.isLive) {
-      const publishSeek = useDebounceFn((currentTime: number) => {
-        cbk["set-player-status"](
-          JSON.stringify({
-            Type: WsMessageType.SEEK,
-            Seek: currentTime,
-            Rate: art.playbackRate
-          })
-        );
-        devLog("视频空降，:", art.currentTime);
-      }, debounceTime);
-
-      const setAndNoPublishSeek = (seek: number) => {
-        art.currentTime = seek;
-      };
-
-      const publishPlayOrPause = useDebounceFn(() => {
-        // devLog("视频播放,seek:", art.currentTime);
-        if (art.playing) {
-          cbk["set-player-status"](
-            JSON.stringify({
-              Type: WsMessageType.PLAY,
-              Seek: art.currentTime,
-              Rate: art.playbackRate
-            })
-          );
-        } else {
-          cbk["set-player-status"](
-            JSON.stringify({
-              Type: WsMessageType.PAUSE,
-              Seek: art.currentTime,
-              Rate: art.playbackRate
-            })
-          );
-        }
-      }, debounceTime);
-
-      const setAndNoPublishPlayOrPause = (playing: boolean) => {
-        devLog("视频播放(no publish),seek:", art.currentTime);
-        if (playing) {
-          art.off("play", publishPlayOrPause);
-          art.once("play", () => {
-            art.on("play", publishPlayOrPause);
-          });
-          art.play().catch(() => {
-            art.muted = true;
-            art.play();
-            ElNotification({
-              title: "温馨提示",
-              type: "info",
-              message: "由于浏览器限制，播放器已静音，请手动开启声音"
-            });
-          });
-        } else {
-          art.off("pause", publishPlayOrPause);
-          art.once("pause", () => {
-            art.on("pause", publishPlayOrPause);
-          });
-          art.pause();
-        }
-      };
-
-      const publishRate = () => {
-        cbk["set-player-status"](
-          JSON.stringify({
-            Type: WsMessageType.RATE,
-            Seek: art.currentTime,
-            Rate: art.playbackRate
-          })
-        );
-        devLog("视频倍速,seek:", art.currentTime);
-      };
-
-      const setAndNoPublishRate = (rate: number) => {
-        art.off("video:ratechange", publishRate);
-        art.once("video:ratechange", () => {
-          art.on("video:ratechange", publishRate);
-        });
-        art.playbackRate = rate;
-      };
-
       art.once("ready", () => {
         console.log(room.currentMovieStatus.seek);
         setAndNoPublishSeek(room.currentMovieStatus.seek);
@@ -108,14 +129,14 @@ export const sync = (cbk: callback) => {
 
         setAndNoPublishRate(room.currentMovieStatus.rate);
         console.log("rate同步成功:", art.playbackRate);
-        setAndNoPublishPlayOrPause(room.currentMovieStatus.playing);
+        room.currentMovieStatus.playing ? setAndNoPublishPlay() : setAndNoPublishPause();
         cbk["ws-send"]("PLAYER：视频已就绪");
       });
 
-      art.on("play", publishPlayOrPause);
+      art.on("play", publishPlayDebounce);
 
       // 视频暂停
-      art.on("pause", publishPlayOrPause);
+      art.on("pause", publishPauseDebounce);
 
       // 空降
       art.on("seek", publishSeek);
@@ -123,45 +144,11 @@ export const sync = (cbk: callback) => {
       // 倍速
       art.on("video:ratechange", publishRate);
 
-      const watchers: WatchStopHandle[] = [];
-
-      watchers.push(
-        watch(
-          () => room.currentMovieStatus.playing,
-          (playing, _) => {
-            devLog("play变了：", playing);
-            setAndNoPublishPlayOrPause(playing);
-          }
-        )
-      );
-
-      watchers.push(
-        watch(
-          () => room.currentMovieStatus.seek,
-          (seek) => {
-            if (Math.abs(seek - art.currentTime) < 2) return;
-            devLog("seek变了：", seek);
-            setAndNoPublishSeek(seek);
-          }
-        )
-      );
-
-      watchers.push(
-        watch(
-          () => room.currentMovieStatus.rate,
-          (rate) => {
-            devLog("rate变了：", rate);
-            setAndNoPublishRate(rate);
-          }
-        )
-      );
-
       art.on("destroy", () => {
-        art.off("play", publishPlayOrPause);
-        art.off("pause", publishPlayOrPause);
+        art.off("play", publishPlayDebounce);
+        art.off("pause", publishPauseDebounce);
         art.off("seek", publishSeek);
         art.off("video:ratechange", publishRate);
-        watchers.forEach((watcher) => watcher());
       });
     } else {
       art.once("ready", () => {
@@ -177,5 +164,13 @@ export const sync = (cbk: callback) => {
         cbk["ws-send"]("PLAYER：视频已就绪");
       });
     }
+  };
+
+  return {
+    plugin,
+    setAndNoPublishSeek,
+    setAndNoPublishPlay,
+    setAndNoPublishPause,
+    setAndNoPublishRate
   };
 };
