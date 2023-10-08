@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { WatchStopHandle } from "vue";
-import { useWebSocket, useWindowSize } from "@vueuse/core";
+import { useWebSocket, useWindowSize, watchOnce } from "@vueuse/core";
 import Player from "@/components/Player.vue";
 import ArtPlayer from "artplayer";
 import { roomStore } from "@/stores/room";
@@ -242,7 +242,7 @@ let newMovieInfo = ref<BaseMovieInfo>({
   url: "",
   rtmpSource: false,
   type: "",
-  headers: null
+  headers: {}
 });
 
 // 直播相关
@@ -352,7 +352,7 @@ let cMovieInfo = ref<EditMovieInfo>({
   url: "",
   name: "",
   type: "",
-  headers: null
+  headers: {}
 });
 
 // 打开编辑对话框
@@ -451,11 +451,9 @@ const swapMovie = async () => {
 };
 
 // 设置当前正在播放的影片
-const playerLoaded = ref(true);
 
 const { execute: reqChangeCurrentMovieApi } = changeCurrentMovieApi();
 const changeCurrentMovie = async (id: number) => {
-  // playerLoaded.value = false;
   try {
     await reqChangeCurrentMovieApi({
       data: {
@@ -468,8 +466,6 @@ const changeCurrentMovie = async (id: number) => {
       title: "设置成功",
       type: "success"
     });
-
-    // playerLoaded.value = true;
   } catch (err: any) {
     console.error(err);
     ElNotification({
@@ -622,12 +618,6 @@ const sendText = () => {
   devLog("sended:" + msg);
 };
 
-const playerOptions = ref({
-  url: "",
-  isLive: false,
-  type: ""
-});
-
 const playerMounted = ref(false);
 
 let player: ArtPlayer;
@@ -650,35 +640,11 @@ const parseVideoType = (movie: MovieInfo) => {
   return getFileExtension(movie.url);
 };
 
-const syncCurrent = () => {
-  watchers.push(
-    watch(
-      () => room.currentMovie,
-      () => {
-        const jsonData = room.currentMovie;
-        if (jsonData.pullKey !== "") {
-          jsonData.url = `${window.location.origin}/api/movie/live/${jsonData.pullKey}.flv`;
-          // jsonData.url = `${window.location.origin}/api/movie/live/${jsonData.pullKey}.m3u8`;
-        }
-        console.log(jsonData);
-        playerOptions.value = {
-          url: jsonData.url,
-          isLive: jsonData.live,
-          type: parseVideoType(jsonData)
-        };
-      }
-    )
-  );
-};
-
-watchers.push(
-  watch(
-    () => playerMounted.value,
-    () => {
-      syncCurrent();
-      getMovieList();
-    }
-  )
+watchOnce(
+  () => playerMounted.value,
+  () => {
+    getMovieList();
+  }
 );
 
 // 设置聊天框高度
@@ -700,6 +666,17 @@ onMounted(() => {
 onBeforeUnmount(() => {
   close();
 });
+
+const playerOption = computed(() => {
+  return {
+    url: room.currentMovie.pullKey
+      ? `${window.location.origin}/api/movie/live/${room.currentMovie.pullKey}.flv`
+      : room.currentMovie.url,
+    isLive: room.currentMovie.live,
+    type: parseVideoType(room.currentMovie),
+    headers: room.currentMovie.headers
+  };
+});
 </script>
 
 <template>
@@ -718,9 +695,9 @@ onBeforeUnmount(() => {
             >👁‍🗨 {{ room.peopleNum }}
           </small>
         </div>
-        <div class="card-body max-sm:p-0" ref="playArea" v-if="playerLoaded">
+        <div class="card-body max-sm:p-0" ref="playArea" v-if="true">
           <div class="art-player">
-            <Player @get-instance="getPlayerInstance" :options="playerOptions"></Player>
+            <Player @get-instance="getPlayerInstance" :options="playerOption"></Player>
           </div>
         </div>
         <div class="card-body max-sm:pb-3 max-sm:px-3" ref="noPlayArea" v-else>

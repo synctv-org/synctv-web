@@ -13,7 +13,7 @@ export interface BaseMovieInfo {
   proxy: boolean;
   rtmpSource: boolean;
   type: string;
-  headers: null;
+  headers: Record<string, string>;
 }
 
 export interface EditMovieInfo {
@@ -21,7 +21,7 @@ export interface EditMovieInfo {
   url: string;
   name: string;
   type: string;
-  headers: null;
+  headers: Record<string, string>;
 }
 
 export interface MovieStatus {

@@ -17,6 +17,7 @@ interface options {
   url: string;
   isLive: boolean;
   type: string;
+  headers: Record<string, string>;
 }
 
 const Props = defineProps({
@@ -68,19 +69,17 @@ watch(
 
 const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
   if (mpegts.isSupported()) {
-    let flv: mpegts.Player;
+    const Config: Record<string, Record<string, string>> = {};
     if (url.startsWith(window.location.origin) && localStorage.token) {
-      flv = mpegts.createPlayer(
-        { type: "flv", url, isLive: art.option.isLive },
-        {
-          headers: {
-            Authorization: localStorage.token
-          }
-        }
-      );
-    } else {
-      flv = mpegts.createPlayer({ type: "flv", url, isLive: art.option.isLive });
+      Config["headers"] = {
+        Authorization: localStorage.token
+      };
     }
+    for (const key in Props.options.headers) {
+      Config["headers"][key] = Props.options.headers[key];
+    }
+
+    const flv = mpegts.createPlayer({ type: "flv", url, isLive: art.option.isLive }, Config);
 
     flv.attachMediaElement(player);
     flv.load();
@@ -93,7 +92,12 @@ const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
 
 const playMse = (player: HTMLMediaElement, url: string, art: any) => {
   if (mpegts.isSupported()) {
-    const mse = mpegts.createPlayer({ type: "mse", url });
+    const Config: Record<string, Record<string, string>> = {};
+    for (const key in Props.options.headers) {
+      Config["headers"][key] = Props.options.headers[key];
+    }
+
+    const mse = mpegts.createPlayer({ type: "mse", url, isLive: art.option.isLive }, Config);
 
     mse.attachMediaElement(player);
     mse.load();
@@ -106,7 +110,16 @@ const playMse = (player: HTMLMediaElement, url: string, art: any) => {
 
 const playMpegts = (player: HTMLMediaElement, url: string, art: any) => {
   if (mpegts.isSupported()) {
-    const mpegtsPlayer = mpegts.createPlayer({ type: "mpegts", url });
+    const Config: Record<string, Record<string, string>> = {};
+    for (const key in Props.options.headers) {
+      Config["headers"][key] = Props.options.headers[key];
+    }
+
+    const mpegtsPlayer = mpegts.createPlayer(
+      { type: "mpegts", url, isLive: art.option.isLive },
+      Config
+    );
+
     mpegtsPlayer.attachMediaElement(player);
     mpegtsPlayer.load();
     art.flv = mpegtsPlayer;
@@ -118,7 +131,12 @@ const playMpegts = (player: HTMLMediaElement, url: string, art: any) => {
 
 const playM2ts = (player: HTMLMediaElement, url: string, art: any) => {
   if (mpegts.isSupported()) {
-    const m2ts = mpegts.createPlayer({ type: "m2ts", url });
+    const Config: Record<string, Record<string, string>> = {};
+    for (const key in Props.options.headers) {
+      Config["headers"][key] = Props.options.headers[key];
+    }
+
+    const m2ts = mpegts.createPlayer({ type: "m2ts", url, isLive: art.option.isLive }, Config);
 
     m2ts.attachMediaElement(player);
     m2ts.load();
@@ -132,6 +150,11 @@ const playM2ts = (player: HTMLMediaElement, url: string, art: any) => {
 const playM3u8Config = {
   xhrSetup: function (xhr: XMLHttpRequest, url: string): void | Promise<void> {
     // xhr.open("GET", url, true);
+
+    for (const key in Props.options.headers) {
+      xhr.setRequestHeader(key, Props.options.headers[key]);
+    }
+
     if (url.startsWith(window.location.origin) && localStorage.token) {
       xhr.setRequestHeader("Authorization", localStorage.token);
     }
@@ -205,18 +228,19 @@ onMounted(() => {
   art = new Artplayer(playerOption.value);
 
   Emits("get-instance", art);
-  const needDestroy = (art: Artplayer, newOption: Option) => {
+  const needDestroy = (oldOption: options, newOption: options) => {
     return (
-      (art && art.option.isLive !== newOption.isLive) ||
-      art.option.type !== newOption.type ||
-      art.option.url !== newOption.url
+      oldOption.isLive !== newOption.isLive ||
+      oldOption.type !== newOption.type ||
+      oldOption.url !== newOption.url ||
+      oldOption.headers !== newOption.headers
     );
   };
 
   watch(
     () => Props.options,
-    () => {
-      if (needDestroy(art, playerOption.value)) {
+    (old, current) => {
+      if (needDestroy(old, current)) {
         console.log("destroy");
         art.destroy();
         const newDiv = document.createElement("div");
