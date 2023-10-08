@@ -19,7 +19,7 @@ export const roomStore = defineStore("roomStore", () => {
     url: "",
     rtmpSource: false,
     type: "",
-    headers: null,
+    headers: {},
     createAt: Date.now(),
     creator: "SYSTEM",
     id: 1,
