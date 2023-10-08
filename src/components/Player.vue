@@ -3,11 +3,17 @@ import { roomStore } from "@/stores/room";
 import Artplayer from "artplayer";
 import type { Option } from "artplayer/types/option";
 import { onMounted, onBeforeUnmount, ref, watch, computed } from "vue";
-import type { PropType } from "vue";
+import type { PropType, WatchStopHandle } from "vue";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import mpegts from "mpegts.js";
 import Hls from "hls.js";
 const room = roomStore();
+
+const watchers: WatchStopHandle[] = [];
+
+onBeforeUnmount(() => {
+  watchers.forEach((watcher) => watcher());
+});
 
 const artplayer = ref<HTMLDivElement>();
 
@@ -29,42 +35,14 @@ const Props = defineProps({
 
 const Emits = defineEmits(["get-instance"]);
 
-// 监听当前正在播放影片变化
-// watch(
-//   () => room.currentMovie,
-//   () => {
-//     const jsonData = room.currentMovie;
-
-//     setTimeout(() => {
-//       if (jsonData.url === "") {
-//         art.switchUrl("https://live.lazy.ink/hd.mp4");
-//        devLog("视频为空！");
-//       } else {
-//         devLog("变了！", jsonData.url);
-
-//         art.option.type = "";
-
-//         if (jsonData.live) {
-//           art.option.type = "flv";
-
-//           jsonData.url = `${window.location.origin}/api/live/${jsonData.url}.flv`;
-//         }
-
-//         art.switchUrl(jsonData.url).catch((err) => {
-//           ElMessage.error("视频加载失败！");
-//           console.error("视频加载失败：", err);
-//         });
-//       }
-//     }, 233);
-//   }
-// );
-
 // 监听弹幕变化
-watch(
-  () => room.danmuku,
-  () => {
-    art.plugins.artplayerPluginDanmuku.emit(room.danmuku);
-  }
+watchers.push(
+  watch(
+    () => room.danmuku,
+    () => {
+      art.plugins.artplayerPluginDanmuku.emit(room.danmuku);
+    }
+  )
 );
 
 const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
@@ -237,26 +215,28 @@ onMounted(() => {
     );
   };
 
-  watch(
-    () => Props.options,
-    (old, current) => {
-      if (needDestroy(old, current)) {
-        console.log("destroy");
-        art.destroy();
-        const newDiv = document.createElement("div");
-        newDiv.setAttribute("class", "artplayer-app");
-        newDiv.setAttribute("ref", "artplayer");
-        while (father.value!.firstChild) {
-          father.value!.removeChild(father.value!.firstChild);
+  watchers.push(
+    watch(
+      () => Props.options,
+      (old, current) => {
+        if (needDestroy(old, current)) {
+          console.log("destroy");
+          art.destroy();
+          const newDiv = document.createElement("div");
+          newDiv.setAttribute("class", "artplayer-app");
+          newDiv.setAttribute("ref", "artplayer");
+          while (father.value!.firstChild) {
+            father.value!.removeChild(father.value!.firstChild);
+          }
+          father.value!.appendChild(newDiv);
+          artplayer.value = newDiv;
+          art = new Artplayer(playerOption.value);
+          Emits("get-instance", art);
+        } else {
+          //
         }
-        father.value!.appendChild(newDiv);
-        artplayer.value = newDiv;
-        art = new Artplayer(playerOption.value);
-        Emits("get-instance", art);
-      } else {
-        //
       }
-    }
+    )
   );
 });
 

@@ -502,102 +502,104 @@ const setStatus = (seek: number, rate: number) => {
 };
 
 // 监听ws信息变化
-watch(
-  () => data.value,
-  () => {
-    if (data.value === "") return devLog("返回了空", data.value);
+watchers.push(
+  watch(
+    () => data.value,
+    () => {
+      if (data.value === "") return devLog("返回了空", data.value);
 
-    const jsonData: WsMessage = JSON.parse(data.value);
-    devLog(`-----Ws Message Start-----`);
-    devLog(jsonData);
-    devLog(`-----Ws Message End-----`);
-    switch (jsonData.type) {
-      // 聊天消息
-      case WsMessageType.MESSAGE: {
-        msgList.value.push(`${jsonData.sender}：${jsonData.message}`);
-        // jsonData.message.split("：")[0] !== "PLAYER" &&
-        room.danmuku = {
-          text: jsonData.message, // 弹幕文本
-          //time: Date.now(), // 发送时间，单位秒
-          color: "#fff", // 弹幕局部颜色
-          border: false // 是否显示描边
-          //mode: 0, // 弹幕模式: 0表示滚动, 1静止
-        };
+      const jsonData: WsMessage = JSON.parse(data.value);
+      devLog(`-----Ws Message Start-----`);
+      devLog(jsonData);
+      devLog(`-----Ws Message End-----`);
+      switch (jsonData.type) {
+        // 聊天消息
+        case WsMessageType.MESSAGE: {
+          msgList.value.push(`${jsonData.sender}：${jsonData.message}`);
+          // jsonData.message.split("：")[0] !== "PLAYER" &&
+          room.danmuku = {
+            text: jsonData.message, // 弹幕文本
+            //time: Date.now(), // 发送时间，单位秒
+            color: "#fff", // 弹幕局部颜色
+            border: false // 是否显示描边
+            //mode: 0, // 弹幕模式: 0表示滚动, 1静止
+          };
 
-        // 自动滚动到最底部
-        if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
+          // 自动滚动到最底部
+          if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
 
-        if (msgList.value.length > 40)
-          return (msgList.value = [
-            "<p><b>SYSTEM：</b>已达到最大聊天记录长度，系统已自动清空...</p>"
-          ]);
+          if (msgList.value.length > 40)
+            return (msgList.value = [
+              "<p><b>SYSTEM：</b>已达到最大聊天记录长度，系统已自动清空...</p>"
+            ]);
 
-        break;
-      }
+          break;
+        }
 
-      // 播放
-      case WsMessageType.PLAY: {
-        setAllStatus({
-          playing: true,
-          seek: jsonData.seek,
-          rate: jsonData.rate
-        });
-        break;
-      }
+        // 播放
+        case WsMessageType.PLAY: {
+          setAllStatus({
+            playing: true,
+            seek: jsonData.seek,
+            rate: jsonData.rate
+          });
+          break;
+        }
 
-      // 暂停
-      case WsMessageType.PAUSE: {
-        setAllStatus({
-          playing: false,
-          seek: jsonData.seek,
-          rate: jsonData.rate
-        });
-        break;
-      }
+        // 暂停
+        case WsMessageType.PAUSE: {
+          setAllStatus({
+            playing: false,
+            seek: jsonData.seek,
+            rate: jsonData.rate
+          });
+          break;
+        }
 
-      // 视频进度发生变化
-      case WsMessageType.SEEK: {
-        setStatus(jsonData.seek, jsonData.rate);
-        break;
-      }
+        // 视频进度发生变化
+        case WsMessageType.SEEK: {
+          setStatus(jsonData.seek, jsonData.rate);
+          break;
+        }
 
-      case WsMessageType.RATE: {
-        setStatus(jsonData.seek, jsonData.rate);
-        break;
-      }
+        case WsMessageType.RATE: {
+          setStatus(jsonData.seek, jsonData.rate);
+          break;
+        }
 
-      // 设置正在播放的影片
-      case WsMessageType.CURRENT_MOVIE: {
-        room.currentMovie = jsonData.current.movie;
-        setAllStatus(jsonData.current.status);
-        break;
-      }
+        // 设置正在播放的影片
+        case WsMessageType.CURRENT_MOVIE: {
+          room.currentMovie = jsonData.current.movie;
+          setAllStatus(jsonData.current.status);
+          break;
+        }
 
-      // 播放列表更新
-      case WsMessageType.PLAY_LIST_UPDATE: {
-        getMovies();
-        // jsonData.movies
-        //   ? (movieList.value = room.movies = jsonData.movies)
-        //   : movieList.value.splice(0, 1);
-        break;
-      }
+        // 播放列表更新
+        case WsMessageType.PLAY_LIST_UPDATE: {
+          getMovies();
+          // jsonData.movies
+          //   ? (movieList.value = room.movies = jsonData.movies)
+          //   : movieList.value.splice(0, 1);
+          break;
+        }
 
-      // ん？
-      case WsMessageType.PEOPLE_NUM: {
-        room.peopleNum < jsonData.peopleNum
-          ? msgList.value.push(
-              `<p><b>SYSTEM：</b>欢迎新成员加入，当前共有 ${jsonData.peopleNum} 人在观看</p>`
-            )
-          : room.peopleNum > jsonData.peopleNum
-          ? msgList.value.push(
-              `<p><b>SYSTEM：</b>有人离开了房间，当前还剩 ${jsonData.peopleNum} 人在观看</p>`
-            )
-          : "";
-        room.peopleNum = jsonData.peopleNum;
-        break;
+        // ん？
+        case WsMessageType.PEOPLE_NUM: {
+          room.peopleNum < jsonData.peopleNum
+            ? msgList.value.push(
+                `<p><b>SYSTEM：</b>欢迎新成员加入，当前共有 ${jsonData.peopleNum} 人在观看</p>`
+              )
+            : room.peopleNum > jsonData.peopleNum
+            ? msgList.value.push(
+                `<p><b>SYSTEM：</b>有人离开了房间，当前还剩 ${jsonData.peopleNum} 人在观看</p>`
+              )
+            : "";
+          room.peopleNum = jsonData.peopleNum;
+          break;
+        }
       }
     }
-  }
+  )
 );
 
 // 发送消息（临时
