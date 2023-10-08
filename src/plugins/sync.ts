@@ -1,11 +1,8 @@
-import { ref, watch } from "vue";
-import type { WatchStopHandle, Ref } from "vue";
 import { roomStore } from "@/stores/room";
 import { devLog, debounces } from "@/utils/utils";
-import Notify from "@/utils/notify";
 import { useDebounceFn } from "@vueuse/core";
 import { WsMessageType } from "@/types/Room";
-import { ElNotification, ElMessage } from "element-plus";
+import { ElNotification } from "element-plus";
 const room = roomStore();
 
 interface callback {
@@ -33,7 +30,7 @@ export const sync = (cbk: callback): resould => {
     if (!player || player.option.isLive) return;
     cbk["set-player-status"](
       JSON.stringify({
-        Type: WsMessageType.SEEK,
+        Type: WsMessageType.ChangeSeek,
         Seek: currentTime,
         Rate: player.playbackRate
       })
@@ -50,7 +47,7 @@ export const sync = (cbk: callback): resould => {
     if (!player || player.option.isLive) return;
     cbk["set-player-status"](
       JSON.stringify({
-        Type: WsMessageType.PLAY,
+        Type: WsMessageType.Play,
         Seek: player.currentTime,
         Rate: player.playbackRate
       })
@@ -80,7 +77,7 @@ export const sync = (cbk: callback): resould => {
     if (!player || player.option.isLive) return;
     cbk["set-player-status"](
       JSON.stringify({
-        Type: WsMessageType.PAUSE,
+        Type: WsMessageType.Pause,
         Seek: player.currentTime,
         Rate: player.playbackRate
       })
@@ -102,7 +99,7 @@ export const sync = (cbk: callback): resould => {
     if (!player || player.option.isLive) return;
     cbk["set-player-status"](
       JSON.stringify({
-        Type: WsMessageType.RATE,
+        Type: WsMessageType.ChangeRate,
         Seek: player.currentTime,
         Rate: player.playbackRate
       })
@@ -122,6 +119,8 @@ export const sync = (cbk: callback): resould => {
   const plugin = (art: Artplayer) => {
     player = art;
     if (!art.option.isLive) {
+      const intervals: number[] = [];
+
       art.once("ready", () => {
         console.log(room.currentMovieStatus.seek);
         setAndNoPublishSeek(room.currentMovieStatus.seek);
@@ -131,6 +130,17 @@ export const sync = (cbk: callback): resould => {
         console.log("rate同步成功:", art.playbackRate);
         room.currentMovieStatus.playing ? setAndNoPublishPlay() : setAndNoPublishPause();
         cbk["ws-send"]("PLAYER：视频已就绪");
+
+        intervals.push(
+          setInterval(() => {
+            cbk["set-player-status"](
+              JSON.stringify({
+                Type: WsMessageType.CheckSeek,
+                Seek: art.currentTime
+              })
+            );
+          }, 5000)
+        );
       });
 
       art.on("play", publishPlayDebounce);
@@ -146,6 +156,9 @@ export const sync = (cbk: callback): resould => {
 
       art.on("destroy", () => {
         player = undefined;
+        intervals.forEach((interval) => {
+          clearInterval(interval);
+        });
         art.off("play", publishPlayDebounce);
         art.off("pause", publishPauseDebounce);
         art.off("seek", publishSeek);
