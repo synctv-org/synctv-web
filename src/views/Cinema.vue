@@ -497,8 +497,7 @@ const setAllStatus = (status: MovieStatus) => {
 };
 
 const setStatus = (seek: number, rate: number) => {
-  if (room.currentMovieStatus.seek - seek > 2 || room.currentMovieStatus.seek - seek < -2)
-    room.currentMovieStatus.seek = seek;
+  room.currentMovieStatus.seek = seek;
   room.currentMovieStatus.rate = rate;
 };
 
@@ -655,8 +654,6 @@ onMounted(() => {
       resetChatAreaHeight();
     })
   );
-
-  getMovieList();
 });
 
 onBeforeUnmount(() => {

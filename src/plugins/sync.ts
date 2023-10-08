@@ -100,16 +100,17 @@ export const sync = (cbk: callback) => {
         });
         art.playbackRate = rate;
       };
-      setTimeout(() => {
+
+      art.once("ready", () => {
+        console.log(room.currentMovieStatus.seek);
         setAndNoPublishSeek(room.currentMovieStatus.seek);
         console.log("seek同步成功:", art.currentTime);
 
         setAndNoPublishRate(room.currentMovieStatus.rate);
         console.log("rate同步成功:", art.playbackRate);
-
         setAndNoPublishPlayOrPause(room.currentMovieStatus.playing);
         cbk["ws-send"]("PLAYER：视频已就绪");
-      }, 0);
+      });
 
       art.on("play", publishPlayOrPause);
 
@@ -117,7 +118,6 @@ export const sync = (cbk: callback) => {
       art.on("pause", publishPlayOrPause);
 
       // 空降
-
       art.on("seek", publishSeek);
 
       // 倍速
@@ -128,9 +128,9 @@ export const sync = (cbk: callback) => {
       watchers.push(
         watch(
           () => room.currentMovieStatus.playing,
-          () => {
-            if (room.currentMovieStatus.playing === art.playing) return;
-            setAndNoPublishPlayOrPause(room.currentMovieStatus.playing);
+          (playing, _) => {
+            devLog("play变了：", playing);
+            setAndNoPublishPlayOrPause(playing);
           }
         )
       );
@@ -138,9 +138,10 @@ export const sync = (cbk: callback) => {
       watchers.push(
         watch(
           () => room.currentMovieStatus.seek,
-          () => {
-            devLog("seek变了：", room.currentMovieStatus.seek);
-            setAndNoPublishSeek(room.currentMovieStatus.seek);
+          (seek) => {
+            if (Math.abs(seek - art.currentTime) < 2) return;
+            devLog("seek变了：", seek);
+            setAndNoPublishSeek(seek);
           }
         )
       );
@@ -148,11 +149,9 @@ export const sync = (cbk: callback) => {
       watchers.push(
         watch(
           () => room.currentMovieStatus.rate,
-          () => {
-            devLog("rate变了：", room.currentMovieStatus.rate);
-            room.currentMovieStatus.rate === art.playbackRate
-              ? void 0
-              : setAndNoPublishRate(room.currentMovieStatus.rate);
+          (rate) => {
+            devLog("rate变了：", rate);
+            setAndNoPublishRate(rate);
           }
         )
       );
@@ -165,16 +164,18 @@ export const sync = (cbk: callback) => {
         watchers.forEach((watcher) => watcher());
       });
     } else {
-      art.play().catch(() => {
-        art.muted = true;
-        art.play();
-        ElNotification({
-          title: "温馨提示",
-          type: "info",
-          message: "由于浏览器限制，播放器已静音，请手动开启声音"
+      art.once("ready", () => {
+        art.play().catch(() => {
+          art.muted = true;
+          art.play();
+          ElNotification({
+            title: "温馨提示",
+            type: "info",
+            message: "由于浏览器限制，播放器已静音，请手动开启声音"
+          });
         });
+        cbk["ws-send"]("PLAYER：视频已就绪");
       });
-      cbk["ws-send"]("PLAYER：视频已就绪");
     }
   };
 };
