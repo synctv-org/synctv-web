@@ -14,7 +14,7 @@ import {
   editMovieInfoApi,
   delMovieApi,
   swapMovieApi,
-  movieStatusApi,
+  moviesApi,
   changeCurrentMovieApi,
   clearMovieListApi,
   liveInfoApi
@@ -123,16 +123,14 @@ const deleteRoom = async () => {
 };
 
 // 获取影片列表
-const movieList = ref<MovieInfo[]>([]);
-const totalMovies = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
 const order = ref("desc");
-const { state: _movieList, isLoading: movieListLoading, execute: reqMovieListApi } = movieListApi();
+const { state: movieList, isLoading: movieListLoading, execute: reqMovieListApi } = movieListApi();
 /**
  * @argument updateStatus 是否更新当前正在播放的影片（包括状态）
  */
-const getMovieList = async (updateStatus: boolean) => {
+const getMovieList = async () => {
   try {
     await reqMovieListApi({
       params: {
@@ -143,14 +141,53 @@ const getMovieList = async (updateStatus: boolean) => {
       headers: { Authorization: localStorage.token }
     });
 
-    if (_movieList.value) {
-      devLog(_movieList.value);
-      room.movieList = movieList.value = _movieList.value.movies;
-      totalMovies.value = _movieList.value.total;
-      if (updateStatus) {
-        room.currentMovie = _movieList.value.current.movie;
-        room.currentMovieStatus = _movieList.value.current.status;
-      }
+    if (movieList.value) {
+      devLog(movieList.value);
+      room.movies = movieList.value.movies;
+      room.totalMovies = movieList.value.total;
+      room.currentMovie = movieList.value.current.movie;
+      room.currentMovieStatus = movieList.value.current.status;
+    }
+  } catch (err: any) {
+    devLog(err);
+    if (err.response.status === 401) {
+      ElNotification({
+        title: "身份验证失败，请重新进入房间",
+        message: err.message,
+        type: "error"
+      });
+      setInterval(() => {
+        localStorage.removeItem("roomId");
+        localStorage.removeItem("password");
+        localStorage.removeItem("login");
+        localStorage.removeItem("token");
+        window.location.href = window.location.origin;
+      }, 500);
+    }
+    ElNotification({
+      title: "获取影片列表失败",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+const { state: movies, execute: reqMoviesApi } = moviesApi();
+const getMovies = async () => {
+  try {
+    await reqMoviesApi({
+      params: {
+        page: currentPage.value,
+        max: pageSize.value,
+        order: order.value
+      },
+      headers: { Authorization: localStorage.token }
+    });
+
+    if (movies.value) {
+      devLog(movies.value);
+      room.movies = movies.value.movies;
+      room.totalMovies = movies.value.total;
     }
   } catch (err: any) {
     devLog(err);
@@ -278,7 +315,7 @@ const pushMovie = async (dir: string) => {
       type: "success"
     });
     newMovieInfo.value.name = newMovieInfo.value.url = "";
-    getMovieList(false);
+    getMovies();
   } catch (err: any) {
     console.log(err);
     ElNotification({
@@ -363,8 +400,8 @@ const deleteMovie = async (ids: Array<number>) => {
       headers: { Authorization: localStorage.token }
     });
     for (const id of ids) {
-      movieList.value.splice(
-        movieList.value.findIndex((movie: MovieInfo) => movie["id"] === id),
+      room.movies.splice(
+        room.movies.findIndex((movie: MovieInfo) => movie["id"] === id),
         1
       );
     }
@@ -402,7 +439,7 @@ const swapMovie = async () => {
       type: "success"
     });
     selectMovies.value = [];
-    getMovieList(false);
+    getMovies();
   } catch (err: any) {
     console.error(err);
     ElNotification({
@@ -541,9 +578,9 @@ watch(
 
       // 播放列表更新
       case WsMessageType.PLAY_LIST_UPDATE: {
-        getMovieList(false);
+        getMovies();
         // jsonData.movies
-        //   ? (movieList.value = room.movieList = jsonData.movies)
+        //   ? (movieList.value = room.movies = jsonData.movies)
         //   : movieList.value.splice(0, 1);
         break;
       }
@@ -639,7 +676,7 @@ watchers.push(
     () => playerMounted.value,
     () => {
       syncCurrent();
-      getMovieList(true);
+      getMovieList();
     }
   )
 );
@@ -794,13 +831,13 @@ onBeforeUnmount(() => {
     <!-- 影片列表 -->
     <el-col :lg="12" :md="16" :sm="15" :xs="24" class="mb-6 max-sm:mb-2">
       <div class="card max-sm:rounded-none">
-        <div class="card-title">影片列表（{{ movieList.length }}）</div>
+        <div class="card-title">影片列表（{{ room.movies.length }}）</div>
 
         <div class="card-body">
           <el-skeleton v-if="movieListLoading" :rows="1" animated />
           <div
             v-else
-            v-for="item in movieList"
+            v-for="item in room.movies"
             :key="item.name"
             class="flex justify-around mb-2 rounded-lg bg-zinc-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800"
           >
@@ -873,9 +910,9 @@ onBeforeUnmount(() => {
             v-model:page-size="pageSize"
             :pager-count="4"
             layout="total, sizes, prev, pager, next, jumper"
-            :total="totalMovies"
-            @size-change="getMovieList(false)"
-            @current-change="getMovieList(false)"
+            :total="room.totalMovies"
+            @size-change="getMovies()"
+            @current-change="getMovies()"
           />
 
           <div></div>
@@ -891,7 +928,7 @@ onBeforeUnmount(() => {
                 <button class="btn btn-error mr-2">清空列表</button>
               </template>
             </el-popconfirm>
-            <button class="btn btn-success" @click="getMovieList(true)">更新列表</button>
+            <button class="btn btn-success" @click="getMovies()">更新列表</button>
           </div>
         </div>
       </div>

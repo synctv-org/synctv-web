@@ -7,7 +7,9 @@ export const roomStore = defineStore("roomStore", () => {
   const isDarkMode = ref(false);
 
   // 影片列表
-  const movieList = ref({});
+  const movies = ref<MovieInfo[]>([]);
+
+  const totalMovies = ref(0);
 
   // 设置播放当前影片
   const currentMovie = ref<MovieInfo>({
@@ -50,7 +52,8 @@ export const roomStore = defineStore("roomStore", () => {
     count,
     isDarkMode,
     login,
-    movieList,
+    movies,
+    totalMovies,
     currentMovie,
     currentMovieStatus,
     play,

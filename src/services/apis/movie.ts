@@ -25,6 +25,42 @@ export const movieListApi = useDefineApi<
   method: "GET"
 });
 
+// 获取影片列表
+export const moviesApi = useDefineApi<
+  {
+    params: {
+      page: number;
+      max: number;
+      sort?: string;
+      order: string;
+    };
+    headers: { Authorization: string };
+  },
+  {
+    movies: MovieInfo[] | [];
+    total: number;
+  }
+>({
+  url: "/api/movie/movies",
+  method: "GET"
+});
+
+// 获取影片列表
+export const currentMovieApi = useDefineApi<
+  {
+    headers: { Authorization: string };
+  },
+  {
+    current: {
+      movie: MovieInfo;
+      status: MovieStatus;
+    };
+  }
+>({
+  url: "/api/movie/current",
+  method: "GET"
+});
+
 // 添加影片
 export const pushMovieApi = useDefineApi<
   // request
