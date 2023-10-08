@@ -651,6 +651,12 @@ onBeforeUnmount(() => {
 
 getMovieList();
 
+const danmukuPlugin = artplayerPluginDanmuku({
+  // 弹幕数组
+  danmuku: [],
+  speed: 4
+});
+
 const playerOption = computed(() => {
   return {
     url: room.currentMovie.pullKey
@@ -659,14 +665,7 @@ const playerOption = computed(() => {
     isLive: room.currentMovie.live,
     type: parseVideoType(room.currentMovie),
     headers: room.currentMovie.headers,
-    plugins: [
-      artplayerPluginDanmuku({
-        // 弹幕数组
-        danmuku: [],
-        speed: 4
-      }),
-      syncPlugin.plugin
-    ]
+    plugins: [danmukuPlugin, syncPlugin.plugin]
   };
 });
 </script>
