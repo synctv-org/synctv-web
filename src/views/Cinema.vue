@@ -455,10 +455,10 @@ const updateMsgList = (msg: string) => {
   msgList.value.push(msg);
 };
 
-const setAllStatus = (playing: boolean, seek: number, rate: number) => {
+const setAllStatus = (status: MovieStatus) => {
   // playing必须比seek后设置，因为watch的顺序会变成先seek后playing，seek会导致playing状态不正确，导致playing无法设置
-  room.currentMovieStatus.playing = playing;
-  setStatus(seek, rate);
+  room.currentMovieStatus.playing = status.playing;
+  setStatus(status.seek, status.rate);
 };
 
 const setStatus = (seek: number, rate: number) => {
@@ -503,13 +503,21 @@ watch(
 
       // 播放
       case WsMessageType.PLAY: {
-        setAllStatus(true, jsonData.seek, jsonData.rate);
+        setAllStatus({
+          playing: true,
+          seek: jsonData.seek,
+          rate: jsonData.rate
+        });
         break;
       }
 
       // 暂停
       case WsMessageType.PAUSE: {
-        setAllStatus(false, jsonData.seek, jsonData.rate);
+        setAllStatus({
+          playing: false,
+          seek: jsonData.seek,
+          rate: jsonData.rate
+        });
         break;
       }
 
@@ -527,7 +535,7 @@ watch(
       // 设置正在播放的影片
       case WsMessageType.CURRENT_MOVIE: {
         room.currentMovie = jsonData.current.movie;
-        room.currentMovieStatus = jsonData.current.status;
+        setAllStatus(jsonData.current.status);
         break;
       }
 
