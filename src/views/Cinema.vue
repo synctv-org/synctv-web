@@ -565,6 +565,8 @@ watchers.push(
         case WsMessageType.CURRENT_MOVIE: {
           room.currentMovie = jsonData.current.movie;
           room.currentMovieStatus = jsonData.current.status;
+          syncPlugin.setAndNoPublishSeek(jsonData.current.status.seek);
+          syncPlugin.setAndNoPublishRate(jsonData.current.status.rate);
           break;
         }
 
