@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { WatchStopHandle, Ref } from "vue";
-import { useWebSocket, useWindowSize, watchOnce } from "@vueuse/core";
+import { useWebSocket, useWindowSize, useDebounceFn } from "@vueuse/core";
 import Player from "@/components/Player.vue";
 import ArtPlayer from "artplayer";
 import { roomStore } from "@/stores/room";
@@ -509,8 +509,18 @@ watchers.push(
       devLog(jsonData);
       devLog(`-----Ws Message End-----`);
       switch (jsonData.type) {
+        case WsMessageType.Error: {
+          console.error(jsonData.message);
+          ElNotification({
+            title: "错误",
+            message: jsonData.message,
+            type: "error"
+          });
+          break;
+        }
+
         // 聊天消息
-        case WsMessageType.MESSAGE: {
+        case WsMessageType.ChatMessage: {
           msgList.value.push(`${jsonData.sender}：${jsonData.message}`);
           // jsonData.message.split("：")[0] !== "PLAYER" &&
           room.danmuku = {
@@ -533,7 +543,7 @@ watchers.push(
         }
 
         // 播放
-        case WsMessageType.PLAY: {
+        case WsMessageType.Play: {
           syncPlugin.setAndNoPublishSeek(jsonData.seek);
           syncPlugin.setAndNoPublishRate(jsonData.rate);
           syncPlugin.setAndNoPublishPlay();
@@ -541,7 +551,7 @@ watchers.push(
         }
 
         // 暂停
-        case WsMessageType.PAUSE: {
+        case WsMessageType.Pause: {
           syncPlugin.setAndNoPublishPause();
           syncPlugin.setAndNoPublishSeek(jsonData.seek);
           syncPlugin.setAndNoPublishRate(jsonData.rate);
@@ -549,33 +559,61 @@ watchers.push(
         }
 
         // 视频进度发生变化
-        case WsMessageType.SEEK: {
+        case WsMessageType.ChangeSeek: {
           syncPlugin.setAndNoPublishSeek(jsonData.seek);
           syncPlugin.setAndNoPublishRate(jsonData.rate);
           break;
         }
 
-        case WsMessageType.RATE: {
+        case WsMessageType.TooFast: {
+          ElNotification({
+            title: "播放速度过快",
+            type: "warning"
+          });
+          // TODO: 询问是否重新同步
+          syncPlugin.setAndNoPublishSeek(jsonData.seek);
+          syncPlugin.setAndNoPublishRate(jsonData.rate);
+          break;
+        }
+
+        case WsMessageType.TooSlow: {
+          ElNotification({
+            title: "播放速度落后",
+            type: "warning"
+          });
+          // TODO: 询问是否重新同步
+          syncPlugin.setAndNoPublishSeek(jsonData.seek);
+          syncPlugin.setAndNoPublishRate(jsonData.rate);
+          break;
+        }
+
+        case WsMessageType.CheckSeek: {
+          break;
+        }
+
+        case WsMessageType.ChangeRate: {
           syncPlugin.setAndNoPublishSeek(jsonData.seek);
           syncPlugin.setAndNoPublishRate(jsonData.rate);
           break;
         }
 
         // 设置正在播放的影片
-        case WsMessageType.CURRENT_MOVIE: {
+        case WsMessageType.ChangeCurrent: {
           room.currentMovie = jsonData.current.movie;
           room.currentMovieStatus = jsonData.current.status;
+          syncPlugin.setAndNoPublishSeek(jsonData.current.status.seek);
+          syncPlugin.setAndNoPublishRate(jsonData.current.status.rate);
           break;
         }
 
         // 播放列表更新
-        case WsMessageType.PLAY_LIST_UPDATE: {
+        case WsMessageType.ChangeMovieList: {
           getMovies();
           break;
         }
 
         // ん？
-        case WsMessageType.PEOPLE_NUM: {
+        case WsMessageType.ChangePeopleNum: {
           room.peopleNum < jsonData.peopleNum
             ? msgList.value.push(
                 `<p><b>SYSTEM：</b>欢迎新成员加入，当前共有 ${jsonData.peopleNum} 人在观看</p>`
@@ -649,6 +687,12 @@ onBeforeUnmount(() => {
 
 getMovieList();
 
+const danmukuPlugin = artplayerPluginDanmuku({
+  // 弹幕数组
+  danmuku: [],
+  speed: 4
+});
+
 const playerOption = computed(() => {
   return {
     url: room.currentMovie.pullKey
@@ -657,14 +701,7 @@ const playerOption = computed(() => {
     isLive: room.currentMovie.live,
     type: parseVideoType(room.currentMovie),
     headers: room.currentMovie.headers,
-    plugins: [
-      artplayerPluginDanmuku({
-        // 弹幕数组
-        danmuku: [],
-        speed: 4
-      }),
-      syncPlugin.plugin
-    ]
+    plugins: [danmukuPlugin, syncPlugin.plugin]
   };
 });
 </script>

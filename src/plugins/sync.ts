@@ -1,11 +1,8 @@
-import { ref, watch } from "vue";
-import type { WatchStopHandle, Ref } from "vue";
 import { roomStore } from "@/stores/room";
 import { devLog, debounces } from "@/utils/utils";
-import Notify from "@/utils/notify";
 import { useDebounceFn } from "@vueuse/core";
 import { WsMessageType } from "@/types/Room";
-import { ElNotification, ElMessage } from "element-plus";
+import { ElNotification } from "element-plus";
 const room = roomStore();
 
 interface callback {
@@ -28,12 +25,12 @@ const debounceTime = 500;
 
 export const sync = (cbk: callback): resould => {
   const debounce = debounces(debounceTime);
-  let player: Artplayer;
+  let player: Artplayer | undefined = undefined;
   const publishSeek = useDebounceFn((currentTime: number) => {
-    if (player.option.isLive) return;
+    if (!player || player.option.isLive) return;
     cbk["set-player-status"](
       JSON.stringify({
-        Type: WsMessageType.SEEK,
+        Type: WsMessageType.ChangeSeek,
         Seek: currentTime,
         Rate: player.playbackRate
       })
@@ -42,15 +39,15 @@ export const sync = (cbk: callback): resould => {
   }, debounceTime);
 
   const setAndNoPublishSeek = (seek: number) => {
-    if (player.option.isLive || Math.abs(player.currentTime - seek) < 2) return;
+    if (!player || player.option.isLive || Math.abs(player.currentTime - seek) < 2) return;
     player.currentTime = seek;
   };
 
   const publishPlay = () => {
-    if (player.option.isLive) return;
+    if (!player || player.option.isLive) return;
     cbk["set-player-status"](
       JSON.stringify({
-        Type: WsMessageType.PLAY,
+        Type: WsMessageType.Play,
         Seek: player.currentTime,
         Rate: player.playbackRate
       })
@@ -60,14 +57,14 @@ export const sync = (cbk: callback): resould => {
   const publishPlayDebounce = debounce(publishPlay);
 
   const setAndNoPublishPlay = () => {
-    if (player.option.isLive || player.playing) return;
+    if (!player || player.option.isLive || player.playing) return;
     player.off("play", publishPlayDebounce);
     player.once("play", () => {
-      player.on("play", publishPlayDebounce);
+      !player || player.on("play", publishPlayDebounce);
     });
     player.play().catch(() => {
-      player.muted = true;
-      player.play();
+      !player || (player.muted = true);
+      !player || player.play();
       ElNotification({
         title: "温馨提示",
         type: "info",
@@ -77,10 +74,10 @@ export const sync = (cbk: callback): resould => {
   };
 
   const publishPause = () => {
-    if (player.option.isLive) return;
+    if (!player || player.option.isLive) return;
     cbk["set-player-status"](
       JSON.stringify({
-        Type: WsMessageType.PAUSE,
+        Type: WsMessageType.Pause,
         Seek: player.currentTime,
         Rate: player.playbackRate
       })
@@ -90,19 +87,19 @@ export const sync = (cbk: callback): resould => {
   const publishPauseDebounce = debounce(publishPause);
 
   const setAndNoPublishPause = () => {
-    if (player.option.isLive || !player.playing) return;
+    if (!player || player.option.isLive || !player.playing) return;
     player.off("pause", publishPauseDebounce);
     player.once("pause", () => {
-      player.on("pause", publishPauseDebounce);
+      !player || player.on("pause", publishPauseDebounce);
     });
     player.pause();
   };
 
   const publishRate = () => {
-    if (player.option.isLive) return;
+    if (!player || player.option.isLive) return;
     cbk["set-player-status"](
       JSON.stringify({
-        Type: WsMessageType.RATE,
+        Type: WsMessageType.ChangeRate,
         Seek: player.currentTime,
         Rate: player.playbackRate
       })
@@ -111,10 +108,10 @@ export const sync = (cbk: callback): resould => {
   };
 
   const setAndNoPublishRate = (rate: number) => {
-    if (player.option.isLive || player.playbackRate === rate) return;
+    if (!player || player.option.isLive || player.playbackRate === rate) return;
     player.off("video:ratechange", publishRate);
     player.once("video:ratechange", () => {
-      player.on("video:ratechange", publishRate);
+      !player || player.on("video:ratechange", publishRate);
     });
     player.playbackRate = rate;
   };
@@ -122,6 +119,8 @@ export const sync = (cbk: callback): resould => {
   const plugin = (art: Artplayer) => {
     player = art;
     if (!art.option.isLive) {
+      const intervals: number[] = [];
+
       art.once("ready", () => {
         console.log(room.currentMovieStatus.seek);
         setAndNoPublishSeek(room.currentMovieStatus.seek);
@@ -131,6 +130,17 @@ export const sync = (cbk: callback): resould => {
         console.log("rate同步成功:", art.playbackRate);
         room.currentMovieStatus.playing ? setAndNoPublishPlay() : setAndNoPublishPause();
         cbk["ws-send"]("PLAYER：视频已就绪");
+
+        intervals.push(
+          setInterval(() => {
+            cbk["set-player-status"](
+              JSON.stringify({
+                Type: WsMessageType.CheckSeek,
+                Seek: art.currentTime
+              })
+            );
+          }, 5000)
+        );
       });
 
       art.on("play", publishPlayDebounce);
@@ -145,6 +155,10 @@ export const sync = (cbk: callback): resould => {
       art.on("video:ratechange", publishRate);
 
       art.on("destroy", () => {
+        player = undefined;
+        intervals.forEach((interval) => {
+          clearInterval(interval);
+        });
         art.off("play", publishPlayDebounce);
         art.off("pause", publishPauseDebounce);
         art.off("seek", publishSeek);

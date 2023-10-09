@@ -8,7 +8,7 @@ export interface RoomList {
   createAt: number;
 }
 
-export interface RoomInfo { }
+export interface RoomInfo {}
 
 export interface WsMessage {
   type: number;
@@ -30,12 +30,16 @@ export interface WsMessage {
 }
 
 export enum WsMessageType {
-  MESSAGE = 2,
-  PLAY = 3,
-  PAUSE = 4,
-  RATE = 8,
-  SEEK = 9,
-  CURRENT_MOVIE = 10,
-  PLAY_LIST_UPDATE = 11,
-  PEOPLE_NUM = 12
+  Error = 1,
+  ChatMessage,
+  Play,
+  Pause,
+  CheckSeek,
+  TooFast,
+  TooSlow,
+  ChangeRate,
+  ChangeSeek,
+  ChangeCurrent,
+  ChangeMovieList,
+  ChangePeopleNum
 }
