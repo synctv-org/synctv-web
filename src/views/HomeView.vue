@@ -10,11 +10,8 @@ const room = roomStore();
     <h1 class="text-3xl">首页</h1>
     <br />
     <RoomList />
-    <button class="btn" @click="room.increment" v-if="isDev()">
-      {{ room.count }}
-    </button>
     <br />
     <p class="text-zinc-400">*开发中页面，可能是最终品质</p>
-    <p>&copy; Copyright 2023 Lazy all right reserved</p>
+    <p>&copy; Copyright 2023 SyncTV all right reserved</p>
   </div>
 </template>
