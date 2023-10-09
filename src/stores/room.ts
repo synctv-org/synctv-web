@@ -36,20 +36,12 @@ export const roomStore = defineStore("roomStore", () => {
   // 是否主动上报
   const play = ref(true);
 
-  const count = ref(3);
-
   // 在线人数
   const peopleNum = ref(1);
-
-  const doubleCount = computed(() => count.value * 2);
-  function increment() {
-    count.value++;
-  }
 
   const danmuku = ref({});
 
   return {
-    count,
     isDarkMode,
     login,
     movies,
@@ -57,8 +49,6 @@ export const roomStore = defineStore("roomStore", () => {
     currentMovie,
     currentMovieStatus,
     play,
-    doubleCount,
-    increment,
     danmuku,
     peopleNum
   };
