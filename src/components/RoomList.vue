@@ -1,44 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import axios, { type AxiosResponse } from "axios";
 import { ElNotification } from "element-plus";
-import { roomStore } from "@/stores/room";
-import router from "@/router";
-import { roomListApi, joinRoomApi } from "@/services/apis/room";
+import { roomListApi } from "@/services/apis/room";
 import type { RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
-
-const room = roomStore();
-const __roomList = ref<RoomList[]>([
-  // { roomid: "1", peoplenum: 0, needpassword: false },
-  // { roomid: "OPPPPPPPPPPPPPPPPPPPPPPPPPPP", peoplenum: 10, needpassword: false },
-  // { roomid: "1asdsadasdz", peoplenum: 114514, needpassword: true },
-  // { roomid: "1sdfgdgscv", peoplenum: 114114514514, needpassword: false },
-  // { roomid: "ewadfds1", peoplenum: 114514, needpassword: true },
-  // { roomid: "asdfsaddf1", peoplenum: 114114514114514514, needpassword: false },
-  // { roomid: "1fadfsf", peoplenum: 114514, needpassword: true },
-  // { roomid: "sdxccvrsd1", peoplenum: 114114514514, needpassword: false },
-  // { roomid: "fsddfsd1", peoplenum: 114114514114514514, needpassword: false },
-  // { roomid: "sfdsff1", peoplenum: 114514, needpassword: false },
-  // { roomid: "cdc1", peoplenum: 114514, needpassword: false },
-  // { roomid: "aDS1", peoplenum: 0, needpassword: true },
-  // { roomid: "df", peoplenum: 0, needpassword: true },
-  // { roomid: "sdaXdasd1", peoplenum: 0, needpassword: false },
-  // { roomid: "3WAQsdwq1", peoplenum: 0, needpassword: false },
-  // { roomid: "asdsdAD1", peoplenum: 0, needpassword: false },
-  // { roomid: "ad1", peoplenum: 0, needpassword: false },
-  // { roomid: "aDxasds1", peoplenum: 0, needpassword: false },
-  // { roomid: "adsds1", peoplenum: 0, needpassword: false },
-  // { roomid: "SADDASDS1", peoplenum: 0, needpassword: false }
-]);
+const __roomList = ref<RoomList[]>([]);
 
 const JoinRoomDialog = ref(false);
 
 const formData = ref({
-  // uname: "",
-  // RoomID: "",
-  // password: "",
-  // hasPwd: false
   roomId: "",
   password: "",
   username: localStorage.getItem("uname") || "",
@@ -137,13 +107,12 @@ onMounted(() => {
           <b class="block text-base font-semibold truncate"> {{ item["roomId"] }}</b>
         </div>
         <div class="text-sm p-2">
-          <div class="inline mr-2">
+          <div>
             在线人数：<span :class="item.peopleNum > 0 ? 'text-green-500' : 'text-red-500'">{{
               item["peopleNum"]
             }}</span>
           </div>
-          <div class="inline">创建者：{{ item.creator }}</div>
-          <hr />
+          <div>创建者：{{ item.creator }}</div>
           <div>创建时间：{{ new Date(item.createAt).toLocaleString() }}</div>
         </div>
         <div class="flex p-2 w-full justify-between items-center">
@@ -178,26 +147,6 @@ onMounted(() => {
     :title="'加入房间 ' + formData.roomId"
     class="rounded-lg dark:bg-zinc-800 w-[443px] max-sm:w-[90%]"
   >
-    <!-- <el-form
-      label-position="top"
-      ref="form"
-      @submit.prevent="joinRoom(formData.uname, formData.RoomID, formData.password)"
-    >
-      <el-form-item label="设置一个用户名：" v-if="!hasUname">
-        <input type="text" class="l-input m-0 p-0 pl-2 w-full" v-model="formData.uname" />
-      </el-form-item>
-      <el-form-item label="房间密码：" v-if="formData.hasPwd">
-        <input type="text" class="l-input m-0 p-0 pl-2 w-full" v-model="formData.password" />
-      </el-form-item>
-    </el-form> -->
     <JoinRoom :item="formData" />
-    <!-- <template #footer>
-      <button
-        class="btn btn-success"
-        @click="joinRoom(formData.uname, formData.RoomID, formData.password)"
-      >
-        加入
-      </button>
-    </template> -->
   </el-dialog>
 </template>
