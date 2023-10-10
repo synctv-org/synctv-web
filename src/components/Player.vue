@@ -4,8 +4,6 @@ import Artplayer from "artplayer";
 import type { Option } from "artplayer/types/option";
 import { onMounted, onBeforeUnmount, ref, watch, computed } from "vue";
 import type { PropType, WatchStopHandle } from "vue";
-import mpegts from "mpegts.js";
-import Hls from "hls.js";
 import { deepEqualObject } from "@/utils/utils";
 const room = roomStore();
 
@@ -49,83 +47,114 @@ watchers.push(
 );
 
 const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
-  if (mpegts.isSupported()) {
-    const Config: Record<string, Record<string, string>> = {};
-    if (url.startsWith(window.location.origin) && localStorage.token) {
-      Config["headers"] = {
-        Authorization: localStorage.token
-      };
-    }
-    for (const key in Props.options.headers) {
-      Config["headers"][key] = Props.options.headers[key];
-    }
+  import("mpegts.js")
+    .then((mpegts) => mpegts.default)
+    .then((mpegts) => {
+      if (mpegts.isSupported()) {
+        const Config: Record<string, Record<string, string>> = {};
+        if (url.startsWith(window.location.origin) && localStorage.token) {
+          Config["headers"] = {
+            Authorization: localStorage.token
+          };
+        }
+        for (const key in Props.options.headers) {
+          Config["headers"][key] = Props.options.headers[key];
+        }
 
-    const flv = mpegts.createPlayer({ type: "flv", url, isLive: art.option.isLive }, Config);
+        const flv = mpegts.createPlayer({ type: "flv", url, isLive: art.option.isLive }, Config);
 
-    flv.attachMediaElement(player);
-    flv.load();
-    art.flv = flv;
-    art.on("destroy", () => flv.destroy());
-  } else {
-    art.notice.show = "Unsupported playback format: flv";
-  }
+        flv.attachMediaElement(player);
+        flv.load();
+        art.flv = flv;
+        art.on("destroy", () => flv.destroy());
+      } else {
+        art.notice.show = "Unsupported playback format: flv";
+      }
+    });
 };
 
 const playMse = (player: HTMLMediaElement, url: string, art: any) => {
-  if (mpegts.isSupported()) {
-    const Config: Record<string, Record<string, string>> = {};
-    for (const key in Props.options.headers) {
-      Config["headers"][key] = Props.options.headers[key];
-    }
+  import("mpegts.js")
+    .then((mpegts) => mpegts.default)
+    .then((mpegts) => {
+      if (mpegts.isSupported()) {
+        const Config: Record<string, Record<string, string>> = {};
+        if (url.startsWith(window.location.origin) && localStorage.token) {
+          Config["headers"] = {
+            Authorization: localStorage.token
+          };
+        }
+        for (const key in Props.options.headers) {
+          Config["headers"][key] = Props.options.headers[key];
+        }
 
-    const mse = mpegts.createPlayer({ type: "mse", url, isLive: art.option.isLive }, Config);
+        const mse = mpegts.createPlayer({ type: "mse", url, isLive: art.option.isLive }, Config);
 
-    mse.attachMediaElement(player);
-    mse.load();
-    art.flv = mse;
-    art.on("destroy", () => mse.destroy());
-  } else {
-    art.notice.show = "Unsupported playback format: mse";
-  }
+        mse.attachMediaElement(player);
+        mse.load();
+        art.flv = mse;
+        art.on("destroy", () => mse.destroy());
+      } else {
+        art.notice.show = "Unsupported playback format: mse";
+      }
+    });
 };
 
 const playMpegts = (player: HTMLMediaElement, url: string, art: any) => {
-  if (mpegts.isSupported()) {
-    const Config: Record<string, Record<string, string>> = {};
-    for (const key in Props.options.headers) {
-      Config["headers"][key] = Props.options.headers[key];
-    }
+  import("mpegts.js")
+    .then((mpegts) => mpegts.default)
+    .then((mpegts) => {
+      if (mpegts.isSupported()) {
+        const Config: Record<string, Record<string, string>> = {};
+        if (url.startsWith(window.location.origin) && localStorage.token) {
+          Config["headers"] = {
+            Authorization: localStorage.token
+          };
+        }
+        for (const key in Props.options.headers) {
+          Config["headers"][key] = Props.options.headers[key];
+        }
 
-    const mpegtsPlayer = mpegts.createPlayer(
-      { type: "mpegts", url, isLive: art.option.isLive },
-      Config
-    );
+        const mpegtsPlayer = mpegts.createPlayer(
+          { type: "mpegts", url, isLive: art.option.isLive },
+          Config
+        );
 
-    mpegtsPlayer.attachMediaElement(player);
-    mpegtsPlayer.load();
-    art.flv = mpegtsPlayer;
-    art.on("destroy", () => mpegtsPlayer.destroy());
-  } else {
-    art.notice.show = "Unsupported playback format: mpegts";
-  }
+        mpegtsPlayer.attachMediaElement(player);
+        mpegtsPlayer.load();
+        art.flv = mpegtsPlayer;
+        art.on("destroy", () => mpegtsPlayer.destroy());
+      } else {
+        art.notice.show = "Unsupported playback format: mpegts";
+      }
+    });
 };
 
 const playM2ts = (player: HTMLMediaElement, url: string, art: any) => {
-  if (mpegts.isSupported()) {
-    const Config: Record<string, Record<string, string>> = {};
-    for (const key in Props.options.headers) {
-      Config["headers"][key] = Props.options.headers[key];
-    }
+  import("mpegts.js")
+    .then((mpegts) => mpegts.default)
+    .then((mpegts) => {
+      if (mpegts.isSupported()) {
+        const Config: Record<string, Record<string, string>> = {};
+        if (url.startsWith(window.location.origin) && localStorage.token) {
+          Config["headers"] = {
+            Authorization: localStorage.token
+          };
+        }
+        for (const key in Props.options.headers) {
+          Config["headers"][key] = Props.options.headers[key];
+        }
 
-    const m2ts = mpegts.createPlayer({ type: "m2ts", url, isLive: art.option.isLive }, Config);
+        const m2ts = mpegts.createPlayer({ type: "m2ts", url, isLive: art.option.isLive }, Config);
 
-    m2ts.attachMediaElement(player);
-    m2ts.load();
-    art.flv = m2ts;
-    art.on("destroy", () => m2ts.destroy());
-  } else {
-    art.notice.show = "Unsupported playback format: m2ts";
-  }
+        m2ts.attachMediaElement(player);
+        m2ts.load();
+        art.flv = m2ts;
+        art.on("destroy", () => m2ts.destroy());
+      } else {
+        art.notice.show = "Unsupported playback format: m2ts";
+      }
+    });
 };
 
 const playM3u8Config = {
@@ -143,16 +172,20 @@ const playM3u8Config = {
 };
 
 const playM3u8 = (player: HTMLMediaElement, url: string, art: any) => {
-  if (Hls.isSupported()) {
-    if (art.hls) art.hls.destroy();
-    const hls = new Hls(playM3u8Config);
-    hls.loadSource(url);
-    hls.attachMedia(player);
-    art.hls = hls;
-    art.on("destroy", () => hls.destroy());
-  } else {
-    art.notice.show = "Unsupported playback format: m3u8";
-  }
+  import("hls.js")
+    .then((Hls) => Hls.default)
+    .then((Hls) => {
+      if (Hls.isSupported()) {
+        if (art.hls) art.hls.destroy();
+        const hls = new Hls(playM3u8Config);
+        hls.loadSource(url);
+        hls.attachMedia(player);
+        art.hls = hls;
+        art.on("destroy", () => hls.destroy());
+      } else {
+        art.notice.show = "Unsupported playback format: m3u8";
+      }
+    });
 };
 
 const playerOption = computed<Option>(() => {
