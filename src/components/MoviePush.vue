@@ -4,8 +4,11 @@ import { ElNotification } from "element-plus";
 import type { BaseMovieInfo } from "@/types/Movie";
 import { strLengthLimit } from "@/utils/utils";
 import { pushMovieApi } from "@/services/apis/movie";
+import customHeaders from "@/components/dialogs/customHeaders.vue";
 
 const Emits = defineEmits(["getMovies"]);
+
+const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
 
 // 新影片信息
 let newMovieInfo = ref<BaseMovieInfo>({
@@ -223,7 +226,7 @@ onMounted(() => {});
             <select
               @change="selectMovieType"
               v-model="newMovieInfo.type"
-              class="bg-transparent p-0 text-base w-full"
+              class="bg-transparent p-0 text-base w-full h-5"
             >
               <option
                 v-for="allowedType in movieTypeRecords.get(selectedMovieType)?.allowedTypes"
@@ -234,7 +237,11 @@ onMounted(() => {});
             </select>
           </div>
           <Transition name="fade">
-            <div class="more-option-list cursor-pointer" v-if="!newMovieInfo.rtmpSource">
+            <div
+              class="more-option-list cursor-pointer"
+              v-if="!newMovieInfo.rtmpSource"
+              @click="customHeadersDialog?.openDialog()"
+            >
               <span class="text-sm min-w-fit"> 自定义 header </span>
             </div>
           </Transition>
@@ -247,6 +254,9 @@ onMounted(() => {});
       <button class="btn" @click="pushMovie('back')">添加到列表最<b>后</b>面</button>
     </div>
   </div>
+
+  <!-- 自定义Header对话框 -->
+  <customHeaders ref="customHeadersDialog" :customHeader="newMovieInfo.headers" />
 </template>
 
 <style lang="less" scoped>
