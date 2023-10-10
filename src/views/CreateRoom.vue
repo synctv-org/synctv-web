@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { ElNotification } from "element-plus";
+import { ElNotification, ElMessage } from "element-plus";
 import { roomStore } from "@/stores/room";
 import router from "@/router/index";
 import { createRoomApi } from "@/services/apis/room";
+import { strLengthLimit } from "@/utils/utils";
 const room = roomStore();
 
 const { state: createRoomToken, execute: reqCreateRoomApi } = createRoomApi();
@@ -27,6 +28,9 @@ const operateRoom = async () => {
     return;
   }
   try {
+    for (const key in formData.value) {
+      strLengthLimit(key, 3);
+    }
     await reqCreateRoomApi({
       data: formData.value
     });
