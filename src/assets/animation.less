@@ -7,3 +7,19 @@
 .fade-leave-to {
   opacity: 0;
 }
+
+// 移动端菜单动画
+.slide-to-bottom-enter-from,
+.slide-to-bottom-leave-to {
+  transform: translateY(-100%);
+}
+
+.slide-to-bottom-enter-to,
+.slide-to-bottom-leave-from {
+  transform: translateY(0%);
+}
+
+.slide-to-bottom-enter-active,
+.slide-to-bottom-leave-active {
+  transition: all 0.6s ease;
+}

@@ -8,9 +8,7 @@ const mobileMenu = ref(false);
 </script>
 <template>
   <header class="bg-gray-50 h-16 dark:bg-zinc-900 dark:text-zinc-100">
-    <nav
-      class="flex mx-auto max-w-7xl items-center justify-between lg:px-8 p-4 lg:p-5 px-6"
-    >
+    <nav class="flex mx-auto max-w-7xl items-center justify-between lg:px-8 p-4 lg:p-5 px-6">
       <div class="flex lg:flex-1">
         <span class="-m-1.5 p-1.5 font-bold"> SyncTV </span>
       </div>
@@ -47,9 +45,7 @@ const mobileMenu = ref(false);
         <RouterLink to="/"> 首&nbsp;&nbsp;&nbsp;&nbsp;页 </RouterLink>
         <RouterLink to="/joinRoom"> 加入房间 </RouterLink>
         <RouterLink to="/createRoom"> 创建房间 </RouterLink>
-        <RouterLink to="/cinema" v-if="room.login">
-          影&nbsp;&nbsp;&nbsp;&nbsp;厅
-        </RouterLink>
+        <RouterLink to="/cinema" v-if="room.login"> 影&nbsp;&nbsp;&nbsp;&nbsp;厅 </RouterLink>
       </div>
       <div class="hidden lg:flex lg:flex-1 lg:justify-end">
         <DarkModeSwitcher />
@@ -79,11 +75,7 @@ const mobileMenu = ref(false);
               stroke="currentColor"
               aria-hidden="true"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
@@ -93,17 +85,9 @@ const mobileMenu = ref(false);
               <RouterLink to="/" @click="mobileMenu = false">
                 首&nbsp;&nbsp;&nbsp;&nbsp;页
               </RouterLink>
-              <RouterLink to="/joinRoom" @click="mobileMenu = false">
-                加入房间
-              </RouterLink>
-              <RouterLink to="/createRoom" @click="mobileMenu = false">
-                创建房间
-              </RouterLink>
-              <RouterLink
-                to="/cinema"
-                @click="mobileMenu = false"
-                v-if="room.login"
-              >
+              <RouterLink to="/joinRoom" @click="mobileMenu = false"> 加入房间 </RouterLink>
+              <RouterLink to="/createRoom" @click="mobileMenu = false"> 创建房间 </RouterLink>
+              <RouterLink to="/cinema" @click="mobileMenu = false" v-if="room.login">
                 影&nbsp;&nbsp;&nbsp;&nbsp;厅
               </RouterLink>
             </div>
@@ -144,21 +128,5 @@ header {
       }
     }
   }
-}
-
-// 移动端菜单动画
-.slide-to-bottom-enter-from,
-.slide-to-bottom-leave-to {
-  transform: translateY(-100%);
-}
-
-.slide-to-bottom-enter-to,
-.slide-to-bottom-leave-from {
-  transform: translateY(0%);
-}
-
-.slide-to-bottom-enter-active,
-.slide-to-bottom-leave-active {
-  transition: all 0.6s ease;
 }
 </style>
