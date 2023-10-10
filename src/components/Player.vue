@@ -15,6 +15,8 @@ onBeforeUnmount(() => {
   watchers.forEach((watcher) => watcher());
 });
 
+Artplayer.DBCLICK_FULLSCREEN = false;
+
 const artplayer = ref<HTMLDivElement>();
 
 let art: Artplayer;
