@@ -106,13 +106,13 @@ onMounted(() => {
         <div class="overflow-hidden text-ellipsis m-auto p-2 w-full">
           <b class="block text-base font-semibold truncate"> {{ item["roomId"] }}</b>
         </div>
-        <div class="text-sm p-2">
+        <div class="overflow-hidden text-ellipsis text-sm p-2">
           <div>
             在线人数：<span :class="item.peopleNum > 0 ? 'text-green-500' : 'text-red-500'">{{
               item["peopleNum"]
             }}</span>
           </div>
-          <div>创建者：{{ item.creator }}</div>
+          <div class="truncate">创建者：{{ item.creator }}</div>
           <div>创建时间：{{ new Date(item.createAt).toLocaleString() }}</div>
         </div>
         <div class="flex p-2 w-full justify-between items-center">
@@ -142,11 +142,12 @@ onMounted(() => {
     </div>
   </div>
 
-  <el-dialog
-    v-model="JoinRoomDialog"
-    :title="'加入房间 ' + formData.roomId"
-    class="rounded-lg dark:bg-zinc-800 w-[443px] max-sm:w-[90%]"
-  >
+  <el-dialog v-model="JoinRoomDialog" class="rounded-lg dark:bg-zinc-800 w-[443px] max-sm:w-[90%]">
+    <template #title>
+      <div class="overflow-hidden text-ellipsis">
+        <span class="truncate">加入房间 {{ formData.roomId }}</span>
+      </div>
+    </template>
     <JoinRoom :item="formData" />
   </el-dialog>
 </template>
