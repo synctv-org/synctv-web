@@ -196,13 +196,16 @@ onMounted(() => {});
       </select>
     </div>
     <div class="card-body flex justify-around flex-wrap">
-      <input
-        type="text"
-        placeholder="影片Url"
-        class="l-input-violet mb-1.5 w-full"
-        v-if="!(newMovieInfo.live && newMovieInfo.rtmpSource)"
-        v-model="newMovieInfo.url"
-      />
+      <Transition name="fade">
+        <input
+          type="text"
+          placeholder="影片Url"
+          class="l-input-violet mb-1.5 w-full"
+          v-if="!(newMovieInfo.live && newMovieInfo.rtmpSource)"
+          v-model="newMovieInfo.url"
+        />
+      </Transition>
+
       <input
         type="text"
         placeholder="影片名称"
@@ -230,14 +233,11 @@ onMounted(() => {});
               </option>
             </select>
           </div>
-          <div class="more-option-list" v-if="!newMovieInfo.rtmpSource">
-            <input
-              type="text"
-              placeholder="自定义 header"
-              class="l-input m-0 mb-1.5 w-full text-base"
-              v-model="stringHeader"
-            />
-          </div>
+          <Transition name="fade">
+            <div class="more-option-list cursor-pointer" v-if="!newMovieInfo.rtmpSource">
+              <span class="text-sm min-w-fit"> 自定义 header </span>
+            </div>
+          </Transition>
         </el-collapse-item>
       </el-collapse>
     </div>
