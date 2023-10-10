@@ -624,11 +624,22 @@ const danmukuPlugin = artplayerPluginDanmuku({
   speed: 4
 });
 
+const playerUrl = computed(() => {
+  if (room.currentMovie.pullKey) {
+    switch (room.currentMovie.type) {
+      case "m3u8":
+        return `${window.location.origin}/api/movie/live/${room.currentMovie.pullKey}.m3u8`;
+      default:
+        return `${window.location.origin}/api/movie/live/${room.currentMovie.pullKey}.flv`;
+    }
+  } else {
+    return room.currentMovie.url;
+  }
+});
+
 const playerOption = computed(() => {
   return {
-    url: room.currentMovie.pullKey
-      ? `${window.location.origin}/api/movie/live/${room.currentMovie.pullKey}.flv`
-      : room.currentMovie.url,
+    url: playerUrl.value,
     isLive: room.currentMovie.live,
     type: parseVideoType(room.currentMovie),
     headers: room.currentMovie.headers,
