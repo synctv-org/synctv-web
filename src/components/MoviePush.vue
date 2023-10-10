@@ -59,6 +59,10 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
         {
           name: "ts",
           value: "mpegts"
+        },
+        {
+          name: "mpd",
+          value: "mpd"
         }
       ]
     }

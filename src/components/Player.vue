@@ -46,6 +46,21 @@ watchers.push(
   )
 );
 
+const playMpd = (player: HTMLMediaElement, url: string, art: any) => {
+  import("dashjs")
+    .then((dashjs) => dashjs.default)
+    .then((dashjs) => {
+      if (dashjs.supportsMediaSource()) {
+        const dash = dashjs.MediaPlayer().create();
+        dash.initialize(player, url, false);
+        art.dash = dash;
+        art.on("destroy", () => dash.reset());
+      } else {
+        art.notice.show = "Unsupported playback format: mpd";
+      }
+    });
+};
+
 const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
   import("mpegts.js")
     .then((mpegts) => mpegts.default)
@@ -218,6 +233,7 @@ const playerOption = computed<Option>(() => {
     customType: {
       flv: playFlv,
       m3u8: playM3u8,
+      mpd: playMpd,
       mes: playMse,
       ts: playMpegts,
       m2ts: playM2ts,
