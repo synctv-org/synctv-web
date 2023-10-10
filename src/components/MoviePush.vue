@@ -18,6 +18,31 @@ let newMovieInfo = ref<BaseMovieInfo>({
   headers: {}
 });
 
+enum AddType {
+  NORMAL = 0,
+  LIVE = 1,
+  RTMP_SOURCE = 2
+}
+
+const addType = ref(AddType.NORMAL);
+
+const selectAddType = () => {
+  console.log(addType.value);
+
+  switch (addType.value) {
+    case AddType.NORMAL:
+      newMovieInfo.value.live = newMovieInfo.value.proxy = newMovieInfo.value.rtmpSource = false;
+      break;
+    case AddType.LIVE:
+      newMovieInfo.value.live = true;
+      newMovieInfo.value.proxy = newMovieInfo.value.rtmpSource = false;
+      break;
+    case AddType.RTMP_SOURCE:
+      newMovieInfo.value.proxy = false;
+      newMovieInfo.value.live = newMovieInfo.value.rtmpSource = true;
+  }
+};
+
 // 把视频链接添加到列表
 const { execute: reqPushMovieApi } = pushMovieApi();
 const pushMovie = async (dir: string) => {
@@ -70,7 +95,14 @@ onMounted(() => {});
 
 <template>
   <div class="card max-sm:rounded-none">
-    <div class="card-title">添加影片</div>
+    <div class="card-title">
+      添加影片
+      <select @change="selectAddType" v-model="addType" class="bg-transparent p-0 text-base">
+        <option :value="0">普通视频</option>
+        <option :value="1">直播流</option>
+        <option :value="2">创建直播</option>
+      </select>
+    </div>
     <div class="card-body flex justify-around flex-wrap">
       <input
         type="text"
@@ -85,27 +117,6 @@ onMounted(() => {});
         class="l-input-slate mt-1.5 w-full"
         v-model="newMovieInfo.name"
       />
-
-      <div class="mt-4 mb-0 flex flex-wrap justify-around w-full">
-        <div>
-          <input type="checkbox" v-model="newMovieInfo.live" />
-          <label>&nbsp;这是一条直播流</label>
-        </div>
-
-        <div>
-          <input
-            type="checkbox"
-            v-model="newMovieInfo.rtmpSource"
-            @click="newMovieInfo.live ? true : (newMovieInfo.live = true)"
-          />
-          <label>&nbsp;我想创建直播</label>
-        </div>
-
-        <!-- <div>
-              <input type="checkbox" v-model="newMovieInfo.proxy" />
-              <label>&nbsp;isProxy</label>
-            </div> -->
-      </div>
     </div>
     <div class="card-footer flex-wrap pt-3" style="justify-content: space-around">
       <button class="btn" @click="pushMovie('front')">添加到列表最<b>前</b>面</button>
