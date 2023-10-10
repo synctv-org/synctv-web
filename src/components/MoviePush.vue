@@ -229,7 +229,7 @@ onMounted(() => {});
               </option>
             </select>
           </div>
-          <div class="more-option-list">
+          <div class="more-option-list" v-if="!newMovieInfo.rtmpSource">
             <input
               type="text"
               placeholder="自定义 header"
