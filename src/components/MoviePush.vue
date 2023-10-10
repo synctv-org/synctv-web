@@ -114,6 +114,7 @@ const selectPushType = () => {
     case pushType.RTMP_SOURCE:
       newMovieInfo.value.proxy = false;
       newMovieInfo.value.live = newMovieInfo.value.rtmpSource = true;
+      newMovieInfo.value.headers = {};
   }
   newMovieInfo.value.type = movieTypeRecords.get(selectedMovieType.value)!.defaultType;
 };
