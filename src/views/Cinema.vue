@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch, defineAsyncComponent } from "vue";
 import type { WatchStopHandle } from "vue";
 import { useWebSocket, useWindowSize } from "@vueuse/core";
-import Player from "@/components/Player.vue";
 import { roomStore } from "@/stores/room";
 import { ElNotification, ElMessage } from "element-plus";
 import router from "@/router";
@@ -646,6 +645,8 @@ const playerOption = computed(() => {
     plugins: [danmukuPlugin, syncPlugin.plugin]
   };
 });
+
+const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 </script>
 
 <template>
