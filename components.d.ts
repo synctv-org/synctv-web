@@ -27,6 +27,7 @@ declare module 'vue' {
     ElTag: typeof import('element-plus/es')['ElTag']
     Header: typeof import('./src/components/Header.vue')['default']
     Moon: typeof import('./src/components/icons/Moon.vue')['default']
+    MoviePush: typeof import('./src/components/MoviePush.vue')['default']
     Play: typeof import('./src/components/icons/Play.vue')['default']
     Player: typeof import('./src/components/Player.vue')['default']
     RoomList: typeof import('./src/components/RoomList.vue')['default']

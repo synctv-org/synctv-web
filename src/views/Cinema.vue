@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import type { WatchStopHandle, Ref } from "vue";
-import { useWebSocket, useWindowSize, useDebounceFn } from "@vueuse/core";
+import type { WatchStopHandle } from "vue";
+import { useWebSocket, useWindowSize } from "@vueuse/core";
 import Player from "@/components/Player.vue";
-import ArtPlayer from "artplayer";
 import { roomStore } from "@/stores/room";
 import { ElNotification, ElMessage } from "element-plus";
 import router from "@/router";
 import { updateRoomPasswordApi, delRoomApi } from "@/services/apis/room";
 import {
   movieListApi,
-  pushMovieApi,
   editMovieInfoApi,
   delMovieApi,
   swapMovieApi,
@@ -19,13 +17,14 @@ import {
   clearMovieListApi,
   liveInfoApi
 } from "@/services/apis/movie";
-import type { BaseMovieInfo, MovieInfo, EditMovieInfo, MovieStatus } from "@/types/Movie";
+import type { MovieInfo, EditMovieInfo } from "@/types/Movie";
 import type { WsMessage } from "@/types/Room";
 import { WsMessageType } from "@/types/Room";
 import { getFileExtension, devLog } from "@/utils/utils";
 import { sync } from "@/plugins/sync";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit } from "@/utils/utils";
+import MoviePush from "@/components/MoviePush.vue";
 
 const watchers: WatchStopHandle[] = [];
 onBeforeUnmount(() => {
@@ -249,17 +248,6 @@ const clearMovieList = async (id: number) => {
   }
 };
 
-// 新影片信息
-let newMovieInfo = ref<BaseMovieInfo>({
-  name: "",
-  live: false,
-  proxy: false,
-  url: "",
-  rtmpSource: false,
-  type: "",
-  headers: {}
-});
-
 // 直播相关
 const liveInfoDialog = ref(false);
 const liveInfoForm = ref({
@@ -290,81 +278,14 @@ const getLiveInfo = async (id: number) => {
   }
 };
 
-watchers.push(
-  watch(
-    () => newMovieInfo.value.live,
-    () => {
-      !newMovieInfo.value.live ? (newMovieInfo.value.rtmpSource = false) : void 0;
-    }
-  )
-);
-
-// 把视频链接添加到列表
-const { execute: reqPushMovieApi } = pushMovieApi();
-const pushMovie = async (dir: string) => {
-  if (newMovieInfo.value.live) {
-    if (newMovieInfo.value.name === "")
-      return ElNotification({
-        title: "添加失败",
-        message: "请填写表单完整",
-        type: "error"
-      });
-  } else {
-    if (newMovieInfo.value.url === "" || newMovieInfo.value.name === "")
-      return ElNotification({
-        title: "添加失败",
-        message: "请填写表单完整",
-        type: "error"
-      });
-  }
-
-  try {
-    for (const key in newMovieInfo.value) {
-      strLengthLimit(key, 32);
-    }
-    await reqPushMovieApi({
-      params: {
-        pos: dir
-      },
-      data: newMovieInfo.value,
-      headers: { Authorization: localStorage.token }
-    });
-
-    ElNotification({
-      title: "添加成功",
-      type: "success"
-    });
-    newMovieInfo.value.name = newMovieInfo.value.url = "";
-    getMovies();
-  } catch (err: any) {
-    console.log(err);
-    ElNotification({
-      title: "添加失败",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
-};
-
-// 获取当前影片状态
-// const { state: movieStatus, execute: reqMovieStatusApi } = movieStatusApi();
-// const getCurrentMovieStatus = async () => {
-//   try {
-//     await reqMovieStatusApi({
-//       headers: { Authorization: localStorage.token }
-//     });
-//     if (movieStatus.value) {
-//       setAllStatus(movieStatus.value.current.status.playing, movieStatus.value.current.status.seek, movieStatus.value.current.status.rate);
+// watchers.push(
+//   watch(
+//     () => newMovieInfo.value.live,
+//     () => {
+//       !newMovieInfo.value.live ? (newMovieInfo.value.rtmpSource = false) : void 0;
 //     }
-//   } catch (err: any) {
-//     console.error(err.message);
-//     ElNotification({
-//       title: "获取失败",
-//       type: "error",
-//       message: err.response.data.error || err.message
-//     });
-//   }
-// };
+//   )
+// );
 
 // 当前影片信息
 let cMovieInfo = ref<EditMovieInfo>({
@@ -947,49 +868,7 @@ const playerOption = computed(() => {
 
     <!-- 添加影片 -->
     <el-col :lg="6" :md="14" :xs="24" class="mb-6 max-sm:mb-2">
-      <div class="card max-sm:rounded-none">
-        <div class="card-title">添加影片</div>
-        <div class="card-body flex justify-around flex-wrap">
-          <input
-            type="text"
-            placeholder="影片Url"
-            class="l-input-violet mb-1.5 w-full"
-            v-if="!(newMovieInfo.live && newMovieInfo.rtmpSource)"
-            v-model="newMovieInfo.url"
-          />
-          <input
-            type="text"
-            placeholder="影片名称"
-            class="l-input-slate mt-1.5 w-full"
-            v-model="newMovieInfo.name"
-          />
-
-          <div class="mt-4 mb-0 flex flex-wrap justify-around w-full">
-            <div>
-              <input type="checkbox" v-model="newMovieInfo.live" />
-              <label>&nbsp;这是一条直播流</label>
-            </div>
-
-            <div>
-              <input
-                type="checkbox"
-                v-model="newMovieInfo.rtmpSource"
-                @click="newMovieInfo.live ? true : (newMovieInfo.live = true)"
-              />
-              <label>&nbsp;我想创建直播</label>
-            </div>
-
-            <!-- <div>
-              <input type="checkbox" v-model="newMovieInfo.proxy" />
-              <label>&nbsp;isProxy</label>
-            </div> -->
-          </div>
-        </div>
-        <div class="card-footer flex-wrap pt-3" style="justify-content: space-around">
-          <button class="btn" @click="pushMovie('front')">添加到列表最<b>前</b>面</button>
-          <button class="btn" @click="pushMovie('back')">添加到列表最<b>后</b>面</button>
-        </div>
-      </div>
+      <MoviePush @getMovies="getMovies()" />
     </el-col>
   </el-row>
 
