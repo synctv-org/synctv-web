@@ -409,6 +409,7 @@ const changeCurrentMovie = async (id: number) => {
       title: "设置成功",
       type: "success"
     });
+    resetChatAreaHeight();
   } catch (err: any) {
     console.error(err);
     ElNotification({
@@ -531,6 +532,7 @@ watchers.push(
           room.currentMovieStatus = jsonData.current.status;
           syncPlugin.setAndNoPublishSeek(jsonData.current.status.seek);
           syncPlugin.setAndNoPublishRate(jsonData.current.status.rate);
+          resetChatAreaHeight();
           break;
         }
 
