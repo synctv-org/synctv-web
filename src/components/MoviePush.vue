@@ -18,32 +18,113 @@ let newMovieInfo = ref<BaseMovieInfo>({
   headers: {}
 });
 
-enum AddType {
-  NORMAL = 0,
-  LIVE = 1,
-  RTMP_SOURCE = 2
+enum pushType {
+  MOVIE = 0,
+  LIVE,
+  RTMP_SOURCE
 }
 
-const addType = ref(AddType.NORMAL);
+interface movieTypeRecord {
+  name: string;
+  defaultType: string;
+  allowedTypes: Array<{ name: string; value: string }>;
+}
 
-const selectAddType = () => {
-  console.log(addType.value);
+const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
+  [
+    pushType.MOVIE,
+    {
+      name: "视频直链",
+      defaultType: "",
+      allowedTypes: [
+        {
+          name: "auto",
+          value: ""
+        },
+        {
+          name: "mp4",
+          value: "mp4"
+        },
+        {
+          name: "flv",
+          value: "flv"
+        },
+        {
+          name: "m3u8",
+          value: "m3u8"
+        },
+        {
+          name: "ts",
+          value: "mpegts"
+        }
+      ]
+    }
+  ],
+  [
+    pushType.LIVE,
+    {
+      name: "直播流",
+      defaultType: "",
+      allowedTypes: [
+        {
+          name: "auto",
+          value: ""
+        },
+        {
+          name: "flv",
+          value: "flv"
+        },
+        {
+          name: "m3u8",
+          value: "m3u8"
+        }
+      ]
+    }
+  ],
+  [
+    pushType.RTMP_SOURCE,
+    {
+      name: "创建直播",
+      defaultType: "flv",
+      allowedTypes: [
+        {
+          name: "flv",
+          value: "flv"
+        },
+        {
+          name: "m3u8",
+          value: "m3u8"
+        }
+      ]
+    }
+  ]
+]);
 
-  switch (addType.value) {
-    case AddType.NORMAL:
+const selectedMovieType = ref(pushType.MOVIE);
+
+const selectPushType = () => {
+  switch (selectedMovieType.value) {
+    case pushType.MOVIE:
       newMovieInfo.value.live = newMovieInfo.value.proxy = newMovieInfo.value.rtmpSource = false;
       break;
-    case AddType.LIVE:
+    case pushType.LIVE:
       newMovieInfo.value.live = true;
       newMovieInfo.value.proxy = newMovieInfo.value.rtmpSource = false;
       break;
-    case AddType.RTMP_SOURCE:
+    case pushType.RTMP_SOURCE:
       newMovieInfo.value.proxy = false;
       newMovieInfo.value.live = newMovieInfo.value.rtmpSource = true;
   }
+  newMovieInfo.value.type = movieTypeRecords.get(selectedMovieType.value)!.defaultType;
 };
 
-const extName = ref<Array<string>>(["mp4", "flv", "m3u8"]);
+const selectMovieType = () => {
+  newMovieInfo.value.type =
+    movieTypeRecords
+      .get(selectedMovieType.value)
+      ?.allowedTypes.find((v) => v.value === newMovieInfo.value.type)?.value ||
+    movieTypeRecords.get(selectedMovieType.value)!.defaultType;
+};
 
 const stringHeader = ref(JSON.stringify(newMovieInfo.value.headers));
 
@@ -105,10 +186,12 @@ onMounted(() => {});
   <div class="card max-sm:rounded-none">
     <div class="card-title">
       添加影片
-      <select @change="selectAddType" v-model="addType" class="bg-transparent p-0 text-base">
-        <option :value="0">视频直链</option>
-        <option :value="1">直播流</option>
-        <option :value="2">创建直播</option>
+      <select
+        @change="selectPushType"
+        v-model="selectedMovieType"
+        class="bg-transparent p-0 text-base"
+      >
+        <option v-for="v in movieTypeRecords" :value="v[0]">{{ v[1].name }}</option>
       </select>
     </div>
     <div class="card-body flex justify-around flex-wrap">
@@ -134,11 +217,16 @@ onMounted(() => {});
             <span class="text-sm min-w-fit"> 视频类型： </span>
 
             <select
-              @change="selectAddType"
+              @change="selectMovieType"
               v-model="newMovieInfo.type"
               class="bg-transparent p-0 text-base w-full"
             >
-              <option v-for="ext in extName" :value="ext">{{ ext }}</option>
+              <option
+                v-for="allowedType in movieTypeRecords.get(selectedMovieType)?.allowedTypes"
+                :value="allowedType.value"
+              >
+                {{ allowedType.name }}
+              </option>
             </select>
           </div>
           <div class="more-option-list">
