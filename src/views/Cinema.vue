@@ -25,6 +25,7 @@ import { WsMessageType } from "@/types/Room";
 import { getFileExtension, devLog } from "@/utils/utils";
 import { sync } from "@/plugins/sync";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
+import { strLengthLimit } from "@/utils/utils";
 
 const watchers: WatchStopHandle[] = [];
 onBeforeUnmount(() => {
@@ -60,6 +61,7 @@ const { status, data, send, close } = useWebSocket(
 const { state: newToken, execute: reqUpdateRoomPasswordApi } = updateRoomPasswordApi();
 const changePassword = async () => {
   try {
+    strLengthLimit(password, 32);
     await reqUpdateRoomPasswordApi({
       data: {
         password: password
@@ -317,6 +319,9 @@ const pushMovie = async (dir: string) => {
   }
 
   try {
+    for (const key in newMovieInfo.value) {
+      strLengthLimit(key, 32);
+    }
     await reqPushMovieApi({
       params: {
         pos: dir
@@ -385,6 +390,9 @@ const openEditDialog = (item: MovieInfo) => {
 const { isLoading: editMovieInfoLoading, execute: reqEditMovieInfoApi } = editMovieInfoApi();
 const editMovieInfo = async () => {
   try {
+    for (const key in cMovieInfo.value) {
+      strLengthLimit(key, 32);
+    }
     await reqEditMovieInfoApi({
       data: cMovieInfo.value,
       headers: { Authorization: localStorage.token }
@@ -466,7 +474,6 @@ const swapMovie = async () => {
 };
 
 // 设置当前正在播放的影片
-
 const { execute: reqChangeCurrentMovieApi } = changeCurrentMovieApi();
 const changeCurrentMovie = async (id: number) => {
   try {
@@ -639,6 +646,7 @@ const sendText = () => {
       message: "发送的消息不能为空",
       type: "warning"
     });
+  strLengthLimit(sendText_.value, 64);
   const msg = JSON.stringify({
     Type: 2,
     Message: sendText_.value,

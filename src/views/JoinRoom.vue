@@ -5,6 +5,7 @@ import { roomStore } from "@/stores/room";
 import router from "@/router/index";
 import { useRoute } from "vue-router";
 import { joinRoomApi } from "@/services/apis/room";
+import { strLengthLimit } from "@/utils/utils";
 const route = useRoute();
 const room = roomStore();
 
@@ -43,6 +44,9 @@ const JoinRoom = async () => {
       type: "error"
     });
     return;
+  }
+  for (const key in formData.value) {
+    strLengthLimit(key, 32);
   }
   try {
     await reqJoinRoomApi({
@@ -105,13 +109,12 @@ const JoinRoom = async () => {
       <br />
       <input class="l-input" type="password" v-model="formData.password" placeholder="房间密码" />
       <br />
+      <div class="text-sm"><b>注意：</b>所有输入框最大只可输入32个字符</div>
       <div>
         <input class="w-auto" type="checkbox" v-model="savePwd" />
         <label title="明文保存到本机哦~">&nbsp;记住密码</label>
       </div>
-      <button class="btn m-[10px]" @click="JoinRoom()">
-        {{ "加入" }}
-      </button>
+      <button class="btn m-[10px]" @click="JoinRoom()">加入</button>
     </form>
   </div>
 </template>

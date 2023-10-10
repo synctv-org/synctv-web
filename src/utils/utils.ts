@@ -1,3 +1,5 @@
+import { ElMessage } from "element-plus";
+
 export const getFileExtension = (url: string) => {
   const match = url.match(/\.([a-z0-9]+)(?:[\?#]|$)/i);
   if (match) {
@@ -52,4 +54,13 @@ export const deepEqualObject = (obj1: any, obj2: any) => {
   } else {
     return false;
   }
+};
+
+export const strLengthLimit = (str: any, num: number) => {
+  if (typeof str !== "string") return;
+  if (str.length > num)
+    throw ElMessage({
+      type: "error",
+      message: `输入框内容过长，单个输入框最大不可超过${num}个字符！`
+    });
 };
