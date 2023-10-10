@@ -43,6 +43,10 @@ const selectAddType = () => {
   }
 };
 
+const extName = ref<Array<string>>(["mp4", "flv", "m3u8"]);
+
+const stringHeader = ref(JSON.stringify(newMovieInfo.value.headers));
+
 // 把视频链接添加到列表
 const { execute: reqPushMovieApi } = pushMovieApi();
 const pushMovie = async (dir: string) => {
@@ -63,6 +67,10 @@ const pushMovie = async (dir: string) => {
   }
 
   try {
+    console.log(stringHeader.value);
+    console.log(JSON.parse(stringHeader.value));
+
+    newMovieInfo.value.headers = JSON.parse(stringHeader.value);
     for (const key in newMovieInfo.value) {
       strLengthLimit(key, 32);
     }
@@ -98,7 +106,7 @@ onMounted(() => {});
     <div class="card-title">
       添加影片
       <select @change="selectAddType" v-model="addType" class="bg-transparent p-0 text-base">
-        <option :value="0">普通视频</option>
+        <option :value="0">视频直链</option>
         <option :value="1">直播流</option>
         <option :value="2">创建直播</option>
       </select>
@@ -118,9 +126,42 @@ onMounted(() => {});
         v-model="newMovieInfo.name"
       />
     </div>
+    <div class="mx-5">
+      <el-collapse @change="" class="bg-transparent" style="background: #aaa0 !important">
+        <el-collapse-item>
+          <template #title><div class="text-base font-medium">高级选项</div></template>
+          <div class="more-option-list">
+            <span class="text-sm min-w-fit"> 视频类型： </span>
+
+            <select
+              @change="selectAddType"
+              v-model="newMovieInfo.type"
+              class="bg-transparent p-0 text-base w-full"
+            >
+              <option v-for="ext in extName" :value="ext">{{ ext }}</option>
+            </select>
+          </div>
+          <div class="more-option-list">
+            <input
+              type="text"
+              placeholder="自定义 header"
+              class="l-input m-0 mb-1.5 w-full text-base"
+              v-model="stringHeader"
+            />
+          </div>
+        </el-collapse-item>
+      </el-collapse>
+    </div>
+
     <div class="card-footer flex-wrap pt-3" style="justify-content: space-around">
       <button class="btn" @click="pushMovie('front')">添加到列表最<b>前</b>面</button>
       <button class="btn" @click="pushMovie('back')">添加到列表最<b>后</b>面</button>
     </div>
   </div>
 </template>
+
+<style lang="less" scoped>
+.more-option-list {
+  @apply flex justify-start mb-2 p-3 rounded-lg bg-zinc-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800;
+}
+</style>

@@ -695,6 +695,7 @@ const playerOption = computed(() => {
 
   <el-row :gutter="20">
     <!-- 房间信息 -->
+
     <el-col :lg="6" :md="8" :sm="9" :xs="24" class="mb-6 max-sm:mb-2">
       <div class="card max-sm:rounded-none">
         <div class="card-title">房间信息</div>
