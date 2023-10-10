@@ -708,7 +708,11 @@ const playerOption = computed(() => {
               </tr>
               <tr>
                 <td>房间ID</td>
-                <td>{{ roomID }}</td>
+                <td>
+                  <div class="overflow-hidden text-ellipsis max-w-[150px]">
+                    <span class="truncate">{{ roomID }}</span>
+                  </div>
+                </td>
               </tr>
               <tr>
                 <td>房间密码</td>
