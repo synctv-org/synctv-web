@@ -67,11 +67,13 @@ export const strLengthLimit = (str: any, num: number) => {
 
 export const blobToUin8Array = (blob: Blob): Promise<Uint8Array> => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      resolve(new Uint8Array(reader.result as ArrayBuffer));
-    };
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(blob);
+    blob
+      .arrayBuffer()
+      .then((res) => {
+        resolve(new Uint8Array(res));
+      })
+      .catch((err) => {
+        reject(err);
+      });
   });
 };
