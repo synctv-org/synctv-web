@@ -81,7 +81,7 @@ onMounted(() => {
           <el-option label="房间ID" value="roomId" />
           <el-option label="房间人数" value="peopleNum" />
           <el-option label="创建人首字母" value="creator" />
-          <el-option label="创建时间" value="createAt" />
+          <el-option label="创建时间" value="createdAt" />
           <el-option label="是否有密码" value="needPassword" />
         </el-select>
         <button
@@ -113,7 +113,7 @@ onMounted(() => {
             }}</span>
           </div>
           <div class="truncate">创建者：{{ item.creator }}</div>
-          <div>创建时间：{{ new Date(item.createAt).toLocaleString() }}</div>
+          <div>创建时间：{{ new Date(item.createdAt).toLocaleString() }}</div>
         </div>
         <div class="flex p-2 w-full justify-between items-center">
           <el-tag disabled :type="item.needPassword ? 'danger' : 'success'">

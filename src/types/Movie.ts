@@ -1,8 +1,7 @@
 export interface MovieInfo extends BaseMovieInfo {
-  createAt: number;
+  createdAt: number;
   creator: string;
   id: number;
-  lastEditAt: number;
   pullKey?: string;
 }
 

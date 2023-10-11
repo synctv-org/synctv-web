@@ -17,13 +17,12 @@ import {
   liveInfoApi
 } from "@/services/apis/movie";
 import type { MovieInfo, EditMovieInfo } from "@/types/Movie";
-import type { WsMessage } from "@/types/Room";
-import { WsMessageType } from "@/types/Room";
 import { getFileExtension, devLog } from "@/utils/utils";
 import { sync } from "@/plugins/sync";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
-import { strLengthLimit } from "@/utils/utils";
+import { strLengthLimit, blobToUin8Array } from "@/utils/utils";
 import MoviePush from "@/components/MoviePush.vue";
+import { ElementMessage, ElementMessageType } from "@/proto/message";
 
 const watchers: WatchStopHandle[] = [];
 onBeforeUnmount(() => {
@@ -41,19 +40,25 @@ let password = localStorage.password;
 
 // 启动websocket连接
 const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
-const { status, data, send, close } = useWebSocket(
-  `${wsProtocol}//${window.location.host}/api/room/ws`,
-  {
-    protocols: [localStorage.token],
-    autoReconnect: {
-      retries: 3,
-      delay: 1000,
-      onFailed() {
-        ElMessage.error("Websocket 自动重连失败！");
-      }
+const { status, data, send } = useWebSocket(`${wsProtocol}//${window.location.host}/api/room/ws`, {
+  protocols: [localStorage.token],
+  autoReconnect: {
+    retries: 3,
+    delay: 1000,
+    onFailed() {
+      ElMessage.error("Websocket 自动重连失败！");
     }
+  },
+  autoClose: true
+});
+
+const SendElement = (msg: ElementMessage) => {
+  if (!msg.time) {
+    msg.time = Date.now();
   }
-);
+  return send(ElementMessage.encode(msg).finish());
+  // ElementMessage.encode(msg)
+};
 
 // 更新房间密码
 const { state: newToken, execute: reqUpdateRoomPasswordApi } = updateRoomPasswordApi();
@@ -131,8 +136,8 @@ const updateMsgList = (msg: string) => {
 };
 
 const syncPlugin = sync({
-  "set-player-status": send,
-  "ws-send": updateMsgList
+  publishStatus: SendElement,
+  sendDanmuku: updateMsgList
 });
 
 // 获取影片列表
@@ -425,137 +430,143 @@ const playArea = ref();
 // 消息列表
 const chatArea = ref();
 
+const handleElementMessage = (msg: ElementMessage) => {
+  devLog(`-----Ws Message Start-----`);
+  devLog(msg);
+  devLog(`-----Ws Message End-----`);
+  switch (msg.type) {
+    case ElementMessageType.ERROR: {
+      console.error(msg.message);
+      ElNotification({
+        title: "错误",
+        message: msg.message,
+        type: "error"
+      });
+      break;
+    }
+
+    // 聊天消息
+    case ElementMessageType.CHAT_MESSAGE: {
+      msgList.value.push(`${msg.sender}：${msg.message}`);
+      // jsonData.message.split("：")[0] !== "PLAYER" &&
+      room.danmuku = {
+        text: msg.message, // 弹幕文本
+        //time: Date.now(), // 发送时间，单位秒
+        color: "#fff", // 弹幕局部颜色
+        border: false // 是否显示描边
+        //mode: 0, // 弹幕模式: 0表示滚动, 1静止
+      };
+
+      // 自动滚动到最底部
+      if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
+
+      if (msgList.value.length > 40)
+        return (msgList.value = [
+          "<p><b>SYSTEM：</b>已达到最大聊天记录长度，系统已自动清空...</p>"
+        ]);
+
+      break;
+    }
+
+    // 播放
+    case ElementMessageType.PLAY: {
+      syncPlugin.setAndNoPublishSeek(msg.seek!);
+      syncPlugin.setAndNoPublishRate(msg.rate!);
+      syncPlugin.setAndNoPublishPlay();
+      break;
+    }
+
+    // 暂停
+    case ElementMessageType.PAUSE: {
+      syncPlugin.setAndNoPublishPause();
+      syncPlugin.setAndNoPublishSeek(msg.seek!);
+      syncPlugin.setAndNoPublishRate(msg.rate!);
+      break;
+    }
+
+    // 视频进度发生变化
+    case ElementMessageType.CHANGE_SEEK: {
+      syncPlugin.setAndNoPublishSeek(msg.seek!);
+      syncPlugin.setAndNoPublishRate(msg.rate!);
+      break;
+    }
+
+    case ElementMessageType.TOO_FAST: {
+      ElNotification({
+        title: "播放速度过快",
+        type: "warning"
+      });
+      // TODO: 询问是否重新同步
+      syncPlugin.setAndNoPublishSeek(msg.seek!);
+      syncPlugin.setAndNoPublishRate(msg.rate!);
+      break;
+    }
+
+    case ElementMessageType.TOO_SLOW: {
+      ElNotification({
+        title: "播放速度落后",
+        type: "warning"
+      });
+      // TODO: 询问是否重新同步
+      syncPlugin.setAndNoPublishSeek(msg.seek!);
+      syncPlugin.setAndNoPublishRate(msg.rate!);
+      break;
+    }
+
+    case ElementMessageType.CHECK_SEEK: {
+      break;
+    }
+
+    case ElementMessageType.CHANGE_RATE: {
+      syncPlugin.setAndNoPublishSeek(msg.seek!);
+      syncPlugin.setAndNoPublishRate(msg.rate!);
+      break;
+    }
+
+    // 设置正在播放的影片
+    case ElementMessageType.CHANGE_CURRENT: {
+      room.currentMovie = msg.current!.movie!;
+      room.currentMovieStatus = msg.current!.status!;
+      syncPlugin.setAndNoPublishSeek(msg.current!.status!.seek);
+      syncPlugin.setAndNoPublishRate(msg.current!.status!.rate);
+      resetChatAreaHeight();
+      break;
+    }
+
+    // 播放列表更新
+    case ElementMessageType.CHANGE_MOVIES: {
+      getMovies();
+      break;
+    }
+
+    case ElementMessageType.CHANGE_PEOPLE: {
+      room.peopleNum < msg.peopleNum!
+        ? msgList.value.push(
+            `<p><b>SYSTEM：</b>欢迎新成员加入，当前共有 ${msg.peopleNum} 人在观看</p>`
+          )
+        : room.peopleNum > msg.peopleNum!
+        ? msgList.value.push(
+            `<p><b>SYSTEM：</b>有人离开了房间，当前还剩 ${msg.peopleNum} 人在观看</p>`
+          )
+        : "";
+      room.peopleNum = msg.peopleNum!;
+      break;
+    }
+  }
+};
+
 // 监听ws信息变化
 watchers.push(
   watch(
     () => data.value,
     () => {
-      if (data.value === "") return devLog("返回了空", data.value);
-
-      const jsonData: WsMessage = JSON.parse(data.value);
-      devLog(`-----Ws Message Start-----`);
-      devLog(jsonData);
-      devLog(`-----Ws Message End-----`);
-      switch (jsonData.type) {
-        case WsMessageType.Error: {
-          console.error(jsonData.message);
-          ElNotification({
-            title: "错误",
-            message: jsonData.message,
-            type: "error"
-          });
-          break;
-        }
-
-        // 聊天消息
-        case WsMessageType.ChatMessage: {
-          msgList.value.push(`${jsonData.sender}：${jsonData.message}`);
-          // jsonData.message.split("：")[0] !== "PLAYER" &&
-          room.danmuku = {
-            text: jsonData.message, // 弹幕文本
-            //time: Date.now(), // 发送时间，单位秒
-            color: "#fff", // 弹幕局部颜色
-            border: false // 是否显示描边
-            //mode: 0, // 弹幕模式: 0表示滚动, 1静止
-          };
-
-          // 自动滚动到最底部
-          if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
-
-          if (msgList.value.length > 40)
-            return (msgList.value = [
-              "<p><b>SYSTEM：</b>已达到最大聊天记录长度，系统已自动清空...</p>"
-            ]);
-
-          break;
-        }
-
-        // 播放
-        case WsMessageType.Play: {
-          syncPlugin.setAndNoPublishSeek(jsonData.seek);
-          syncPlugin.setAndNoPublishRate(jsonData.rate);
-          syncPlugin.setAndNoPublishPlay();
-          break;
-        }
-
-        // 暂停
-        case WsMessageType.Pause: {
-          syncPlugin.setAndNoPublishPause();
-          syncPlugin.setAndNoPublishSeek(jsonData.seek);
-          syncPlugin.setAndNoPublishRate(jsonData.rate);
-          break;
-        }
-
-        // 视频进度发生变化
-        case WsMessageType.ChangeSeek: {
-          syncPlugin.setAndNoPublishSeek(jsonData.seek);
-          syncPlugin.setAndNoPublishRate(jsonData.rate);
-          break;
-        }
-
-        case WsMessageType.TooFast: {
-          ElNotification({
-            title: "播放速度过快",
-            type: "warning"
-          });
-          // TODO: 询问是否重新同步
-          syncPlugin.setAndNoPublishSeek(jsonData.seek);
-          syncPlugin.setAndNoPublishRate(jsonData.rate);
-          break;
-        }
-
-        case WsMessageType.TooSlow: {
-          ElNotification({
-            title: "播放速度落后",
-            type: "warning"
-          });
-          // TODO: 询问是否重新同步
-          syncPlugin.setAndNoPublishSeek(jsonData.seek);
-          syncPlugin.setAndNoPublishRate(jsonData.rate);
-          break;
-        }
-
-        case WsMessageType.CheckSeek: {
-          break;
-        }
-
-        case WsMessageType.ChangeRate: {
-          syncPlugin.setAndNoPublishSeek(jsonData.seek);
-          syncPlugin.setAndNoPublishRate(jsonData.rate);
-          break;
-        }
-
-        // 设置正在播放的影片
-        case WsMessageType.ChangeCurrent: {
-          room.currentMovie = jsonData.current.movie;
-          room.currentMovieStatus = jsonData.current.status;
-          syncPlugin.setAndNoPublishSeek(jsonData.current.status.seek);
-          syncPlugin.setAndNoPublishRate(jsonData.current.status.rate);
-          resetChatAreaHeight();
-          break;
-        }
-
-        // 播放列表更新
-        case WsMessageType.ChangeMovieList: {
-          getMovies();
-          break;
-        }
-
-        // ん？
-        case WsMessageType.ChangePeopleNum: {
-          room.peopleNum < jsonData.peopleNum
-            ? msgList.value.push(
-                `<p><b>SYSTEM：</b>欢迎新成员加入，当前共有 ${jsonData.peopleNum} 人在观看</p>`
-              )
-            : room.peopleNum > jsonData.peopleNum
-            ? msgList.value.push(
-                `<p><b>SYSTEM：</b>有人离开了房间，当前还剩 ${jsonData.peopleNum} 人在观看</p>`
-              )
-            : "";
-          room.peopleNum = jsonData.peopleNum;
-          break;
-        }
-      }
+      blobToUin8Array(data.value)
+        .then((array) => {
+          handleElementMessage(ElementMessage.decode(array));
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
   )
 );
@@ -569,15 +580,13 @@ const sendText = () => {
       type: "warning"
     });
   strLengthLimit(sendText_.value, 64);
-  const msg = JSON.stringify({
-    Type: 2,
-    Message: sendText_.value,
-    Time: Date.now()
+  SendElement({
+    type: ElementMessageType.CHAT_MESSAGE,
+    message: sendText_.value
   });
-  send(msg);
   sendText_.value = "";
   if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
-  devLog("sended:" + msg);
+  // devLog("sended:" + msg);
 };
 
 let player: Artplayer;
@@ -609,10 +618,6 @@ onMounted(() => {
       resetChatAreaHeight();
     })
   );
-});
-
-onBeforeUnmount(() => {
-  close();
 });
 
 getMovieList();

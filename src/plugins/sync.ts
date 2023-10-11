@@ -1,16 +1,13 @@
 import { roomStore } from "@/stores/room";
 import { devLog, debounces } from "@/utils/utils";
 import { useDebounceFn } from "@vueuse/core";
-import { WsMessageType } from "@/types/Room";
 import { ElNotification } from "element-plus";
+import { ElementMessage, ElementMessageType } from "@/proto/message";
 const room = roomStore();
 
 interface callback {
-  "set-player-status": (
-    data: string | ArrayBuffer | Blob,
-    useBuffer?: boolean | undefined
-  ) => boolean;
-  "ws-send": (msg: string) => void;
+  publishStatus: (msg: ElementMessage) => boolean;
+  sendDanmuku: (msg: string) => void;
 }
 
 interface resould {
@@ -28,13 +25,11 @@ export const sync = (cbk: callback): resould => {
   let player: Artplayer | undefined = undefined;
   const publishSeek = useDebounceFn((currentTime: number) => {
     if (!player || player.option.isLive) return;
-    cbk["set-player-status"](
-      JSON.stringify({
-        Type: WsMessageType.ChangeSeek,
-        Seek: currentTime,
-        Rate: player.playbackRate
-      })
-    );
+    cbk["publishStatus"]({
+      type: ElementMessageType.CHANGE_SEEK,
+      seek: currentTime,
+      rate: player.playbackRate
+    });
     devLog("视频空降，:", player.currentTime);
   }, debounceTime);
 
@@ -45,13 +40,11 @@ export const sync = (cbk: callback): resould => {
 
   const publishPlay = () => {
     if (!player || player.option.isLive) return;
-    cbk["set-player-status"](
-      JSON.stringify({
-        Type: WsMessageType.Play,
-        Seek: player.currentTime,
-        Rate: player.playbackRate
-      })
-    );
+    cbk["publishStatus"]({
+      type: ElementMessageType.PLAY,
+      seek: player.currentTime,
+      rate: player.playbackRate
+    });
   };
 
   const publishPlayDebounce = debounce(publishPlay);
@@ -75,13 +68,11 @@ export const sync = (cbk: callback): resould => {
 
   const publishPause = () => {
     if (!player || player.option.isLive) return;
-    cbk["set-player-status"](
-      JSON.stringify({
-        Type: WsMessageType.Pause,
-        Seek: player.currentTime,
-        Rate: player.playbackRate
-      })
-    );
+    cbk["publishStatus"]({
+      type: ElementMessageType.PAUSE,
+      seek: player.currentTime,
+      rate: player.playbackRate
+    });
   };
 
   const publishPauseDebounce = debounce(publishPause);
@@ -97,13 +88,11 @@ export const sync = (cbk: callback): resould => {
 
   const publishRate = () => {
     if (!player || player.option.isLive) return;
-    cbk["set-player-status"](
-      JSON.stringify({
-        Type: WsMessageType.ChangeRate,
-        Seek: player.currentTime,
-        Rate: player.playbackRate
-      })
-    );
+    cbk["publishStatus"]({
+      type: ElementMessageType.CHANGE_RATE,
+      seek: player.currentTime,
+      rate: player.playbackRate
+    });
     devLog("视频倍速,seek:", player.currentTime);
   };
 
@@ -129,16 +118,14 @@ export const sync = (cbk: callback): resould => {
         setAndNoPublishRate(room.currentMovieStatus.rate);
         console.log("rate同步成功:", art.playbackRate);
         room.currentMovieStatus.playing ? setAndNoPublishPlay() : setAndNoPublishPause();
-        cbk["ws-send"]("PLAYER：视频已就绪");
+        cbk["sendDanmuku"]("PLAYER：视频已就绪");
 
         intervals.push(
           setInterval(() => {
-            cbk["set-player-status"](
-              JSON.stringify({
-                Type: WsMessageType.CheckSeek,
-                Seek: art.currentTime
-              })
-            );
+            cbk["publishStatus"]({
+              type: ElementMessageType.CHECK_SEEK,
+              seek: art.currentTime
+            });
           }, 5000)
         );
       });
@@ -175,7 +162,7 @@ export const sync = (cbk: callback): resould => {
             message: "由于浏览器限制，播放器已静音，请手动开启声音"
           });
         });
-        cbk["ws-send"]("PLAYER：视频已就绪");
+        cbk["sendDanmuku"]("PLAYER：视频已就绪");
       });
     }
   };

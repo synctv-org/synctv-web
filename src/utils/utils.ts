@@ -64,3 +64,14 @@ export const strLengthLimit = (str: any, num: number) => {
       message: `输入框内容过长，单个输入框最大不可超过${num}个字符！`
     });
 };
+
+export const blobToUin8Array = (blob: Blob): Promise<Uint8Array> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve(new Uint8Array(reader.result as ArrayBuffer));
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(blob);
+  });
+};

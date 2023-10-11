@@ -20,10 +20,9 @@ export const roomStore = defineStore("roomStore", () => {
     rtmpSource: false,
     type: "",
     headers: {},
-    createAt: Date.now(),
+    createdAt: Date.now(),
     creator: "SYSTEM",
-    id: 1,
-    lastEditAt: Date.now()
+    id: 1
   });
 
   // 当前影片播放状态
