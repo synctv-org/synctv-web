@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElNotification } from "element-plus";
-import type { BaseMovieInfo } from "@/types/Movie";
+import type { BaseMovieInfo } from "@/proto/message";
 import { strLengthLimit } from "@/utils/utils";
 import { pushMovieApi } from "@/services/apis/movie";
 import customHeaders from "@/components/dialogs/customHeaders.vue";
