@@ -25,11 +25,13 @@ export const sync = (cbk: callback): resould => {
   let player: Artplayer | undefined = undefined;
   const publishSeek = useDebounceFn((currentTime: number) => {
     if (!player || player.option.isLive) return;
-    cbk["publishStatus"]({
-      type: ElementMessageType.CHANGE_SEEK,
-      seek: currentTime,
-      rate: player.playbackRate
-    });
+    cbk["publishStatus"](
+      ElementMessage.create({
+        type: ElementMessageType.CHANGE_SEEK,
+        seek: currentTime,
+        rate: player.playbackRate
+      })
+    );
     devLog("视频空降，:", player.currentTime);
   }, debounceTime);
 
@@ -40,11 +42,13 @@ export const sync = (cbk: callback): resould => {
 
   const publishPlay = () => {
     if (!player || player.option.isLive) return;
-    cbk["publishStatus"]({
-      type: ElementMessageType.PLAY,
-      seek: player.currentTime,
-      rate: player.playbackRate
-    });
+    cbk["publishStatus"](
+      ElementMessage.create({
+        type: ElementMessageType.PLAY,
+        seek: player.currentTime,
+        rate: player.playbackRate
+      })
+    );
   };
 
   const publishPlayDebounce = debounce(publishPlay);
@@ -68,11 +72,13 @@ export const sync = (cbk: callback): resould => {
 
   const publishPause = () => {
     if (!player || player.option.isLive) return;
-    cbk["publishStatus"]({
-      type: ElementMessageType.PAUSE,
-      seek: player.currentTime,
-      rate: player.playbackRate
-    });
+    cbk["publishStatus"](
+      ElementMessage.create({
+        type: ElementMessageType.PAUSE,
+        seek: player.currentTime,
+        rate: player.playbackRate
+      })
+    );
   };
 
   const publishPauseDebounce = debounce(publishPause);
@@ -88,11 +94,13 @@ export const sync = (cbk: callback): resould => {
 
   const publishRate = () => {
     if (!player || player.option.isLive) return;
-    cbk["publishStatus"]({
-      type: ElementMessageType.CHANGE_RATE,
-      seek: player.currentTime,
-      rate: player.playbackRate
-    });
+    cbk["publishStatus"](
+      ElementMessage.create({
+        type: ElementMessageType.CHANGE_RATE,
+        seek: player.currentTime,
+        rate: player.playbackRate
+      })
+    );
     devLog("视频倍速,seek:", player.currentTime);
   };
 
@@ -122,10 +130,13 @@ export const sync = (cbk: callback): resould => {
 
         intervals.push(
           setInterval(() => {
-            cbk["publishStatus"]({
-              type: ElementMessageType.CHECK_SEEK,
-              seek: art.currentTime
-            });
+            cbk["publishStatus"](
+              ElementMessage.create({
+                type: ElementMessageType.CHECK_SEEK,
+                seek: art.currentTime,
+                rate: art.playbackRate
+              })
+            );
           }, 5000)
         );
       });

@@ -1,5 +1,6 @@
 import { useDefineApi } from "@/stores/useDefineApi";
-import type { BaseMovieInfo, MovieInfo, EditMovieInfo, MovieStatus } from "@/types/Movie";
+import type { EditMovieInfo } from "@/types/Movie";
+import type { BaseMovieInfo, MovieInfo, Status } from "@/proto/message";
 
 // 获取影片列表
 export const movieListApi = useDefineApi<
@@ -15,7 +16,7 @@ export const movieListApi = useDefineApi<
   {
     current: {
       movie: MovieInfo;
-      status: MovieStatus;
+      status: Status;
     };
     movies: MovieInfo[] | [];
     total: number;
@@ -53,7 +54,7 @@ export const currentMovieApi = useDefineApi<
   {
     current: {
       movie: MovieInfo;
-      status: MovieStatus;
+      status: Status;
     };
   }
 >({
@@ -129,7 +130,7 @@ export const movieStatusApi = useDefineApi<
   {
     current: {
       movie: MovieInfo;
-      status: MovieStatus;
+      status: Status;
     };
   }
 >({

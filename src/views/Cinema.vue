@@ -16,7 +16,8 @@ import {
   clearMovieListApi,
   liveInfoApi
 } from "@/services/apis/movie";
-import type { MovieInfo, EditMovieInfo } from "@/types/Movie";
+import type { EditMovieInfo } from "@/types/Movie";
+import type { MovieInfo } from "@/proto/message";
 import { getFileExtension, devLog } from "@/utils/utils";
 import { sync } from "@/plugins/sync";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
@@ -57,7 +58,6 @@ const SendElement = (msg: ElementMessage) => {
     msg.time = Date.now();
   }
   return send(ElementMessage.encode(msg).finish());
-  // ElementMessage.encode(msg)
 };
 
 // 更新房间密码
@@ -304,10 +304,10 @@ let cMovieInfo = ref<EditMovieInfo>({
 const editDialog = ref(false);
 const openEditDialog = (item: MovieInfo) => {
   cMovieInfo.value.id = item.id;
-  cMovieInfo.value.url = item.url;
-  cMovieInfo.value.name = item.name;
-  cMovieInfo.value.type = item.type;
-  cMovieInfo.value.headers = item.headers;
+  cMovieInfo.value.url = item.base!.url;
+  cMovieInfo.value.name = item.base!.name;
+  cMovieInfo.value.type = item.base!.type;
+  cMovieInfo.value.headers = item.base!.headers;
   editDialog.value = true;
 };
 
@@ -580,10 +580,12 @@ const sendText = () => {
       type: "warning"
     });
   strLengthLimit(sendText_.value, 64);
-  SendElement({
-    type: ElementMessageType.CHAT_MESSAGE,
-    message: sendText_.value
-  });
+  SendElement(
+    ElementMessage.create({
+      type: ElementMessageType.CHAT_MESSAGE,
+      message: sendText_.value
+    })
+  );
   sendText_.value = "";
   if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
   // devLog("sended:" + msg);
@@ -596,10 +598,10 @@ function getPlayerInstance(art: Artplayer) {
 }
 
 const parseVideoType = (movie: MovieInfo) => {
-  if (movie.type) {
-    return movie.type;
+  if (movie.base!.type) {
+    return movie.base!.type;
   }
-  return getFileExtension(movie.url);
+  return getFileExtension(movie.base!.url);
 };
 
 // 设置聊天框高度
@@ -630,23 +632,23 @@ const danmukuPlugin = artplayerPluginDanmuku({
 
 const playerUrl = computed(() => {
   if (room.currentMovie.pullKey) {
-    switch (room.currentMovie.type) {
+    switch (room.currentMovie.base!.type) {
       case "m3u8":
         return `${window.location.origin}/api/movie/live/${room.currentMovie.pullKey}.m3u8`;
       default:
         return `${window.location.origin}/api/movie/live/${room.currentMovie.pullKey}.flv`;
     }
   } else {
-    return room.currentMovie.url;
+    return room.currentMovie.base!.url;
   }
 });
 
 const playerOption = computed(() => {
   return {
     url: playerUrl.value,
-    isLive: room.currentMovie.live,
+    isLive: room.currentMovie.base!.live,
     type: parseVideoType(room.currentMovie),
-    headers: room.currentMovie.headers,
+    headers: room.currentMovie.base!.headers,
     plugins: [danmukuPlugin, syncPlugin.plugin]
   };
 });
@@ -660,9 +662,9 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
       <div class="card max-sm:rounded-none">
         <div
           class="card-title flex flex-wrap justify-between max-sm:text-sm"
-          v-if="room.currentMovie.url !== ''"
+          v-if="playerOption.url"
         >
-          {{ room.currentMovie.name }}
+          {{ room.currentMovie.base!.name }}
           <small>👁‍🗨 {{ room.peopleNum }} </small>
         </div>
         <div class="card-title flex flex-wrap justify-between max-sm:text-sm" v-else>
@@ -670,18 +672,13 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
             >👁‍🗨 {{ room.peopleNum }}
           </small>
         </div>
-        <div class="card-body max-sm:p-0" ref="playArea" v-if="playerOption.url !== ''">
+        <div class="card-body max-sm:p-0" ref="playArea" v-if="playerOption.url">
           <div class="art-player">
             <Player @get-instance="getPlayerInstance" :options="playerOption"></Player>
           </div>
         </div>
         <div class="card-body max-sm:pb-3 max-sm:px-3" ref="noPlayArea" v-else>
           <img class="mx-auto" src="../assets/something-lost.webp" />
-          <!-- <el-carousel height="37vmax" indicator-position="none" arrow="never" interval="5000">
-            <el-carousel-item v-for="item in 4" :key="item">
-              <img class="mx-auto" :src="'https://api.imlazy.ink/img?t=' + item" />
-            </el-carousel-item>
-          </el-carousel> -->
         </div>
         <div class="card-footer p-4 max-sm:hidden"></div>
       </div>
@@ -794,7 +791,7 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
           <div
             v-else
             v-for="item in room.movies"
-            :key="item.name"
+            :key="item.base!.name"
             class="flex justify-around mb-2 rounded-lg bg-zinc-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800"
           >
             <div class="m-auto pl-2">
@@ -802,17 +799,17 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
             </div>
             <div class="overflow-hidden text-ellipsis m-auto p-2 w-7/12">
               <b class="block text-base font-semibold" :title="`ID: ${item.id}`">
-                <el-tag class="mr-1" size="small" v-if="item.live"> 直播流 </el-tag>
-                {{ item["name"] }}
+                <el-tag class="mr-1" size="small" v-if="item.base!.live"> 直播流 </el-tag>
+                {{ item.base!.name }}
                 <button
-                  v-if="item.rtmpSource"
+                  v-if="item.base!.rtmpSource"
                   class="ml-1 font-normal text-sm border bg-rose-50 dark:bg-transparent border-rose-500 rounded-lg px-2 text-rose-500 hover:brightness-75 transition-all"
                   @click="getLiveInfo(item['id'])"
                 >
                   查看推流信息
                 </button>
               </b>
-              <small class="truncate">{{ item["url"] || item["pullKey"] }}</small>
+              <small class="truncate">{{ item.base!.url || item.pullKey }}</small>
             </div>
 
             <div class="m-auto p-2">

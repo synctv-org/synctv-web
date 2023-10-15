@@ -1,6 +1,6 @@
 import { ref, computed } from "vue";
 import { defineStore } from "pinia";
-import type { MovieInfo, MovieStatus } from "@/types/Movie";
+import type { MovieInfo, Status } from "@/proto/message";
 export const roomStore = defineStore("roomStore", () => {
   const login = ref(false);
 
@@ -13,20 +13,23 @@ export const roomStore = defineStore("roomStore", () => {
 
   // 设置播放当前影片
   const currentMovie = ref<MovieInfo>({
-    name: "",
-    live: false,
-    proxy: false,
-    url: "",
-    rtmpSource: false,
-    type: "",
-    headers: {},
+    base: {
+      name: "",
+      live: false,
+      proxy: false,
+      url: "",
+      rtmpSource: false,
+      type: "",
+      headers: {}
+    },
+    pullKey: "",
     createdAt: Date.now(),
     creator: "SYSTEM",
     id: 1
   });
 
   // 当前影片播放状态
-  const currentMovieStatus = ref<MovieStatus>({
+  const currentMovieStatus = ref<Status>({
     playing: false,
     rate: 1,
     seek: 0

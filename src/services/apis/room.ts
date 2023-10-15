@@ -1,6 +1,5 @@
 import { useDefineApi } from "@/stores/useDefineApi";
 import type { RoomList } from "@/types/Room";
-import type { MovieInfo } from "@/types/Movie";
 
 // 房间列表
 export const roomListApi = useDefineApi<

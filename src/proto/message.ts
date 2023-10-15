@@ -103,8 +103,7 @@ export function elementMessageTypeToJSON(object: ElementMessageType): string {
   }
 }
 
-export interface MovieInfo {
-  id: number;
+export interface BaseMovieInfo {
   url: string;
   name: string;
   live: boolean;
@@ -112,14 +111,19 @@ export interface MovieInfo {
   rtmpSource: boolean;
   type: string;
   headers: { [key: string]: string };
+}
+
+export interface BaseMovieInfo_HeadersEntry {
+  key: string;
+  value: string;
+}
+
+export interface MovieInfo {
+  id: number;
+  base: BaseMovieInfo | undefined;
   pullKey: string;
   createdAt: number;
   creator: string;
-}
-
-export interface MovieInfo_HeadersEntry {
-  key: string;
-  value: string;
 }
 
 export interface Status {
@@ -129,161 +133,109 @@ export interface Status {
 }
 
 export interface Current {
-  movie?: MovieInfo | undefined;
-  status?: Status | undefined;
+  movie: MovieInfo | undefined;
+  status: Status | undefined;
 }
 
 export interface ElementMessage {
   type: ElementMessageType;
-  sender?: string | undefined;
-  message?: string | undefined;
-  rate?: number | undefined;
-  seek?: number | undefined;
+  sender: string;
+  message: string;
+  rate: number;
+  seek: number;
   current?: Current | undefined;
-  peopleNum?: number | undefined;
-  time?: number | undefined;
+  peopleNum: number;
+  time: number;
 }
 
-function createBaseMovieInfo(): MovieInfo {
-  return {
-    id: 0,
-    url: "",
-    name: "",
-    live: false,
-    proxy: false,
-    rtmpSource: false,
-    type: "",
-    headers: {},
-    pullKey: "",
-    createdAt: 0,
-    creator: "",
-  };
+function createBaseBaseMovieInfo(): BaseMovieInfo {
+  return { url: "", name: "", live: false, proxy: false, rtmpSource: false, type: "", headers: {} };
 }
 
-export const MovieInfo = {
-  encode(message: MovieInfo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
-    }
+export const BaseMovieInfo = {
+  encode(message: BaseMovieInfo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.url !== "") {
-      writer.uint32(18).string(message.url);
+      writer.uint32(10).string(message.url);
     }
     if (message.name !== "") {
-      writer.uint32(26).string(message.name);
+      writer.uint32(18).string(message.name);
     }
     if (message.live === true) {
-      writer.uint32(32).bool(message.live);
+      writer.uint32(24).bool(message.live);
     }
     if (message.proxy === true) {
-      writer.uint32(40).bool(message.proxy);
+      writer.uint32(32).bool(message.proxy);
     }
     if (message.rtmpSource === true) {
-      writer.uint32(48).bool(message.rtmpSource);
+      writer.uint32(40).bool(message.rtmpSource);
     }
     if (message.type !== "") {
-      writer.uint32(58).string(message.type);
+      writer.uint32(50).string(message.type);
     }
     Object.entries(message.headers).forEach(([key, value]) => {
-      MovieInfo_HeadersEntry.encode({ key: key as any, value }, writer.uint32(66).fork()).ldelim();
+      BaseMovieInfo_HeadersEntry.encode({ key: key as any, value }, writer.uint32(58).fork()).ldelim();
     });
-    if (message.pullKey !== "") {
-      writer.uint32(74).string(message.pullKey);
-    }
-    if (message.createdAt !== 0) {
-      writer.uint32(80).int64(message.createdAt);
-    }
-    if (message.creator !== "") {
-      writer.uint32(90).string(message.creator);
-    }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): MovieInfo {
+  decode(input: _m0.Reader | Uint8Array, length?: number): BaseMovieInfo {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMovieInfo();
+    const message = createBaseBaseMovieInfo();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.id = longToNumber(reader.uint64() as Long);
+          message.url = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.url = reader.string();
+          message.name = reader.string();
           continue;
         case 3:
-          if (tag !== 26) {
+          if (tag !== 24) {
             break;
           }
 
-          message.name = reader.string();
+          message.live = reader.bool();
           continue;
         case 4:
           if (tag !== 32) {
             break;
           }
 
-          message.live = reader.bool();
+          message.proxy = reader.bool();
           continue;
         case 5:
           if (tag !== 40) {
             break;
           }
 
-          message.proxy = reader.bool();
+          message.rtmpSource = reader.bool();
           continue;
         case 6:
-          if (tag !== 48) {
+          if (tag !== 50) {
             break;
           }
 
-          message.rtmpSource = reader.bool();
+          message.type = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
             break;
           }
 
-          message.type = reader.string();
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
+          const entry7 = BaseMovieInfo_HeadersEntry.decode(reader, reader.uint32());
+          if (entry7.value !== undefined) {
+            message.headers[entry7.key] = entry7.value;
           }
-
-          const entry8 = MovieInfo_HeadersEntry.decode(reader, reader.uint32());
-          if (entry8.value !== undefined) {
-            message.headers[entry8.key] = entry8.value;
-          }
-          continue;
-        case 9:
-          if (tag !== 74) {
-            break;
-          }
-
-          message.pullKey = reader.string();
-          continue;
-        case 10:
-          if (tag !== 80) {
-            break;
-          }
-
-          message.createdAt = longToNumber(reader.int64() as Long);
-          continue;
-        case 11:
-          if (tag !== 90) {
-            break;
-          }
-
-          message.creator = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -294,9 +246,8 @@ export const MovieInfo = {
     return message;
   },
 
-  fromJSON(object: any): MovieInfo {
+  fromJSON(object: any): BaseMovieInfo {
     return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       url: isSet(object.url) ? globalThis.String(object.url) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       live: isSet(object.live) ? globalThis.Boolean(object.live) : false,
@@ -309,17 +260,11 @@ export const MovieInfo = {
           return acc;
         }, {})
         : {},
-      pullKey: isSet(object.pullKey) ? globalThis.String(object.pullKey) : "",
-      createdAt: isSet(object.createdAt) ? globalThis.Number(object.createdAt) : 0,
-      creator: isSet(object.creator) ? globalThis.String(object.creator) : "",
     };
   },
 
-  toJSON(message: MovieInfo): unknown {
+  toJSON(message: BaseMovieInfo): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
-    }
     if (message.url !== "") {
       obj.url = message.url;
     }
@@ -347,24 +292,14 @@ export const MovieInfo = {
         });
       }
     }
-    if (message.pullKey !== "") {
-      obj.pullKey = message.pullKey;
-    }
-    if (message.createdAt !== 0) {
-      obj.createdAt = Math.round(message.createdAt);
-    }
-    if (message.creator !== "") {
-      obj.creator = message.creator;
-    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<MovieInfo>, I>>(base?: I): MovieInfo {
-    return MovieInfo.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<BaseMovieInfo>, I>>(base?: I): BaseMovieInfo {
+    return BaseMovieInfo.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<MovieInfo>, I>>(object: I): MovieInfo {
-    const message = createBaseMovieInfo();
-    message.id = object.id ?? 0;
+  fromPartial<I extends Exact<DeepPartial<BaseMovieInfo>, I>>(object: I): BaseMovieInfo {
+    const message = createBaseBaseMovieInfo();
     message.url = object.url ?? "";
     message.name = object.name ?? "";
     message.live = object.live ?? false;
@@ -377,19 +312,16 @@ export const MovieInfo = {
       }
       return acc;
     }, {});
-    message.pullKey = object.pullKey ?? "";
-    message.createdAt = object.createdAt ?? 0;
-    message.creator = object.creator ?? "";
     return message;
   },
 };
 
-function createBaseMovieInfo_HeadersEntry(): MovieInfo_HeadersEntry {
+function createBaseBaseMovieInfo_HeadersEntry(): BaseMovieInfo_HeadersEntry {
   return { key: "", value: "" };
 }
 
-export const MovieInfo_HeadersEntry = {
-  encode(message: MovieInfo_HeadersEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const BaseMovieInfo_HeadersEntry = {
+  encode(message: BaseMovieInfo_HeadersEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
@@ -399,10 +331,10 @@ export const MovieInfo_HeadersEntry = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): MovieInfo_HeadersEntry {
+  decode(input: _m0.Reader | Uint8Array, length?: number): BaseMovieInfo_HeadersEntry {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMovieInfo_HeadersEntry();
+    const message = createBaseBaseMovieInfo_HeadersEntry();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -429,14 +361,14 @@ export const MovieInfo_HeadersEntry = {
     return message;
   },
 
-  fromJSON(object: any): MovieInfo_HeadersEntry {
+  fromJSON(object: any): BaseMovieInfo_HeadersEntry {
     return {
       key: isSet(object.key) ? globalThis.String(object.key) : "",
       value: isSet(object.value) ? globalThis.String(object.value) : "",
     };
   },
 
-  toJSON(message: MovieInfo_HeadersEntry): unknown {
+  toJSON(message: BaseMovieInfo_HeadersEntry): unknown {
     const obj: any = {};
     if (message.key !== "") {
       obj.key = message.key;
@@ -447,13 +379,134 @@ export const MovieInfo_HeadersEntry = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<MovieInfo_HeadersEntry>, I>>(base?: I): MovieInfo_HeadersEntry {
-    return MovieInfo_HeadersEntry.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<BaseMovieInfo_HeadersEntry>, I>>(base?: I): BaseMovieInfo_HeadersEntry {
+    return BaseMovieInfo_HeadersEntry.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<MovieInfo_HeadersEntry>, I>>(object: I): MovieInfo_HeadersEntry {
-    const message = createBaseMovieInfo_HeadersEntry();
+  fromPartial<I extends Exact<DeepPartial<BaseMovieInfo_HeadersEntry>, I>>(object: I): BaseMovieInfo_HeadersEntry {
+    const message = createBaseBaseMovieInfo_HeadersEntry();
     message.key = object.key ?? "";
     message.value = object.value ?? "";
+    return message;
+  },
+};
+
+function createBaseMovieInfo(): MovieInfo {
+  return { id: 0, base: undefined, pullKey: "", createdAt: 0, creator: "" };
+}
+
+export const MovieInfo = {
+  encode(message: MovieInfo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
+    if (message.base !== undefined) {
+      BaseMovieInfo.encode(message.base, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.pullKey !== "") {
+      writer.uint32(26).string(message.pullKey);
+    }
+    if (message.createdAt !== 0) {
+      writer.uint32(32).int64(message.createdAt);
+    }
+    if (message.creator !== "") {
+      writer.uint32(42).string(message.creator);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MovieInfo {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMovieInfo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = longToNumber(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.base = BaseMovieInfo.decode(reader, reader.uint32());
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.pullKey = reader.string();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.createdAt = longToNumber(reader.int64() as Long);
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.creator = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MovieInfo {
+    return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      base: isSet(object.base) ? BaseMovieInfo.fromJSON(object.base) : undefined,
+      pullKey: isSet(object.pullKey) ? globalThis.String(object.pullKey) : "",
+      createdAt: isSet(object.createdAt) ? globalThis.Number(object.createdAt) : 0,
+      creator: isSet(object.creator) ? globalThis.String(object.creator) : "",
+    };
+  },
+
+  toJSON(message: MovieInfo): unknown {
+    const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.base !== undefined) {
+      obj.base = BaseMovieInfo.toJSON(message.base);
+    }
+    if (message.pullKey !== "") {
+      obj.pullKey = message.pullKey;
+    }
+    if (message.createdAt !== 0) {
+      obj.createdAt = Math.round(message.createdAt);
+    }
+    if (message.creator !== "") {
+      obj.creator = message.creator;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MovieInfo>, I>>(base?: I): MovieInfo {
+    return MovieInfo.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MovieInfo>, I>>(object: I): MovieInfo {
+    const message = createBaseMovieInfo();
+    message.id = object.id ?? 0;
+    message.base = (object.base !== undefined && object.base !== null)
+      ? BaseMovieInfo.fromPartial(object.base)
+      : undefined;
+    message.pullKey = object.pullKey ?? "";
+    message.createdAt = object.createdAt ?? 0;
+    message.creator = object.creator ?? "";
     return message;
   },
 };
@@ -626,16 +679,7 @@ export const Current = {
 };
 
 function createBaseElementMessage(): ElementMessage {
-  return {
-    type: 0,
-    sender: undefined,
-    message: undefined,
-    rate: undefined,
-    seek: undefined,
-    current: undefined,
-    peopleNum: undefined,
-    time: undefined,
-  };
+  return { type: 0, sender: "", message: "", rate: 0, seek: 0, current: undefined, peopleNum: 0, time: 0 };
 }
 
 export const ElementMessage = {
@@ -643,25 +687,25 @@ export const ElementMessage = {
     if (message.type !== 0) {
       writer.uint32(8).int32(message.type);
     }
-    if (message.sender !== undefined) {
+    if (message.sender !== "") {
       writer.uint32(18).string(message.sender);
     }
-    if (message.message !== undefined) {
+    if (message.message !== "") {
       writer.uint32(26).string(message.message);
     }
-    if (message.rate !== undefined) {
+    if (message.rate !== 0) {
       writer.uint32(33).double(message.rate);
     }
-    if (message.seek !== undefined) {
+    if (message.seek !== 0) {
       writer.uint32(41).double(message.seek);
     }
     if (message.current !== undefined) {
       Current.encode(message.current, writer.uint32(50).fork()).ldelim();
     }
-    if (message.peopleNum !== undefined) {
+    if (message.peopleNum !== 0) {
       writer.uint32(56).int64(message.peopleNum);
     }
-    if (message.time !== undefined) {
+    if (message.time !== 0) {
       writer.uint32(64).int64(message.time);
     }
     return writer;
@@ -742,13 +786,13 @@ export const ElementMessage = {
   fromJSON(object: any): ElementMessage {
     return {
       type: isSet(object.type) ? elementMessageTypeFromJSON(object.type) : 0,
-      sender: isSet(object.sender) ? globalThis.String(object.sender) : undefined,
-      message: isSet(object.message) ? globalThis.String(object.message) : undefined,
-      rate: isSet(object.rate) ? globalThis.Number(object.rate) : undefined,
-      seek: isSet(object.seek) ? globalThis.Number(object.seek) : undefined,
+      sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+      rate: isSet(object.rate) ? globalThis.Number(object.rate) : 0,
+      seek: isSet(object.seek) ? globalThis.Number(object.seek) : 0,
       current: isSet(object.current) ? Current.fromJSON(object.current) : undefined,
-      peopleNum: isSet(object.peopleNum) ? globalThis.Number(object.peopleNum) : undefined,
-      time: isSet(object.time) ? globalThis.Number(object.time) : undefined,
+      peopleNum: isSet(object.peopleNum) ? globalThis.Number(object.peopleNum) : 0,
+      time: isSet(object.time) ? globalThis.Number(object.time) : 0,
     };
   },
 
@@ -757,25 +801,25 @@ export const ElementMessage = {
     if (message.type !== 0) {
       obj.type = elementMessageTypeToJSON(message.type);
     }
-    if (message.sender !== undefined) {
+    if (message.sender !== "") {
       obj.sender = message.sender;
     }
-    if (message.message !== undefined) {
+    if (message.message !== "") {
       obj.message = message.message;
     }
-    if (message.rate !== undefined) {
+    if (message.rate !== 0) {
       obj.rate = message.rate;
     }
-    if (message.seek !== undefined) {
+    if (message.seek !== 0) {
       obj.seek = message.seek;
     }
     if (message.current !== undefined) {
       obj.current = Current.toJSON(message.current);
     }
-    if (message.peopleNum !== undefined) {
+    if (message.peopleNum !== 0) {
       obj.peopleNum = Math.round(message.peopleNum);
     }
-    if (message.time !== undefined) {
+    if (message.time !== 0) {
       obj.time = Math.round(message.time);
     }
     return obj;
@@ -787,15 +831,15 @@ export const ElementMessage = {
   fromPartial<I extends Exact<DeepPartial<ElementMessage>, I>>(object: I): ElementMessage {
     const message = createBaseElementMessage();
     message.type = object.type ?? 0;
-    message.sender = object.sender ?? undefined;
-    message.message = object.message ?? undefined;
-    message.rate = object.rate ?? undefined;
-    message.seek = object.seek ?? undefined;
+    message.sender = object.sender ?? "";
+    message.message = object.message ?? "";
+    message.rate = object.rate ?? 0;
+    message.seek = object.seek ?? 0;
     message.current = (object.current !== undefined && object.current !== null)
       ? Current.fromPartial(object.current)
       : undefined;
-    message.peopleNum = object.peopleNum ?? undefined;
-    message.time = object.time ?? undefined;
+    message.peopleNum = object.peopleNum ?? 0;
+    message.time = object.time ?? 0;
     return message;
   },
 };

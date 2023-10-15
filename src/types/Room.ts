@@ -1,5 +1,3 @@
-import type { MovieInfo, MovieStatus } from "./Movie";
-
 export interface RoomList {
   roomId: string;
   peopleNum: number;
@@ -7,5 +5,3 @@ export interface RoomList {
   creator: string;
   createdAt: number;
 }
-
-export interface RoomInfo {}
