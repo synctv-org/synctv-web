@@ -37,7 +37,11 @@ const savePwd = ref(localStorage.getItem("uPasswd") ? true : false);
 const { state: joinRoomToken, execute: reqJoinRoomApi } = joinRoomApi();
 
 const JoinRoom = async () => {
-  if (formData.value?.username === "" || formData.value?.roomId === "") {
+  if (
+    formData.value?.username === "" ||
+    formData.value?.userPassword === "" ||
+    formData.value?.roomId === ""
+  ) {
     ElNotification({
       title: "错误",
       message: "请填写表单完整",
