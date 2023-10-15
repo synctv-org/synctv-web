@@ -19,7 +19,11 @@ const formData = ref({
 const savePwd = ref(false);
 
 const operateRoom = async () => {
-  if (formData.value?.username === "" || formData.value?.roomId === "") {
+  if (
+    formData.value?.username === "" ||
+    formData.value?.userPassword === "" ||
+    formData.value?.roomId === ""
+  ) {
     ElNotification({
       title: "错误",
       message: "请填写表单完整",
