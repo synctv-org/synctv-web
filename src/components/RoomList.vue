@@ -101,7 +101,7 @@ onMounted(() => {
         v-else
         v-for="item in __roomList"
         :key="item.roomId"
-        class="flex flex-wrap m-2 rounded-lg bg-stone-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 max-w-[220px]"
+        class="flex flex-wrap m-2 rounded-lg bg-stone-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 max-w-[225px]"
       >
         <div class="overflow-hidden text-ellipsis m-auto p-2 w-full">
           <b class="block text-base font-semibold truncate"> {{ item["roomId"] }}</b>
@@ -113,7 +113,7 @@ onMounted(() => {
             }}</span>
           </div>
           <div class="truncate">创建者：{{ item.creator }}</div>
-          <div>创建时间：{{ new Date(item.createdAt).toLocaleString() }}</div>
+          <div>创建时间：{{ new Date(item.createAt).toLocaleString() }}</div>
         </div>
         <div class="flex p-2 w-full justify-between items-center">
           <el-tag disabled :type="item.needPassword ? 'danger' : 'success'">
