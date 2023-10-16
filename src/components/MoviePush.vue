@@ -140,6 +140,10 @@ const selectMovieType = () => {
 
 const stringHeader = ref(JSON.stringify(newMovieInfo.value.headers));
 
+const updateHeaders = (header: { [key: string]: string }) => {
+  newMovieInfo.value.headers = header;
+};
+
 // 把视频链接添加到列表
 const { execute: reqPushMovieApi } = pushMovieApi();
 const pushMovie = async (dir: string) => {
@@ -264,7 +268,11 @@ onMounted(() => {});
   </div>
 
   <!-- 自定义Header对话框 -->
-  <customHeaders ref="customHeadersDialog" :customHeader="newMovieInfo.headers" />
+  <customHeaders
+    ref="customHeadersDialog"
+    :customHeader="newMovieInfo.headers"
+    @updateHeaders="updateHeaders"
+  />
 </template>
 
 <style lang="less" scoped>
