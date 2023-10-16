@@ -113,7 +113,7 @@ onMounted(() => {
             }}</span>
           </div>
           <div class="truncate">创建者：{{ item.creator }}</div>
-          <div>创建时间：{{ new Date(item.createAt).toLocaleString() }}</div>
+          <div>创建时间：{{ new Date(item.createdAt).toLocaleString() }}</div>
         </div>
         <div class="flex p-2 w-full justify-between items-center">
           <el-tag disabled :type="item.needPassword ? 'danger' : 'success'">

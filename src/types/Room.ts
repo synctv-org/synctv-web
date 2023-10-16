@@ -3,5 +3,5 @@ export interface RoomList {
   peopleNum: number;
   needPassword: boolean;
   creator: string;
-  createAt: number;
+  createdAt: number;
 }
