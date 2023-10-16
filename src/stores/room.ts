@@ -43,6 +43,9 @@ export const roomStore = defineStore("roomStore", () => {
 
   const danmuku = ref({});
 
+  // 播放结束？
+  const isEnd = ref(false);
+
   return {
     isDarkMode,
     login,
@@ -52,6 +55,7 @@ export const roomStore = defineStore("roomStore", () => {
     currentMovieStatus,
     play,
     danmuku,
-    peopleNum
+    peopleNum,
+    isEnd
   };
 });

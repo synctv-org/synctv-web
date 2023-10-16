@@ -42,6 +42,7 @@ export const sync = (cbk: callback): resould => {
 
   const publishPlay = () => {
     if (!player || player.option.isLive) return;
+    room.isEnd = false;
     cbk["publishStatus"](
       ElementMessage.create({
         type: ElementMessageType.PLAY,
@@ -127,16 +128,18 @@ export const sync = (cbk: callback): resould => {
         console.log("rate同步成功:", art.playbackRate);
         room.currentMovieStatus.playing ? setAndNoPublishPlay() : setAndNoPublishPause();
         cbk["sendDanmuku"]("PLAYER：视频已就绪");
+        room.isEnd = false;
 
         intervals.push(
           setInterval(() => {
-            cbk["publishStatus"](
-              ElementMessage.create({
-                type: ElementMessageType.CHECK_SEEK,
-                seek: art.currentTime,
-                rate: art.playbackRate
-              })
-            );
+            !room.isEnd &&
+              cbk["publishStatus"](
+                ElementMessage.create({
+                  type: ElementMessageType.CHECK_SEEK,
+                  seek: art.currentTime,
+                  rate: art.playbackRate
+                })
+              );
           }, 5000)
         );
       });
@@ -151,6 +154,11 @@ export const sync = (cbk: callback): resould => {
 
       // 倍速
       art.on("video:ratechange", publishRate);
+
+      // 播完了
+      art.on("video:ended", () => {
+        room.isEnd = true;
+      });
 
       art.on("destroy", () => {
         player = undefined;
