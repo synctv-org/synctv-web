@@ -24,6 +24,9 @@ import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUin8Array } from "@/utils/utils";
 import MoviePush from "@/components/MoviePush.vue";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
+import customHeaders from "@/components/dialogs/customHeaders.vue";
+
+const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
 
 const watchers: WatchStopHandle[] = [];
 onBeforeUnmount(() => {
@@ -309,6 +312,10 @@ const openEditDialog = (item: MovieInfo) => {
   cMovieInfo.value.type = item.base!.type;
   cMovieInfo.value.headers = item.base!.headers;
   editDialog.value = true;
+};
+
+const updateHeaders = (header: { [key: string]: string }) => {
+  cMovieInfo.value.headers = header;
 };
 
 // 编辑影片信息
@@ -901,12 +908,21 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
     class="rounded-lg dark:bg-zinc-800"
   >
     <el-form label-position="top">
-      <el-form-item label="Url：">
-        <input type="text" class="l-input m-0 p-0 pl-2 w-full" v-model="cMovieInfo.url" />
-      </el-form-item>
-      <el-form-item label="Name：">
+      <el-form-item label="名称：">
         <input type="text" class="l-input m-0 p-0 pl-2 w-full" v-model="cMovieInfo.name" />
       </el-form-item>
+      <el-form-item label="URL：">
+        <input type="text" class="l-input m-0 p-0 pl-2 w-full" v-model="cMovieInfo.url" />
+      </el-form-item>
+      <el-form-item label="类型：">
+        <input type="text" class="l-input m-0 p-0 pl-2 w-full" v-model="cMovieInfo.type" />
+      </el-form-item>
+      <div
+        class="rounded-lg p-3 w-full bg-zinc-50 hover:bg-white transition-all dark:bg-zinc-700 hover:dark:bg-zinc-800 cursor-pointer"
+        @click="customHeadersDialog?.openDialog()"
+      >
+        <span class="text-sm min-w-fit"> 自定义 header </span>
+      </div>
     </el-form>
     <template #footer>
       <button class="btn mr-2" @click="editDialog = false">取消</button>
@@ -916,6 +932,12 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
       <button class="btn btn-success" @click="editMovieInfo()" v-else>确定修改</button>
     </template>
   </el-dialog>
+
+  <customHeaders
+    ref="customHeadersDialog"
+    :customHeader="cMovieInfo.headers"
+    @updateHeaders="updateHeaders"
+  />
 
   <!-- 直播推流信息 -->
   <el-dialog
