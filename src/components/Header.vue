@@ -1,10 +1,44 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { RouterLink } from "vue-router";
 import { roomStore } from "@/stores/room";
 import DarkModeSwitcher from "@/components/DarkModeSwitcher.vue";
 const room = roomStore();
 const mobileMenu = ref(false);
+
+const menuLinks = computed(() => {
+  let links = [
+    {
+      name: "注册",
+      to: "/auth/register"
+    },
+    {
+      name: "登录",
+      to: "/auth/login"
+    }
+  ];
+
+  if (room.login) {
+    const loginLinks = [
+      {
+        name: "加入房间",
+        to: "/joinRoom"
+      },
+      {
+        name: "创建房间",
+        to: "/createRoom"
+      },
+      {
+        name: "影厅",
+        to: "/cinema"
+      }
+    ];
+
+    links = loginLinks;
+  }
+
+  return links;
+});
 </script>
 <template>
   <header class="bg-gray-50 h-16 dark:bg-zinc-900 dark:text-zinc-100">
@@ -42,10 +76,10 @@ const mobileMenu = ref(false);
       </div>
 
       <div class="hidden lg:flex lg:gap-x-12">
-        <RouterLink to="/"> 首&nbsp;&nbsp;&nbsp;&nbsp;页 </RouterLink>
-        <RouterLink to="/joinRoom"> 加入房间 </RouterLink>
-        <RouterLink to="/createRoom"> 创建房间 </RouterLink>
-        <RouterLink to="/cinema" v-if="room.login"> 影&nbsp;&nbsp;&nbsp;&nbsp;厅 </RouterLink>
+        <RouterLink to="/"> 首页 </RouterLink>
+        <RouterLink v-for="(link, index) in menuLinks" :key="index" :to="link.to">{{
+          link.name
+        }}</RouterLink>
       </div>
       <div class="hidden lg:flex lg:flex-1 lg:justify-end">
         <DarkModeSwitcher />
@@ -82,14 +116,14 @@ const mobileMenu = ref(false);
         <div class="mt-6 flow-root">
           <div class="-my-6 divide-y divide-gray-500/10">
             <div class="space-y-2 py-6 moblie-menu">
-              <RouterLink to="/" @click="mobileMenu = false">
-                首&nbsp;&nbsp;&nbsp;&nbsp;页
-              </RouterLink>
-              <RouterLink to="/joinRoom" @click="mobileMenu = false"> 加入房间 </RouterLink>
-              <RouterLink to="/createRoom" @click="mobileMenu = false"> 创建房间 </RouterLink>
-              <RouterLink to="/cinema" @click="mobileMenu = false" v-if="room.login">
-                影&nbsp;&nbsp;&nbsp;&nbsp;厅
-              </RouterLink>
+              <RouterLink to="/" @click="mobileMenu = false"> 首页 </RouterLink>
+              <RouterLink
+                v-for="(link, index) in menuLinks"
+                :key="index"
+                :to="link.to"
+                @click="mobileMenu = false"
+                >{{ link.name }}</RouterLink
+              >
             </div>
             <!-- <div class="py-6">
               <a href="javascript::">关于此项目</a>
