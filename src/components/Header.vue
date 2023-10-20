@@ -3,15 +3,12 @@ import { ref, computed } from "vue";
 import { RouterLink } from "vue-router";
 import { roomStore } from "@/stores/room";
 import DarkModeSwitcher from "@/components/DarkModeSwitcher.vue";
+import UserInfo from "./UserInfo.vue";
 const room = roomStore();
 const mobileMenu = ref(false);
 
 const menuLinks = computed(() => {
   let links = [
-    {
-      name: "注册",
-      to: "/auth/register"
-    },
     {
       name: "登录",
       to: "/auth/login"
@@ -83,6 +80,10 @@ const menuLinks = computed(() => {
       </div>
       <div class="hidden lg:flex lg:flex-1 lg:justify-end">
         <DarkModeSwitcher />
+        <UserInfo />
+        <span v-if="room.login" class="cursor-pointer ml-5">
+          <MoonIcon width="18" height="18" color="#e4e4e7" />
+        </span>
       </div>
     </nav>
 

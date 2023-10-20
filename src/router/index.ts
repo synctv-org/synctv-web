@@ -13,10 +13,10 @@ const router = createRouter({
       meta: { title: "首页" }
     },
     {
-      path: "/auth/register",
-      name: "register",
-      component: () => import("../views/auth/Register.vue"),
-      meta: { title: "注册" }
+      path: "/oauth/:type/callback",
+      name: "callback",
+      component: () => import("../views/oAuth2/callback.vue"),
+      meta: { title: "Oauth" }
     },
     {
       path: "/auth/login",

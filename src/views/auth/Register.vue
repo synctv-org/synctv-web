@@ -48,7 +48,7 @@ const register = async () => {
     savePwd.value && localStorage.setItem("password", formData.value.password);
     localStorage.setItem("login", "true");
 
-    // router.replace("/cinema");
+    router.replace("/");
   } catch (err: any) {
     console.error(err);
     ElNotification({

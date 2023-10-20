@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    copy: typeof import('./src/components/icons/Person copy.vue')['default']
     CustomHeaders: typeof import('./src/components/dialogs/customHeaders.vue')['default']
     DarkModeSwitcher: typeof import('./src/components/DarkModeSwitcher.vue')['default']
     Edit: typeof import('./src/components/icons/Edit.vue')['default']
@@ -26,9 +27,11 @@ declare module 'vue' {
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSkeleton: typeof import('element-plus/es')['ElSkeleton']
     ElTag: typeof import('element-plus/es')['ElTag']
+    Github: typeof import('./src/components/icons/Github.vue')['default']
     Header: typeof import('./src/components/Header.vue')['default']
     Moon: typeof import('./src/components/icons/Moon.vue')['default']
     MoviePush: typeof import('./src/components/MoviePush.vue')['default']
+    Person: typeof import('./src/components/icons/Person.vue')['default']
     Play: typeof import('./src/components/icons/Play.vue')['default']
     Player: typeof import('./src/components/Player.vue')['default']
     RoomList: typeof import('./src/components/RoomList.vue')['default']
@@ -36,5 +39,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     Sun: typeof import('./src/components/icons/Sun.vue')['default']
     Trash: typeof import('./src/components/icons/Trash.vue')['default']
+    UserInfo: typeof import('./src/components/UserInfo.vue')['default']
   }
 }

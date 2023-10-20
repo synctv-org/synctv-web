@@ -1,23 +1,28 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { useRouteQuery } from "@vueuse/router";
 import { ElNotification, ElMessage } from "element-plus";
 import { roomStore } from "@/stores/room";
 import router from "@/router/index";
-import { oAuth2WithGithub } from "@/services/apis/auth";
-import { strLengthLimit } from "@/utils/utils";
+import { getGithubUseInfo } from "@/services/apis/auth";
+
 const room = roomStore();
 
-const formData = ref({
-  username: localStorage.getItem("uname") || "",
-  password: localStorage.getItem("password") || ""
-});
-const savePwd = ref(false);
+const code = useRouteQuery("code");
+const state = useRouteQuery("state");
 
-const useGithub = async () => {
-  const { state, execute } = oAuth2WithGithub();
+const redirect = async () => {
+  const { state: userToken, execute } = getGithubUseInfo();
   try {
-    await execute();
-    if (state.value) window.location.href = state.value.url;
+    await execute({
+      data: {
+        code: code.value as string,
+        state: state.value as string
+      }
+    });
+    if (userToken.value) {
+      localStorage.setItem("userToken", userToken.value.token);
+    }
   } catch (err: any) {
     console.error(err);
     ElNotification({
@@ -27,13 +32,17 @@ const useGithub = async () => {
     });
   }
 };
+
+onMounted(async () => {
+  await redirect();
+  console.log(code.value, state.value);
+});
 </script>
 
 <template>
   <div class="room">
     <div class="login-box w-full">
-      <h1 class="text-[28px] font-bold">请选择登陆方式</h1>
-      <button class="btn btn-black m-[10px]" @click="useGithub()">使用 Github 账号登录</button>
+      <h1 class="text-[28px] font-bold">登陆成功，正在重定向...</h1>
     </div>
   </div>
 </template>

@@ -118,6 +118,14 @@ a {
   }
 }
 
+.btn-black {
+  @apply bg-black dark:border-white;
+  &:hover {
+    @apply border-black text-black bg-zinc-100 shadow-lg;
+    box-shadow: 0 0 10px #8a8a8a;
+  }
+}
+
 .el-collapse-item__header,
 .el-collapse-item__wrap {
   background: #aaa0 !important;

@@ -1,12 +1,12 @@
-import { fileURLToPath, URL } from 'node:url'
+import { fileURLToPath, URL } from "node:url";
 
-import { defineConfig, loadEnv } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
-import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import { defineConfig, loadEnv } from "vite";
+import vue from "@vitejs/plugin-vue";
+import AutoImport from "unplugin-auto-import/vite";
+import Components from "unplugin-vue-components/vite";
+import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 
-const env = loadEnv('', process.cwd())
+const env = loadEnv("", process.cwd());
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -15,27 +15,31 @@ export default defineConfig({
     proxy: {
       "/api": {
         target: "http://127.0.0.1:8088",
-        ws: true,
+        ws: true
       },
+      "/oauth2": {
+        target: "http://127.0.0.1:8088",
+        ws: true
+      }
     }
   },
   plugins: [
     AutoImport({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [ElementPlusResolver()]
     }),
     Components({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [ElementPlusResolver()]
     }),
     vue()
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      "@": fileURLToPath(new URL("./src", import.meta.url))
     }
   },
   build: {
     cssCodeSplit: true,
-    minify: 'terser'
+    minify: "terser"
   },
   base: env.VITE_BASEURL
-})
+});
