@@ -38,16 +38,16 @@ export const oAuth2WithGithub = useDefineApi<any, { url: string }>({
   method: "POST"
 });
 
-// github callback
-export const getGithubUseInfo = useDefineApi<
+// oauth2 callback
+export const getUseInfo = useDefineApi<
   {
     data: {
       code: string;
       state: string;
     };
+    url: string;
   },
   { token: string }
 >({
-  url: "/oauth2/callback/github",
   method: "POST"
 });

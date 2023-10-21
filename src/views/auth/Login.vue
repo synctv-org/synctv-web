@@ -4,7 +4,6 @@ import { ElNotification, ElMessage } from "element-plus";
 import { roomStore } from "@/stores/room";
 import router from "@/router/index";
 import { oAuth2WithGithub } from "@/services/apis/auth";
-import { strLengthLimit } from "@/utils/utils";
 const room = roomStore();
 
 const formData = ref({

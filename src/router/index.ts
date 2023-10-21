@@ -13,7 +13,7 @@ const router = createRouter({
       meta: { title: "首页" }
     },
     {
-      path: "/oauth/:type/callback",
+      path: "/oauth2/callback/:platform",
       name: "callback",
       component: () => import("../views/oAuth2/callback.vue"),
       meta: { title: "Oauth" }

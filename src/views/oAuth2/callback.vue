@@ -1,27 +1,32 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useRouteQuery } from "@vueuse/router";
+import { useRouteQuery, useRouteParams } from "@vueuse/router";
 import { ElNotification, ElMessage } from "element-plus";
 import { roomStore } from "@/stores/room";
 import router from "@/router/index";
-import { getGithubUseInfo } from "@/services/apis/auth";
+import { getUseInfo } from "@/services/apis/auth";
 
 const room = roomStore();
 
 const code = useRouteQuery("code");
 const state = useRouteQuery("state");
-
+const platform = useRouteParams("platform");
+const { state: userToken, execute } = getUseInfo();
+const isLoading = ref(true);
 const redirect = async () => {
-  const { state: userToken, execute } = getGithubUseInfo();
   try {
     await execute({
       data: {
         code: code.value as string,
         state: state.value as string
-      }
+      },
+      url: "/oauth2/callback/" + platform.value
     });
     if (userToken.value) {
+      isLoading.value = false;
       localStorage.setItem("userToken", userToken.value.token);
+      room.login = true;
+      router.push("/");
     }
   } catch (err: any) {
     console.error(err);
@@ -42,7 +47,8 @@ onMounted(async () => {
 <template>
   <div class="room">
     <div class="login-box w-full">
-      <h1 class="text-[28px] font-bold">登陆成功，正在重定向...</h1>
+      <h1 class="text-[28px] font-bold" v-if="isLoading">正在验证数据...</h1>
+      <h1 class="text-[28px] font-bold" v-else>登陆成功，正在重定向...</h1>
     </div>
   </div>
 </template>
