@@ -32,9 +32,14 @@ export const LoginApi = useDefineApi<
   method: "POST"
 });
 
-// 使用 Github 账号登录
-export const oAuth2WithGithub = useDefineApi<any, { url: string }>({
-  url: "/oauth2/login/github",
+// 获取可用的oauth2平台
+export const OAuth2Platforms = useDefineApi<any, { enabled: string[] }>({
+  url: "/oauth2/enabled",
+  method: "GET"
+});
+
+// 使用 Oauth2 账号登录
+export const loginWithOAuth2 = useDefineApi<any, { url: string }>({
   method: "POST"
 });
 
