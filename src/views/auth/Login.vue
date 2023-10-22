@@ -7,6 +7,10 @@ const platforms: { [key: string]: { name: string; class: string } } = {
   github: {
     name: "Github",
     class: "btn-black"
+  },
+  microsoft: {
+    name: "Microsoft",
+    class: "btn-default"
   }
 };
 
