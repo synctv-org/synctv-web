@@ -26,8 +26,8 @@ const { state: roomList, execute: reqRoomList } = roomListApi();
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
-const sort = ref("peopleNum");
-const order = ref("desc");
+const order = ref("roomId");
+const sort = ref("desc");
 
 const getRoomList = async (showMsg = false) => {
   __roomList.value = [];
@@ -73,25 +73,24 @@ onMounted(() => {
       <div>房间列表（{{ __roomList.length }}）</div>
       <div class="text-base">
         排序方式：<el-select
-          v-model="sort"
+          v-model="order"
           class="m-2"
           placeholder="排序方式"
           @change="getRoomList(false)"
         >
+          <el-option label="房间名称" value="roomName" />
           <el-option label="房间ID" value="roomId" />
           <el-option label="房间人数" value="peopleNum" />
-          <el-option label="创建人首字母" value="creator" />
           <el-option label="创建时间" value="createdAt" />
-          <el-option label="是否有密码" value="needPassword" />
         </el-select>
         <button
           class="btn btn-dense"
           @click="
-            order === 'desc' ? (order = 'asc') : (order = 'desc');
+            sort === 'desc' ? (sort = 'asc') : (sort = 'desc');
             getRoomList();
           "
         >
-          {{ order === "asc" ? "👆" : "👇" }}
+          {{ sort === "asc" ? "👆" : "👇" }}
         </button>
       </div>
     </div>
