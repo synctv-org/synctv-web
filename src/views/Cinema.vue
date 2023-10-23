@@ -25,6 +25,7 @@ import { strLengthLimit, blobToUin8Array } from "@/utils/utils";
 import MoviePush from "@/components/MoviePush.vue";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
 import customHeaders from "@/components/dialogs/customHeaders.vue";
+import { useRouteParams } from "@vueuse/router";
 
 const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
 
@@ -39,13 +40,15 @@ const room = roomStore();
 (() => !room.login && router.push("/"))();
 
 // 获取房间信息
-const roomID = localStorage.roomId;
+const roomID = useRouteParams("roomId");
+const roomToken = localStorage.getItem(`room-${roomID.value}-token`) ?? "";
+
 let password = localStorage.password;
 
 // 启动websocket连接
 const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
 const { status, data, send } = useWebSocket(`${wsProtocol}//${window.location.host}/api/room/ws`, {
-  protocols: [localStorage.token],
+  protocols: [roomToken],
   autoReconnect: {
     retries: 3,
     delay: 1000,
@@ -72,7 +75,7 @@ const changePassword = async () => {
       data: {
         password: password
       },
-      headers: { Authorization: localStorage.token }
+      headers: { Authorization: roomToken }
     });
 
     ElNotification({
@@ -107,7 +110,7 @@ const deleteRoom = async () => {
       data: {
         roomId: localStorage.roomId
       },
-      headers: { Authorization: localStorage.token }
+      headers: { Authorization: roomToken }
     });
 
     ElNotification({
@@ -159,7 +162,7 @@ const getMovieList = async () => {
         max: pageSize.value,
         order: order.value
       },
-      headers: { Authorization: localStorage.token }
+      headers: { Authorization: roomToken }
     });
 
     if (movieList.value) {
@@ -202,7 +205,7 @@ const getMovies = async () => {
         max: pageSize.value,
         order: order.value
       },
-      headers: { Authorization: localStorage.token }
+      headers: { Authorization: roomToken }
     });
 
     if (movies.value) {
@@ -239,7 +242,7 @@ const { execute: reqClearMovieListApi } = clearMovieListApi();
 const clearMovieList = async (id: number) => {
   try {
     await reqClearMovieListApi({
-      headers: { Authorization: localStorage.token }
+      headers: { Authorization: roomToken }
     });
     ElNotification({
       title: "已清空",
@@ -269,7 +272,7 @@ const getLiveInfo = async (id: number) => {
       data: {
         id: id
       },
-      headers: { Authorization: localStorage.token }
+      headers: { Authorization: roomToken }
     });
 
     liveInfoDialog.value = true;
@@ -327,7 +330,7 @@ const editMovieInfo = async () => {
     }
     await reqEditMovieInfoApi({
       data: cMovieInfo.value,
-      headers: { Authorization: localStorage.token }
+      headers: { Authorization: roomToken }
     });
     ElNotification({
       title: "更新成功",
@@ -352,7 +355,7 @@ const deleteMovie = async (ids: Array<number>) => {
       data: {
         ids: ids
       },
-      headers: { Authorization: localStorage.token }
+      headers: { Authorization: roomToken }
     });
     for (const id of ids) {
       room.movies.splice(
@@ -386,7 +389,7 @@ const swapMovie = async () => {
         id1: selectMovies.value[0],
         id2: selectMovies.value[1]
       },
-      headers: { Authorization: localStorage.token }
+      headers: { Authorization: roomToken }
     });
 
     ElNotification({
@@ -413,7 +416,7 @@ const changeCurrentMovie = async (id: number) => {
       data: {
         id: id
       },
-      headers: { Authorization: localStorage.token }
+      headers: { Authorization: roomToken }
     });
 
     ElNotification({

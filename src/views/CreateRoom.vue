@@ -1,29 +1,21 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
-import { roomStore } from "@/stores/room";
 import router from "@/router/index";
 import { createRoomApi } from "@/services/apis/room";
 import { strLengthLimit } from "@/utils/utils";
-const room = roomStore();
 
-const { state: createRoomToken, execute: reqCreateRoomApi } = createRoomApi();
+const { state: createRoomInfo, execute: reqCreateRoomApi } = createRoomApi();
 
 const formData = ref({
-  roomId: "",
+  roomName: "",
   password: "",
-  username: localStorage.getItem("uname") || "",
-  userPassword: "",
   hidden: false
 });
 const savePwd = ref(false);
 
 const operateRoom = async () => {
-  if (
-    formData.value?.username === "" ||
-    formData.value?.userPassword === "" ||
-    formData.value?.roomId === ""
-  ) {
+  if (formData.value?.roomName === "") {
     ElNotification({
       title: "错误",
       message: "请填写表单完整",
@@ -36,28 +28,28 @@ const operateRoom = async () => {
       strLengthLimit(key, 32);
     }
     await reqCreateRoomApi({
-      data: formData.value
+      data: formData.value,
+      headers: {
+        Authorization: localStorage.userToken
+      }
     });
-    if (!createRoomToken.value)
+    if (!createRoomInfo.value)
       return ElNotification({
         title: "错误",
         message: "服务器并未返回token",
         type: "error"
       });
-    localStorage.setItem("token", createRoomToken.value?.token);
+    localStorage.setItem(`room-${createRoomInfo.value.roomId}-token`, createRoomInfo.value?.token);
+
     ElNotification({
       title: "创建成功",
       type: "success"
     });
-    room.login = true;
 
-    localStorage.setItem("uname", formData.value.username);
-    savePwd.value && localStorage.setItem("uPasswd", formData.value.userPassword);
-    localStorage.setItem("roomId", formData.value.roomId);
+    localStorage.setItem("roomName", formData.value.roomName);
     savePwd.value && localStorage.setItem("password", formData.value.password);
-    localStorage.setItem("login", "true");
 
-    router.replace("/cinema");
+    router.replace(`/${createRoomInfo.value.roomId}/cinema`);
   } catch (err: any) {
     console.error(err);
     ElNotification({
@@ -75,20 +67,10 @@ const operateRoom = async () => {
       <input
         class="l-input"
         type="text"
-        v-model="formData.username"
-        placeholder="用户名"
+        v-model="formData.roomName"
+        placeholder="房间名"
         required
       />
-      <br />
-      <input
-        class="l-input"
-        type="text"
-        v-model="formData.userPassword"
-        placeholder="密码"
-        required
-      />
-      <br />
-      <input class="l-input" type="text" v-model="formData.roomId" placeholder="房间名" required />
       <br />
       <input class="l-input" type="password" v-model="formData.password" placeholder="房间密码" />
       <br />

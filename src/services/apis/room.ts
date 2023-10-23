@@ -27,15 +27,15 @@ export const createRoomApi = useDefineApi<
   // request
   {
     data: {
-      roomId: string;
+      roomName: string;
       password: string;
-      username: string;
-      userPassword: string;
       hidden: boolean;
     };
+    headers: { Authorization: string };
   },
   // response 服务器返回的 data: {}里面的内容
   {
+    roomId: string;
     token: string;
   }
 >({
