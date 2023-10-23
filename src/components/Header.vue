@@ -80,10 +80,6 @@ const menuLinks = computed(() => {
       </div>
       <div class="hidden lg:flex lg:flex-1 lg:justify-end">
         <DarkModeSwitcher />
-        <UserInfo />
-        <span v-if="room.login" class="cursor-pointer ml-5">
-          <MoonIcon width="18" height="18" color="#e4e4e7" />
-        </span>
       </div>
     </nav>
 

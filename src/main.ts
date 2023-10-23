@@ -14,6 +14,7 @@ import MoonIcon from "./components/icons/Moon.vue";
 import PlayIcon from "./components/icons/Play.vue";
 import EditIcon from "./components/icons/Edit.vue";
 import TrashIcon from "./components/icons/Trash.vue";
+import PersonIcon from "./components/icons/Person.vue";
 
 const app = createApp(App);
 app
@@ -21,8 +22,8 @@ app
   .component("MoonIcon", MoonIcon)
   .component("PlayIcon", PlayIcon)
   .component("EditIcon", EditIcon)
-  .component("TrashIcon", TrashIcon);
-
+  .component("TrashIcon", TrashIcon)
+  .component("PersonIcon", PersonIcon);
 app.use(createPinia());
 app.use(router);
 

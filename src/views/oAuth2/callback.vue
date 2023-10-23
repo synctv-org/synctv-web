@@ -4,14 +4,14 @@ import { useRouteQuery, useRouteParams } from "@vueuse/router";
 import { ElNotification, ElMessage } from "element-plus";
 import { roomStore } from "@/stores/room";
 import router from "@/router/index";
-import { getUseInfo } from "@/services/apis/auth";
+import { oAuth2Callback, userInfo } from "@/services/apis/auth";
 
 const room = roomStore();
 
 const code = useRouteQuery("code");
 const state = useRouteQuery("state");
 const platform = useRouteParams("platform");
-const { state: userToken, execute } = getUseInfo();
+const { state: userToken, execute } = oAuth2Callback();
 const isLoading = ref(true);
 const redirect = async () => {
   try {
@@ -22,9 +22,32 @@ const redirect = async () => {
       },
       url: "/oauth2/callback/" + platform.value
     });
+
     if (userToken.value) {
-      isLoading.value = false;
       localStorage.setItem("userToken", userToken.value.token);
+      await getUserInfo();
+    }
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "错误",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+const getUserInfo = async () => {
+  const { state, execute } = userInfo();
+  try {
+    await execute({
+      headers: {
+        Authorization: userToken.value?.token ?? ""
+      }
+    });
+    if (state.value) {
+      isLoading.value = false;
+      localStorage.setItem("uname", state.value.username);
       room.login = true;
       router.push("/");
     }
@@ -40,7 +63,6 @@ const redirect = async () => {
 
 onMounted(async () => {
   await redirect();
-  console.log(code.value, state.value);
 });
 </script>
 

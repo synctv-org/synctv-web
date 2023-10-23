@@ -44,7 +44,7 @@ export const loginWithOAuth2 = useDefineApi<any, { url: string }>({
 });
 
 // oauth2 callback
-export const getUseInfo = useDefineApi<
+export const oAuth2Callback = useDefineApi<
   {
     data: {
       code: string;
@@ -55,4 +55,15 @@ export const getUseInfo = useDefineApi<
   { token: string }
 >({
   method: "POST"
+});
+
+// 获取个人信息
+export const userInfo = useDefineApi<
+  {
+    headers: { Authorization: string };
+  },
+  { username: string }
+>({
+  url: "/api/user/me",
+  method: "GET"
 });
