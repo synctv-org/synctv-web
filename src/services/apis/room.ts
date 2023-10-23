@@ -50,15 +50,11 @@ export const joinRoomApi = useDefineApi<
     data: {
       roomId: string;
       password: string;
-      username: string;
-      userPassword: string;
-    };
-    params: {
-      autoNew: boolean;
     };
   },
   // response
   {
+    roomId: string;
     token: string;
   }
 >({

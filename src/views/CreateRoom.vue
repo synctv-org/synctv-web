@@ -46,7 +46,6 @@ const operateRoom = async () => {
       type: "success"
     });
 
-    localStorage.setItem("roomName", formData.value.roomName);
     savePwd.value && localStorage.setItem("password", formData.value.password);
 
     router.replace(`/${createRoomInfo.value.roomId}/cinema`);

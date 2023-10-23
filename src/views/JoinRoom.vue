@@ -18,30 +18,22 @@ const props = defineProps<{
   item?: {
     roomId: string;
     password: string;
-    username: string;
-    userPassword: string;
   };
 }>();
 
 const formData = ref({
   roomId: localStorage.getItem("roomId") || "",
-  password: localStorage.getItem("password") || "",
-  username: localStorage.getItem("uname") || "",
-  userPassword: localStorage.getItem("uPasswd") || ""
+  password: localStorage.getItem("password") || ""
 });
 
 if (props.item) formData.value = props.item;
 
 const savePwd = ref(localStorage.getItem("uPasswd") ? true : false);
 
-const { state: joinRoomToken, execute: reqJoinRoomApi } = joinRoomApi();
+const { state: joinRoomInfo, execute: reqJoinRoomApi } = joinRoomApi();
 
 const JoinRoom = async () => {
-  if (
-    formData.value?.username === "" ||
-    formData.value?.userPassword === "" ||
-    formData.value?.roomId === ""
-  ) {
+  if (formData.value?.roomId === "") {
     ElNotification({
       title: "错误",
       message: "请填写表单完整",
@@ -54,31 +46,23 @@ const JoinRoom = async () => {
   }
   try {
     await reqJoinRoomApi({
-      data: formData.value,
-      params: {
-        autoNew: true
-      }
+      data: formData.value
     });
-    if (!joinRoomToken.value)
+    if (!joinRoomInfo.value)
       return ElNotification({
         title: "错误",
         message: "服务器并未返回token",
         type: "error"
       });
-    localStorage.setItem("token", joinRoomToken.value?.token);
+    localStorage.setItem(`room-${joinRoomInfo.value.roomId}-token`, joinRoomInfo.value?.token);
     ElNotification({
       title: "加入成功",
       type: "success"
     });
-    room.login = true;
 
-    localStorage.setItem("uname", formData.value.username);
-    savePwd.value && localStorage.setItem("uPasswd", formData.value.userPassword);
-    localStorage.setItem("roomId", formData.value.roomId);
     savePwd.value && localStorage.setItem("password", formData.value.password);
-    localStorage.setItem("login", "true");
 
-    router.replace("/cinema");
+    router.replace(`/${joinRoomInfo.value.roomId}/cinema`);
   } catch (err: any) {
     console.error(err);
     ElNotification({
@@ -93,22 +77,6 @@ const JoinRoom = async () => {
 <template>
   <div :class="isModal ? 'room-dialog' : 'room'">
     <form @submit.prevent="" :class="!isModal && 'sm:w-96 ' + 'w-full'">
-      <input
-        class="l-input"
-        type="text"
-        v-model="formData.username"
-        placeholder="用户名"
-        required
-      />
-      <br />
-      <input
-        class="l-input"
-        type="password"
-        v-model="formData.userPassword"
-        placeholder="密码"
-        required
-      />
-      <br />
       <input class="l-input" type="text" v-model="formData.roomId" placeholder="房间名" required />
       <br />
       <input class="l-input" type="password" v-model="formData.password" placeholder="房间密码" />

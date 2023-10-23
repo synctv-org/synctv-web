@@ -37,7 +37,13 @@ const router = createRouter({
       meta: { title: "加入房间" }
     },
     {
-      path: "/:roomId/cinema",
+      path: "/cinema",
+      name: "selectCinema",
+      component: () => import("../views/SelectCinema.vue"),
+      meta: { title: "请选择房间" }
+    },
+    {
+      path: "/cinema/:roomId",
       name: "cinema",
       component: () => import("../views/Cinema.vue"),
       meta: { title: "影厅" }
