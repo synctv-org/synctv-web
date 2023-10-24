@@ -62,7 +62,7 @@ const JoinRoom = async () => {
 
     savePwd.value && localStorage.setItem("password", formData.value.password);
 
-    router.replace(`/${joinRoomInfo.value.roomId}/cinema`);
+    router.replace(`/cinema/${joinRoomInfo.value.roomId}`);
   } catch (err: any) {
     console.error(err);
     ElNotification({

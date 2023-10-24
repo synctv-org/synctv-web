@@ -48,7 +48,7 @@ const operateRoom = async () => {
 
     savePwd.value && localStorage.setItem("password", formData.value.password);
 
-    router.replace(`/${createRoomInfo.value.roomId}/cinema`);
+    router.replace(`/cinema/${createRoomInfo.value.roomId}`);
   } catch (err: any) {
     console.error(err);
     ElNotification({

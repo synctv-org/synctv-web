@@ -49,6 +49,10 @@ const getUserInfo = async () => {
       isLoading.value = false;
       localStorage.setItem("uname", state.value.username);
       room.login = true;
+      ElNotification({
+        title: "登录成功",
+        type: "success"
+      });
       router.push("/");
     }
   } catch (err: any) {
