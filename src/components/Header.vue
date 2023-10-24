@@ -4,6 +4,8 @@ import { RouterLink } from "vue-router";
 import { roomStore } from "@/stores/room";
 import DarkModeSwitcher from "@/components/DarkModeSwitcher.vue";
 import UserInfo from "./UserInfo.vue";
+import { ElNotification } from "element-plus";
+import router from "@/router";
 const room = roomStore();
 const mobileMenu = ref(false);
 
@@ -26,7 +28,7 @@ const menuLinks = computed(() => {
         to: "/createRoom"
       },
       {
-        name: "影厅",
+        name: "我的影厅",
         to: "/cinema"
       }
     ];
@@ -36,6 +38,21 @@ const menuLinks = computed(() => {
 
   return links;
 });
+
+const logout = () => {
+  localStorage.removeItem("userToken");
+  for (const i in localStorage) {
+    if (i.startsWith("room") && i.endsWith("token")) {
+      localStorage.removeItem(i);
+    }
+  }
+  ElNotification({
+    title: "登出成功",
+    type: "success"
+  });
+  // router.replace("/");
+  setTimeout(() => window.location.reload(), 1000);
+};
 </script>
 <template>
   <header class="bg-gray-50 h-16 dark:bg-zinc-900 dark:text-zinc-100">
@@ -80,6 +97,7 @@ const menuLinks = computed(() => {
       </div>
       <div class="hidden lg:flex lg:flex-1 lg:justify-end">
         <DarkModeSwitcher />
+        <PersonIcon class="ml-4 cursor-pointer" @click="logout" />
       </div>
     </nav>
 
