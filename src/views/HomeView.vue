@@ -6,7 +6,7 @@ import RoomList from "@/components/RoomList.vue";
   <div class="text-center">
     <h1 class="text-3xl">首页</h1>
     <br />
-    <RoomList />
+    <RoomList :is-my-room="false" />
     <br />
     <p>
       &copy; Copyright 2023 <a href="https://github.com/synctv-org" target="_blank">SyncTV</a> all

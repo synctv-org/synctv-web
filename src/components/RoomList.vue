@@ -2,12 +2,16 @@
 import { onMounted, ref } from "vue";
 import { ElNotification } from "element-plus";
 import { roomListApi } from "@/services/apis/room";
+import { myRoomList } from "@/services/apis/user";
 import type { RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
+
+const props = defineProps<{
+  isMyRoom: boolean;
+}>();
+
 const __roomList = ref<RoomList[]>([]);
-
 const JoinRoomDialog = ref(false);
-
 const formData = ref({
   roomId: "",
   password: "",
@@ -23,6 +27,7 @@ const openJoinRoomDialog = (item: RoomList) => {
 };
 
 const { state: roomList, execute: reqRoomList } = roomListApi();
+const { state: myRoomList_, execute: reqMyRoomList } = myRoomList();
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
@@ -32,18 +37,43 @@ const sort = ref("desc");
 const getRoomList = async (showMsg = false) => {
   __roomList.value = [];
   try {
-    await reqRoomList({
-      params: {
-        page: currentPage.value,
-        max: pageSize.value,
-        sort: sort.value,
-        order: order.value
+    if (props.isMyRoom) {
+      await reqMyRoomList({
+        params: {
+          page: currentPage.value,
+          max: pageSize.value,
+          sort: sort.value,
+          order: order.value
+        },
+        headers: {
+          Authorization: localStorage.userToken
+        }
+      });
+      console.log(6);
+    } else {
+      await reqRoomList({
+        params: {
+          page: currentPage.value,
+          max: pageSize.value,
+          sort: sort.value,
+          order: order.value
+        }
+      });
+    }
+
+    if (props.isMyRoom) {
+      if (myRoomList_.value && myRoomList_.value.list) {
+        totalItems.value = myRoomList_.value.total;
+        for (let i = 0; i < myRoomList_.value.list.length; i++) {
+          __roomList.value.push(myRoomList_.value.list[i]);
+        }
       }
-    });
-    if (roomList.value && roomList.value.list) {
-      totalItems.value = roomList.value.total;
-      for (let i = 0; i < roomList.value.list.length; i++) {
-        __roomList.value.push(roomList.value.list[i]);
+    } else {
+      if (roomList.value && roomList.value.list) {
+        totalItems.value = roomList.value.total;
+        for (let i = 0; i < roomList.value.list.length; i++) {
+          __roomList.value.push(roomList.value.list[i]);
+        }
       }
     }
 
@@ -103,7 +133,7 @@ onMounted(() => {
         class="flex flex-wrap m-2 rounded-lg bg-stone-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 max-w-[225px]"
       >
         <div class="overflow-hidden text-ellipsis m-auto p-2 w-full">
-          <b class="block text-base font-semibold truncate"> {{ item["roomId"] }}</b>
+          <b class="block text-base font-semibold truncate"> {{ item["roomName"] }}</b>
         </div>
         <div class="overflow-hidden text-ellipsis text-sm p-2">
           <div>
@@ -111,11 +141,11 @@ onMounted(() => {
               item["peopleNum"]
             }}</span>
           </div>
-          <div class="truncate">创建者：{{ item.creator }}</div>
+          <div v-if="!props.isMyRoom" class="truncate">创建者：{{ item.creator }}</div>
           <div>创建时间：{{ new Date(item.createdAt).toLocaleString() }}</div>
         </div>
         <div class="flex p-2 w-full justify-between items-center">
-          <el-tag disabled :type="item.needPassword ? 'danger' : 'success'">
+          <el-tag v-if="!props.isMyRoom" disabled :type="item.needPassword ? 'danger' : 'success'">
             {{ item.needPassword ? "有密码" : "无密码" }}
           </el-tag>
           <button class="btn btn-dense" @click="openJoinRoomDialog(item)">
