@@ -28,7 +28,7 @@ const menuLinks = computed(() => {
         to: "/createRoom"
       },
       {
-        name: "我的影厅",
+        name: "我的房间",
         to: "/cinema"
       }
     ];
@@ -51,7 +51,7 @@ const logout = () => {
     type: "success"
   });
   // router.replace("/");
-  setTimeout(() => window.location.reload(), 1000);
+  setTimeout(() => (window.location.href = "./"), 1000);
 };
 </script>
 <template>
