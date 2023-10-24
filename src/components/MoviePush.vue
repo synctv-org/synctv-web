@@ -199,7 +199,7 @@ onMounted(() => {});
 </script>
 
 <template>
-  <div class="card max-sm:rounded-none">
+  <div class="card">
     <div class="card-title">
       添加影片
       <select

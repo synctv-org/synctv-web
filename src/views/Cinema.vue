@@ -669,7 +669,7 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 <template>
   <el-row :gutter="20">
     <el-col :md="18" class="mb-6 max-sm:my-2">
-      <div class="card max-sm:rounded-none">
+      <div class="card">
         <div
           class="card-title flex flex-wrap justify-between max-sm:text-sm"
           v-if="playerOption.url"
@@ -694,7 +694,7 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
       </div>
     </el-col>
     <el-col :md="6" class="mb-6 max-sm:mb-2">
-      <div class="card h-full max-sm:rounded-none">
+      <div class="card h-full">
         <div class="card-title">在线聊天</div>
         <div class="card-body mb-2">
           <div class="chatArea" ref="chatArea">
@@ -721,7 +721,7 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
     <!-- 房间信息 -->
 
     <el-col :lg="6" :md="8" :sm="9" :xs="24" class="mb-6 max-sm:mb-2">
-      <div class="card max-sm:rounded-none">
+      <div class="card">
         <div class="card-title">房间信息</div>
 
         <div class="card-body">
@@ -793,7 +793,7 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
     <!-- 影片列表 -->
     <el-col :lg="12" :md="16" :sm="15" :xs="24" class="mb-6 max-sm:mb-2">
-      <div class="card max-sm:rounded-none">
+      <div class="card">
         <div class="card-title">影片列表（{{ room.movies.length }}）</div>
 
         <div class="card-body">
