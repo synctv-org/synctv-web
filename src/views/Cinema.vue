@@ -117,7 +117,7 @@ const deleteRoom = async () => {
       title: "删除成功",
       type: "success"
     });
-    setInterval(() => {
+    setTimeout(() => {
       localStorage.removeItem("RoomID");
       localStorage.removeItem("password");
       localStorage.removeItem("login");
