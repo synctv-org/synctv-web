@@ -91,3 +91,22 @@ export const updateRoomPasswordApi = useDefineApi<
   url: "/api/room/pwd",
   method: "POST"
 });
+
+// 热度榜
+export const hotRoom = useDefineApi<
+  {
+    params: {
+      page: number;
+      max: number;
+      sort: string;
+      order: string;
+    };
+  },
+  {
+    list: RoomList[] | null;
+    total: number;
+  }
+>({
+  url: "/api/room/hot",
+  method: "GET"
+});

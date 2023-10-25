@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import RoomList from "@/components/RoomList.vue";
+import Hot from "@/components/Hot.vue";
 </script>
 
 <template>
   <div class="text-center">
     <h1 class="text-3xl">首页</h1>
     <br />
-    <RoomList :is-my-room="false" />
+    <div class="lg:w-5/12 mx-auto">
+      <Hot />
+    </div>
     <br />
     <p>
       &copy; Copyright 2023 <a href="https://github.com/synctv-org" target="_blank">SyncTV</a> all

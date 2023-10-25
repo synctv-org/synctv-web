@@ -29,6 +29,7 @@ declare module 'vue' {
     ElTag: typeof import('element-plus/es')['ElTag']
     Github: typeof import('./src/components/icons/Github.vue')['default']
     Header: typeof import('./src/components/Header.vue')['default']
+    Hot: typeof import('./src/components/Hot.vue')['default']
     Moon: typeof import('./src/components/icons/Moon.vue')['default']
     MoviePush: typeof import('./src/components/MoviePush.vue')['default']
     Person: typeof import('./src/components/icons/Person.vue')['default']
