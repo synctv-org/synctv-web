@@ -7,10 +7,8 @@ import JoinRoom from "@/views/JoinRoom.vue";
 const __roomList = ref<RoomList[]>([]);
 const JoinRoomDialog = ref(false);
 const formData = ref({
-  roomId: "",
-  password: "",
-  username: localStorage.getItem("uname") || "",
-  userPassword: localStorage.getItem("uPasswd") || ""
+  roomId: 0,
+  password: ""
 });
 
 const openJoinRoomDialog = (item: RoomList) => {
@@ -124,7 +122,7 @@ onMounted(() => {
   <el-dialog v-model="JoinRoomDialog" class="rounded-lg dark:bg-zinc-800 w-[443px] max-sm:w-[90%]">
     <template #title>
       <div class="overflow-hidden text-ellipsis">
-        <span class="truncate">加入房间 {{ formData.roomId }}</span>
+        <span class="truncate">加入房间</span>
       </div>
     </template>
     <JoinRoom :item="formData" />

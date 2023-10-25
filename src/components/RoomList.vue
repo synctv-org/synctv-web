@@ -12,16 +12,16 @@ const props = defineProps<{
 
 const __roomList = ref<RoomList[]>([]);
 const JoinRoomDialog = ref(false);
-const formData = ref({
-  roomId: "",
-  password: "",
-  username: localStorage.getItem("uname") || "",
-  userPassword: localStorage.getItem("uPasswd") || ""
+const formData = ref<{
+  roomId: number;
+  password: string;
+}>({
+  roomId: null as any,
+  password: ""
 });
 
 const openJoinRoomDialog = (item: RoomList) => {
   // if (!hasPwd && hasUname) return joinRoom(localStorage.uname, RoomID, "");
-
   formData.value.roomId = item.roomId;
   JoinRoomDialog.value = true;
 };
@@ -33,6 +33,8 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const order = ref("roomId");
 const sort = ref("desc");
+const search = ref("all");
+const keyword = ref("");
 
 const getRoomList = async (showMsg = false) => {
   __roomList.value = [];
@@ -43,20 +45,23 @@ const getRoomList = async (showMsg = false) => {
           page: currentPage.value,
           max: pageSize.value,
           sort: sort.value,
-          order: order.value
+          order: order.value,
+          search: search.value,
+          keyword: keyword.value
         },
         headers: {
           Authorization: localStorage.userToken
         }
       });
-      console.log(6);
     } else {
       await reqRoomList({
         params: {
           page: currentPage.value,
           max: pageSize.value,
           sort: sort.value,
-          order: order.value
+          order: order.value,
+          search: search.value,
+          keyword: keyword.value
         }
       });
     }
@@ -98,10 +103,29 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="card mx-auto lg:w-9/12 max-sm:rounded-none">
+  <div class="card mx-auto">
     <div class="card-title flex flex-wrap justify-between">
       <div>房间列表（{{ __roomList.length }}）</div>
-      <div class="text-base">
+      <!-- <div class="text-base -my-2">
+        搜索方式：<el-select
+          v-model="order"
+          class="m-2"
+          placeholder="排序方式"
+          @change="getRoomList(false)"
+        >
+          <el-option label="房间名称" value="roomName" />
+          <el-option label="房间ID" value="roomId" />
+          <el-option label="房间人数" value="peopleNum" />
+          <el-option label="创建时间" value="createdAt" />
+        </el-select>
+        <input
+          class="l-input m-0 ml-2 py-1 bg-transparent text-base"
+          type="text"
+          placeholder="搜索"
+          v-model="keyword"
+        />
+      </div> -->
+      <div class="text-base -my-2">
         排序方式：<el-select
           v-model="order"
           class="m-2"

@@ -1,5 +1,5 @@
 export interface RoomList {
-  roomId: string;
+  roomId: number;
   roomName: string;
   peopleNum: number;
   needPassword: boolean;

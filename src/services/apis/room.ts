@@ -48,8 +48,11 @@ export const joinRoomApi = useDefineApi<
   // request
   {
     data: {
-      roomId: string;
+      roomId: number;
       password: string;
+    };
+    headers: {
+      Authorization: string;
     };
   },
   // response
