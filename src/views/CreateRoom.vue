@@ -12,7 +12,6 @@ const formData = ref({
   password: "",
   hidden: false
 });
-const savePwd = ref(false);
 
 const operateRoom = async () => {
   if (formData.value?.roomName === "") {
@@ -46,8 +45,6 @@ const operateRoom = async () => {
       type: "success"
     });
 
-    savePwd.value && localStorage.setItem("password", formData.value.password);
-
     router.replace(`/cinema/${createRoomInfo.value.roomId}`);
   } catch (err: any) {
     console.error(err);
@@ -73,14 +70,13 @@ const operateRoom = async () => {
       <br />
       <input class="l-input" type="password" v-model="formData.password" placeholder="房间密码" />
       <br />
-      <div class="text-sm"><b>注意：</b>所有输入框最大只可输入32个字符</div>
+
       <div>
         <input class="w-auto" type="checkbox" v-model="formData.hidden" />
         <label class="mr-6" title="不显示在房间列表">&nbsp;是否隐藏此房间</label>
-        <input class="w-auto" type="checkbox" v-model="savePwd" />
-        <label title="明文保存到本机哦~">&nbsp;记住密码</label>
       </div>
       <button class="btn m-[10px]" @click="operateRoom()">创建房间</button>
+      <div class="text-sm"><b>注意：</b>所有输入框最大只可输入32个字符</div>
     </form>
   </div>
 </template>

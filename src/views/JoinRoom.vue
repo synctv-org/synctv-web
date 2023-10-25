@@ -29,8 +29,6 @@ const formData = ref<{
 
 if (props.item) formData.value = props.item;
 
-const savePwd = ref(localStorage.getItem("uPasswd") ? true : false);
-
 const { state: joinRoomInfo, execute: reqJoinRoomApi } = joinRoomApi();
 
 const JoinRoom = async () => {
@@ -64,8 +62,6 @@ const JoinRoom = async () => {
       type: "success"
     });
 
-    savePwd.value && localStorage.setItem("password", formData.value.password);
-
     router.replace(`/cinema/${joinRoomInfo.value.roomId}`);
   } catch (err: any) {
     console.error(err);
@@ -85,10 +81,6 @@ const JoinRoom = async () => {
       <br />
       <input class="l-input" type="password" v-model="formData.password" placeholder="房间密码" />
       <br />
-      <div>
-        <input class="w-auto" type="checkbox" v-model="savePwd" />
-        <label title="明文保存到本机哦~">&nbsp;记住密码</label>
-      </div>
       <button class="btn m-[10px]" @click="JoinRoom()">加入</button>
       <div class="text-sm">
         <b>注意：</b>所有输入框最大只可输入32个字符
