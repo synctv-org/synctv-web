@@ -29,7 +29,9 @@ export const createRoomApi = useDefineApi<
     data: {
       roomName: string;
       password: string;
-      hidden: boolean;
+      setting: {
+        hidden: boolean;
+      };
     };
     headers: { Authorization: string };
   },

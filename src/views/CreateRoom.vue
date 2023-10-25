@@ -10,7 +10,9 @@ const { state: createRoomInfo, execute: reqCreateRoomApi } = createRoomApi();
 const formData = ref({
   roomName: "",
   password: "",
-  hidden: false
+  setting: {
+    hidden: false
+  }
 });
 
 const operateRoom = async () => {
@@ -70,10 +72,9 @@ const operateRoom = async () => {
       <br />
       <input class="l-input" type="password" v-model="formData.password" placeholder="房间密码" />
       <br />
-
       <div>
-        <input class="w-auto" type="checkbox" v-model="formData.hidden" />
-        <label class="mr-6" title="不显示在房间列表">&nbsp;是否隐藏此房间</label>
+        <input class="w-auto" type="checkbox" v-model="formData.setting.hidden" />
+        <label title="不显示在房间列表">&nbsp;是否隐藏此房间</label>
       </div>
       <button class="btn m-[10px]" @click="operateRoom()">创建房间</button>
       <div class="text-sm"><b>注意：</b>所有输入框最大只可输入32个字符</div>
