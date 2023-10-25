@@ -6,10 +6,17 @@ import DarkModeSwitcher from "@/components/DarkModeSwitcher.vue";
 import UserInfo from "./UserInfo.vue";
 import { ElNotification } from "element-plus";
 import router from "@/router";
+import { logOutApi } from "@/services/apis/auth";
 const room = roomStore();
 const mobileMenu = ref(false);
 
 const menuLinks = computed(() => {
+  const basicLinks = [
+    {
+      name: "首页",
+      to: "/"
+    }
+  ];
   let links = [
     {
       name: "登录",
@@ -36,22 +43,37 @@ const menuLinks = computed(() => {
     links = loginLinks;
   }
 
-  return links;
+  return basicLinks.concat(links);
 });
 
-const logout = () => {
-  localStorage.removeItem("userToken");
-  for (const i in localStorage) {
-    if (i.startsWith("room") && i.endsWith("token")) {
-      localStorage.removeItem(i);
+const logout = async () => {
+  const { execute, state } = logOutApi();
+  try {
+    await execute({
+      headers: {
+        Authorization: localStorage.userToken
+      }
+    });
+    if (state.value) {
+      localStorage.removeItem("userToken");
+      for (const i in localStorage) {
+        if (i.startsWith("room") && i.endsWith("token")) {
+          localStorage.removeItem(i);
+        }
+      }
+      ElNotification({
+        title: "登出成功",
+        type: "success"
+      });
+      setTimeout(() => (window.location.href = "./"), 1000);
     }
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "登出失败",
+      type: err.response.data.error || err.message
+    });
   }
-  ElNotification({
-    title: "登出成功",
-    type: "success"
-  });
-  // router.replace("/");
-  setTimeout(() => (window.location.href = "./"), 1000);
 };
 </script>
 <template>
@@ -90,14 +112,13 @@ const logout = () => {
       </div>
 
       <div class="hidden lg:flex lg:gap-x-12">
-        <RouterLink to="/"> 首页 </RouterLink>
         <RouterLink v-for="(link, index) in menuLinks" :key="index" :to="link.to">{{
           link.name
         }}</RouterLink>
       </div>
       <div class="hidden lg:flex lg:flex-1 lg:justify-end">
         <DarkModeSwitcher />
-        <PersonIcon class="ml-4 cursor-pointer" @click="logout" />
+        <PersonIcon v-if="room.login" class="ml-4 cursor-pointer" @click="logout" />
       </div>
     </nav>
 
@@ -131,7 +152,6 @@ const logout = () => {
         <div class="mt-6 flow-root">
           <div class="-my-6 divide-y divide-gray-500/10">
             <div class="space-y-2 py-6 moblie-menu">
-              <RouterLink to="/" @click="mobileMenu = false"> 首页 </RouterLink>
               <RouterLink
                 v-for="(link, index) in menuLinks"
                 :key="index"

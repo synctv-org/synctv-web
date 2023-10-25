@@ -32,6 +32,12 @@ export const LoginApi = useDefineApi<
   method: "POST"
 });
 
+// 登出
+export const logOutApi = useDefineApi<{ headers: { Authorization: string } }, any>({
+  url: "/api/user/logout",
+  method: "POST"
+});
+
 // 获取可用的oauth2平台
 export const OAuth2Platforms = useDefineApi<any, { enabled: string[] }>({
   url: "/oauth2/enabled",
