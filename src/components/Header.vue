@@ -15,6 +15,10 @@ const menuLinks = computed(() => {
     {
       name: "首页",
       to: "/"
+    },
+    {
+      name: "搜索",
+      to: "/search"
     }
   ];
   let links = [

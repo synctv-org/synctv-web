@@ -47,6 +47,12 @@ const router = createRouter({
       name: "cinema",
       component: () => import("../views/Cinema.vue"),
       meta: { title: "影厅" }
+    },
+    {
+      path: "/search",
+      name: "search",
+      component: () => import("../views/SearchPage.vue"),
+      meta: { title: "搜索" }
     }
   ],
   scrollBehavior(to, from, savedPosition) {
