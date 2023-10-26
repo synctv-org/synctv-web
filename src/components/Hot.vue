@@ -96,7 +96,7 @@ onMounted(() => {
           <el-tag disabled :type="item.needPassword ? 'danger' : 'success'">
             {{ item.needPassword ? "有密码" : "无密码" }}
           </el-tag>
-          <button class="btn btn-dense" @click="openJoinRoomDialog(item)">
+          <button class="btn btn-dense md:ml-2" @click="openJoinRoomDialog(item)">
             加入房间
             <PlayIcon class="inline-block" width="18px" />
           </button>

@@ -82,7 +82,7 @@ const getRoomList = async (showMsg = false) => {
       <div
         v-for="item in __roomList"
         :key="item.roomId"
-        class="flex flex-wrap m-2 rounded-lg bg-stone-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 max-w-[225px] max-sm:max-w-full justify-center relative"
+        class="flex flex-wrap m-2 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 max-w-[225px] max-sm:max-w-full justify-center relative"
       >
         <div class="overflow-hidden text-ellipsis m-auto sm:p-2 w-full max-sm:mt-2">
           <el-tag disabled type="warning" class="text-sm absolute left-2" title="RoomID">

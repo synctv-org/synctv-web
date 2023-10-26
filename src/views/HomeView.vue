@@ -6,7 +6,7 @@ import Hot from "@/components/Hot.vue";
   <div class="text-center">
     <h1 class="text-3xl">首页</h1>
     <br />
-    <div class="lg:w-5/12 mx-auto">
+    <div class="xl:w-6/12 lg:w-7/12 md:w-9/12 mx-auto">
       <Hot />
     </div>
     <br />
