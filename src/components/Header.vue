@@ -19,6 +19,10 @@ const menuLinks = computed(() => {
     {
       name: "搜索",
       to: "/search"
+    },
+    {
+      name: "房间列表",
+      to: "/rooms"
     }
   ];
   let links = [
@@ -37,10 +41,6 @@ const menuLinks = computed(() => {
       {
         name: "创建房间",
         to: "/createRoom"
-      },
-      {
-        name: "我的房间",
-        to: "/cinema"
       }
     ];
 

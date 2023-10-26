@@ -5,11 +5,9 @@ import { roomListApi } from "@/services/apis/room";
 import { myRoomList } from "@/services/apis/user";
 import type { RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
+import { roomStore } from "@/stores/room";
 
-const props = defineProps<{
-  isMyRoom: boolean;
-}>();
-
+const isMyRoom = ref(false);
 const __roomList = ref<RoomList[]>([]);
 const JoinRoomDialog = ref(false);
 const formData = ref<{
@@ -37,7 +35,7 @@ const sort = ref("desc");
 const getRoomList = async (showMsg = false) => {
   __roomList.value = [];
   try {
-    if (props.isMyRoom) {
+    if (isMyRoom.value) {
       await reqMyRoomList({
         params: {
           page: currentPage.value,
@@ -64,7 +62,7 @@ const getRoomList = async (showMsg = false) => {
       });
     }
 
-    if (props.isMyRoom) {
+    if (isMyRoom.value) {
       if (myRoomList_.value && myRoomList_.value.list) {
         totalItems.value = myRoomList_.value.total;
         for (let i = 0; i < myRoomList_.value.list.length; i++) {
@@ -102,8 +100,35 @@ onMounted(() => {
 
 <template>
   <div class="card mx-auto">
-    <div class="card-title flex flex-wrap justify-between">
-      <div>房间列表（{{ __roomList.length }}）</div>
+    <div class="card-title flex flex-wrap justify-between items-center">
+      <div class="max-sm:mb-3">
+        <span
+          :class="
+            isMyRoom
+              ? ' text-gray-700 cursor-pointer dark:text-slate-400 mr-4'
+              : 'border-b-2 border-slate-600 border-solid text-slate-700 dark:border-slate-200 dark:text-slate-200 mr-4'
+          "
+          @click="
+            isMyRoom = false;
+            getRoomList(false);
+          "
+        >
+          房间列表（{{ __roomList.length }}）</span
+        >
+        <span
+          v-if="roomStore().login"
+          :class="
+            isMyRoom
+              ? 'border-b-2 border-slate-600 border-solid text-slate-700 dark:border-slate-200 dark:text-slate-200'
+              : 'text-gray-500 cursor-pointer dark:text-slate-400'
+          "
+          @click="
+            isMyRoom = true;
+            getRoomList(false);
+          "
+          >我创建的（{{ __roomList.length }}）</span
+        >
+      </div>
       <div class="text-base -my-2">
         排序方式：<el-select
           v-model="order"
@@ -113,7 +138,6 @@ onMounted(() => {
         >
           <el-option label="房间名称" value="roomName" />
           <el-option label="房间ID" value="roomId" />
-          <el-option label="房间人数" value="peopleNum" />
           <el-option label="创建时间" value="createdAt" />
         </el-select>
         <button
@@ -144,11 +168,11 @@ onMounted(() => {
               item["peopleNum"]
             }}</span>
           </div>
-          <div v-if="!props.isMyRoom" class="truncate">创建者：{{ item.creator }}</div>
+          <div v-if="!isMyRoom" class="truncate">创建者：{{ item.creator }}</div>
           <div>创建时间：{{ new Date(item.createdAt).toLocaleString() }}</div>
         </div>
         <div class="flex p-2 w-full justify-between items-center">
-          <el-tag v-if="!props.isMyRoom" disabled :type="item.needPassword ? 'danger' : 'success'">
+          <el-tag v-if="!isMyRoom" disabled :type="item.needPassword ? 'danger' : 'success'">
             {{ item.needPassword ? "有密码" : "无密码" }}
           </el-tag>
           <button class="btn btn-dense" @click="openJoinRoomDialog(item)">
