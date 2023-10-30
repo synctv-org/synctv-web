@@ -7,7 +7,10 @@ import type { RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
 import { roomStore } from "@/stores/room";
 
-const isMyRoom = ref(false);
+const props = defineProps<{
+  isMyRoom: boolean;
+}>();
+// const isMyRoom = ref(false);
 const __roomList = ref<RoomList[]>([]);
 const JoinRoomDialog = ref(false);
 const formData = ref<{
@@ -35,7 +38,7 @@ const sort = ref("desc");
 const getRoomList = async (showMsg = false) => {
   __roomList.value = [];
   try {
-    if (isMyRoom.value) {
+    if (props.isMyRoom) {
       await reqMyRoomList({
         params: {
           page: currentPage.value,
@@ -62,7 +65,7 @@ const getRoomList = async (showMsg = false) => {
       });
     }
 
-    if (isMyRoom.value) {
+    if (props.isMyRoom) {
       if (myRoomList_.value && myRoomList_.value.list) {
         totalItems.value = myRoomList_.value.total;
         for (let i = 0; i < myRoomList_.value.list.length; i++) {
@@ -102,32 +105,18 @@ onMounted(() => {
   <div class="card mx-auto">
     <div class="card-title flex flex-wrap justify-between items-center">
       <div class="max-sm:mb-3">
-        <span
-          :class="
+        <!-- :class="
             isMyRoom
               ? ' text-gray-700 cursor-pointer dark:text-slate-400 mr-4'
               : 'border-b-2 border-slate-600 border-solid text-slate-700 dark:border-slate-200 dark:text-slate-200 mr-4'
-          "
-          @click="
-            isMyRoom = false;
-            getRoomList(false);
-          "
-        >
-          房间列表（{{ __roomList.length }}）</span
-        >
-        <span
-          v-if="roomStore().login"
-          :class="
+          " -->
+        <span v-if="!isMyRoom"> 房间列表（{{ __roomList.length }}）</span>
+        <!-- :class="
             isMyRoom
               ? 'border-b-2 border-slate-600 border-solid text-slate-700 dark:border-slate-200 dark:text-slate-200'
               : 'text-gray-500 cursor-pointer dark:text-slate-400'
-          "
-          @click="
-            isMyRoom = true;
-            getRoomList(false);
-          "
-          >我创建的（{{ __roomList.length }}）</span
-        >
+          " -->
+        <span v-else>我创建的（{{ __roomList.length }}）</span>
       </div>
       <div class="text-base -my-2">
         排序方式：<el-select

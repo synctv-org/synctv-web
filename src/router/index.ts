@@ -53,6 +53,12 @@ const router = createRouter({
       name: "search",
       component: () => import("../views/SearchPage.vue"),
       meta: { title: "搜索" }
+    },
+    {
+      path: "/user/me",
+      name: "myself",
+      component: () => import("../views/userInfo.vue"),
+      meta: { title: "个人信息" }
     }
   ],
   scrollBehavior(to, from, savedPosition) {

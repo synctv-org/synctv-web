@@ -4,7 +4,7 @@ import RoomList from "@/components/RoomList.vue";
 <template>
   <div class="text-center">
     <div class="lg:w-9/12 mx-auto">
-      <RoomList />
+      <RoomList :is-my-room="false" />
     </div>
   </div>
 </template>

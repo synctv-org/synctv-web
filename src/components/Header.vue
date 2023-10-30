@@ -3,10 +3,7 @@ import { ref, computed } from "vue";
 import { RouterLink } from "vue-router";
 import { roomStore } from "@/stores/room";
 import DarkModeSwitcher from "@/components/DarkModeSwitcher.vue";
-import UserInfo from "./UserInfo.vue";
-import { ElNotification } from "element-plus";
 import router from "@/router";
-import { logOutApi } from "@/services/apis/auth";
 const room = roomStore();
 const mobileMenu = ref(false);
 
@@ -50,34 +47,8 @@ const menuLinks = computed(() => {
   return basicLinks.concat(links);
 });
 
-const logout = async () => {
-  const { execute, state } = logOutApi();
-  try {
-    await execute({
-      headers: {
-        Authorization: localStorage.userToken
-      }
-    });
-    if (state.value) {
-      localStorage.removeItem("userToken");
-      for (const i in localStorage) {
-        if (i.startsWith("room") && i.endsWith("token")) {
-          localStorage.removeItem(i);
-        }
-      }
-      ElNotification({
-        title: "登出成功",
-        type: "success"
-      });
-      setTimeout(() => (window.location.href = "./"), 1000);
-    }
-  } catch (err: any) {
-    console.error(err);
-    ElNotification({
-      title: "登出失败",
-      type: err.response.data.error || err.message
-    });
-  }
+const toUserInfo = () => {
+  router.replace("/user/me");
 };
 </script>
 <template>
@@ -122,7 +93,7 @@ const logout = async () => {
       </div>
       <div class="hidden lg:flex lg:flex-1 lg:justify-end">
         <DarkModeSwitcher />
-        <PersonIcon v-if="room.login" class="ml-4 cursor-pointer" @click="logout" />
+        <PersonIcon v-if="room.login" class="ml-4 cursor-pointer" @click="toUserInfo" />
       </div>
     </nav>
 
