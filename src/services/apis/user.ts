@@ -1,5 +1,17 @@
 import { useDefineApi } from "@/stores/useDefineApi";
 import type { RoomList } from "@/types/Room";
+import type { BaseUserInfo } from "@/types/User";
+
+// 获取个人信息
+export const userInfo = useDefineApi<
+  {
+    headers: { Authorization: string };
+  },
+  BaseUserInfo
+>({
+  url: "/api/user/me",
+  method: "GET"
+});
 
 // 我创建的房间，列表
 export const myRoomList = useDefineApi<

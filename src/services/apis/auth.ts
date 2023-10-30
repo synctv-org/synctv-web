@@ -62,14 +62,3 @@ export const oAuth2Callback = useDefineApi<
 >({
   method: "POST"
 });
-
-// 获取个人信息
-export const userInfo = useDefineApi<
-  {
-    headers: { Authorization: string };
-  },
-  { username: string }
->({
-  url: "/api/user/me",
-  method: "GET"
-});

@@ -4,7 +4,8 @@ import { useRouteQuery, useRouteParams } from "@vueuse/router";
 import { ElNotification, ElMessage } from "element-plus";
 import { roomStore } from "@/stores/room";
 import router from "@/router/index";
-import { oAuth2Callback, userInfo } from "@/services/apis/auth";
+import { oAuth2Callback } from "@/services/apis/auth";
+import { userInfo } from "@/services/apis/user";
 
 const room = roomStore();
 
