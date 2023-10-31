@@ -7,7 +7,7 @@ import JoinRoom from "@/views/JoinRoom.vue";
 const __roomList = ref<RoomList[]>([]);
 const JoinRoomDialog = ref(false);
 const formData = ref({
-  roomId: 0,
+  roomId: "",
   password: ""
 });
 

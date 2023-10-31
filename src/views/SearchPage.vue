@@ -8,10 +8,10 @@ import JoinRoom from "./JoinRoom.vue";
 const __roomList = ref<RoomList[]>([]);
 const JoinRoomDialog = ref(false);
 const formData = ref<{
-  roomId: number;
+  roomId: string;
   password: string;
 }>({
-  roomId: null as any,
+  roomId: "",
   password: ""
 });
 

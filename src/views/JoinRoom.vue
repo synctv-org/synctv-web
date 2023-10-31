@@ -14,16 +14,16 @@ const isModal = computed(() => {
 
 const props = defineProps<{
   item?: {
-    roomId: number;
+    roomId: string;
     password: string;
   };
 }>();
 
 const formData = ref<{
-  roomId: number;
+  roomId: string;
   password: string;
 }>({
-  roomId: null as any,
+  roomId: "",
   password: ""
 });
 
