@@ -5,10 +5,15 @@ import type { BaseMovieInfo } from "@/proto/message";
 import { strLengthLimit } from "@/utils/utils";
 import { pushMovieApi } from "@/services/apis/movie";
 import customHeaders from "@/components/dialogs/customHeaders.vue";
+import { useRouteParams } from "@vueuse/router";
 
 const Emits = defineEmits(["getMovies"]);
 
 const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
+
+// 获取房间信息
+const roomID = useRouteParams("roomId");
+const roomToken = localStorage.getItem(`room-${roomID.value}-token`) ?? "";
 
 // 新影片信息
 let newMovieInfo = ref<BaseMovieInfo>({
@@ -176,7 +181,7 @@ const pushMovie = async (dir: string) => {
         pos: dir
       },
       data: newMovieInfo.value,
-      headers: { Authorization: localStorage.token }
+      headers: { Authorization: roomToken }
     });
 
     ElNotification({
