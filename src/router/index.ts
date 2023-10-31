@@ -57,7 +57,7 @@ const router = createRouter({
     {
       path: "/user/me",
       name: "myself",
-      component: () => import("../views/userInfo.vue"),
+      component: () => import("../views/user/Info.vue"),
       meta: { title: "个人信息" }
     }
   ],
