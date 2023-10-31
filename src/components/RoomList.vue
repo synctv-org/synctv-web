@@ -32,7 +32,7 @@ const { state: myRoomList_, execute: reqMyRoomList } = myRoomList();
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
-const order = ref("roomId");
+const order = ref("name");
 const sort = ref("desc");
 
 const getRoomList = async (showMsg = false) => {
@@ -125,8 +125,7 @@ onMounted(() => {
           placeholder="排序方式"
           @change="getRoomList(false)"
         >
-          <el-option label="房间名称" value="roomName" />
-          <el-option label="房间ID" value="roomId" />
+          <el-option label="房间名称" value="name" />
           <el-option label="创建时间" value="createdAt" />
         </el-select>
         <button

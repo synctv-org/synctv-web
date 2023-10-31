@@ -24,7 +24,7 @@ const { state: roomList, execute: reqRoomList } = roomListApi();
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
-const order = ref("roomId");
+const order = ref("name");
 const sort = ref("desc");
 const search = ref("all");
 const keyword = ref("");
@@ -85,9 +85,9 @@ const getRoomList = async (showMsg = false) => {
         class="flex flex-wrap m-2 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 max-w-[225px] max-sm:max-w-full justify-center relative"
       >
         <div class="overflow-hidden text-ellipsis m-auto sm:p-2 w-full max-sm:mt-2">
-          <el-tag disabled type="warning" class="text-sm absolute left-2" title="RoomID">
+          <!-- <el-tag disabled type="warning" class="text-sm absolute left-2" title="RoomID">
             {{ item["roomId"] }}
-          </el-tag>
+          </el-tag> -->
           <b class="text-base font-semibold truncate"> {{ item["roomName"] }}</b>
         </div>
         <div class="overflow-hidden text-ellipsis text-sm p-2">
