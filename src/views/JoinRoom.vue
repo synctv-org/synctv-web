@@ -85,7 +85,7 @@ const JoinRoom = async () => {
       <div class="text-sm">
         <b>注意：</b>所有输入框最大只可输入32个字符
         <br />
-        如果你是该房间所有者，无需输入密码
+        如果你是该房间所有者，则无需输入密码
       </div>
     </form>
   </div>
