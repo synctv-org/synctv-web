@@ -617,7 +617,7 @@ const parseVideoType = (movie: MovieInfo) => {
 // 设置聊天框高度
 const resetChatAreaHeight = () => {
   const h = playArea.value ? playArea : noPlayArea;
-  chatArea && h && (chatArea.value.style.height = h.value.scrollHeight - 63 + "px");
+  chatArea && h && (chatArea.value.style.height = h.value.scrollHeight - 49 + "px");
 };
 
 onMounted(() => {
@@ -690,7 +690,6 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
         <div class="card-body max-sm:pb-3 max-sm:px-3" ref="noPlayArea" v-else>
           <img class="mx-auto" src="../assets/something-lost.webp" />
         </div>
-        <div class="card-footer p-4 max-sm:hidden"></div>
       </div>
     </el-col>
     <el-col :md="6" class="mb-6 max-sm:mb-2">
