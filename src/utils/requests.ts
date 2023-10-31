@@ -1,6 +1,24 @@
 import axios, { type AxiosRequestConfig } from "axios";
 import { useAsyncState } from "@vueuse/core";
 
+axios.interceptors.response.use(
+  function (response) {
+    return response;
+  },
+  function (error) {
+    if (error.response.status === 401) {
+      localStorage.removeItem("userToken");
+      for (const i in localStorage) {
+        if (i.startsWith("room") && i.endsWith("token")) {
+          localStorage.removeItem(i);
+        }
+      }
+      setTimeout(() => (window.location.href = "/"), 1000);
+    }
+    return Promise.reject(error);
+  }
+);
+
 const _req = async <T>(config: AxiosRequestConfig): Promise<T | undefined> => {
   const result = await axios(config);
   let realData = result.data;
