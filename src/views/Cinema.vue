@@ -617,7 +617,7 @@ const parseVideoType = (movie: MovieInfo) => {
 // 设置聊天框高度
 const resetChatAreaHeight = () => {
   const h = playArea.value ? playArea : noPlayArea;
-  chatArea && h && (chatArea.value.style.height = h.value.scrollHeight - 49 + "px");
+  chatArea && h && (chatArea.value.style.height = h.value.scrollHeight - 112 + "px");
 };
 
 onMounted(() => {
