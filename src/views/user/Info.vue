@@ -6,6 +6,8 @@ import { ElNotification } from "element-plus";
 import { logOutApi } from "@/services/apis/auth";
 import { userInfo } from "@/services/apis/user";
 
+import account from "./account.vue";
+
 const user = userStore();
 
 const getUserInfo = async () => {
@@ -83,6 +85,10 @@ const tabs: Tabs[] = [
   {
     name: "我的房间",
     component: RoomList
+  },
+  {
+    name: "账户绑定",
+    component: account
   }
 ];
 

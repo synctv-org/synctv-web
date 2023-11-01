@@ -26,6 +26,7 @@
     "mpegts.js": "^1.7.3",
     "nprogress": "^0.2.0",
     "pinia": "^2.1.4",
+    "qrcode-vue3": "^1.6.8",
     "terser": "^5.18.2",
     "ts-proto": "^1.161.1",
     "vue": "^3.3.4",
