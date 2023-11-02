@@ -45,16 +45,17 @@ const vBiliQRCode = () => {
       });
       if (biliQRCodeStatus.value) {
         if (biliQRCodeStatus.value.status === "success") {
-          ElMessage.success("登录成功");
+          bili_login_dialog.value = false;
+          ElMessage.success("绑定成功");
           clearInterval(getQRCodeStatus);
+        }
+        if (biliQRCodeStatus.value.status === "expired") {
+          ElMessage.error("二维码已过期，请重新获取");
+          clearInterval(getQRCodeStatus);
+          return;
         }
       }
     } catch (err: any) {
-      if (err.response.data.error === "qr code expired") {
-        ElMessage.error("二维码已过期，请重新获取");
-        clearInterval(getQRCodeStatus);
-        return;
-      }
       console.error(err);
     }
   }, 2000);
@@ -86,7 +87,12 @@ const closeDialog = () => {
       <el-col :md="10">
         <h2 class="text-xl text-center font-semibold">扫描二维码登录</h2>
         <QRCodeVue3
-          v-if="biliQRCode && biliQRCodeReady"
+          v-if="
+            biliQRCode &&
+            biliQRCodeReady &&
+            biliQRCodeStatus &&
+            biliQRCodeStatus.status !== 'expired'
+          "
           :width="400"
           :height="400"
           :value="biliQRCode.url"
@@ -109,7 +115,15 @@ const closeDialog = () => {
           :cornersDotOptions="{ type: undefined, color: '#4ade80' }"
           myclass="mx-auto px-10 py-5"
         />
-        <p v-else>二维码加载失败，请重试</p>
+        <p
+          v-else-if="biliQRCodeStatus && biliQRCodeStatus.status === 'expired'"
+          class="mx-auto px-10 py-5 text-center"
+        >
+          二维码加载失败或已过期，请重试。
+          <br />
+          <a href="javascript:;" @click="useBilibiliLogin">重新加载二维码</a>
+        </p>
+        <p v-else class="mx-auto px-10 py-5 text-center">二维码加载中，请稍后...</p>
         <h2 class="text-base text-center">
           请使用 <a href="https://app.bilibili.com/" target="_blank">哔哩哔哩客户端</a>
           <br />
@@ -119,12 +133,15 @@ const closeDialog = () => {
       </el-col>
       <el-col :md="14">
         <h2 class="text-xl font-semibold">短信登录</h2>
+        <input type="text" class="l-input" placeholder="手机号" />
+        <input type="text" class="l-input" placeholder="短信验证码" />
+        <button class="btn">发送验证码</button>
+        <button class="btn btn-success">登录</button>
       </el-col>
     </el-row>
 
     <template #footer>
       <button class="btn mr-2" @click="closeDialog">取消</button>
-      <!-- <button class="btn btn-success" @click="bindBilibili">我已登录</button> -->
     </template>
   </el-dialog>
 </template>
