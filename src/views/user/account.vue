@@ -4,11 +4,12 @@ import {
   getBiliBiliQRCode,
   veriBiliBiliQRCode,
   getBiliBiliCaptcha,
-  getBiliBiliPhoneCode
+  getBiliBiliPhoneCode,
+  veriBiliBiliPhoneCode
 } from "@/services/apis/vendor";
 import QRCodeVue3 from "qrcode-vue3";
 import { roomStore } from "@/stores/room";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElNotification } from "element-plus";
 const { isDarkMode } = roomStore();
 const userToken = localStorage.getItem("userToken") ?? "";
 
@@ -55,7 +56,7 @@ const vBiliQRCode = () => {
       });
       if (biliQRCodeStatus.value) {
         if (biliQRCodeStatus.value.status === "success") {
-          bili_login_dialog.value = false;
+          closeDialog();
           ElMessage.success("绑定成功");
           clearInterval(getQRCodeStatus);
         }
@@ -111,7 +112,6 @@ const getBiliCaptcha = async () => {
 
 // 发送手机验证码
 const phone = ref<number>();
-const code = ref<number>();
 const SMSTime = ref(60);
 let SMSTimer: number;
 const { state: phoneCode, execute: reqBiliBiliPhoneCode } = getBiliBiliPhoneCode();
@@ -137,6 +137,11 @@ const sendCode = async () => {
     }
   } catch (err: any) {
     console.error(err);
+    ElNotification({
+      title: "错误",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
   }
 
   // seccode.value = result.geetest_seccode;
@@ -150,9 +155,40 @@ const sendCode = async () => {
   }, 1000);
 };
 
+// 验证手机验证码
+const code = ref<number>();
+const verifyPhoneCode = async () => {
+  const { execute, isReady } = veriBiliBiliPhoneCode();
+  if (!phoneCode.value) return ElMessage.error("请先完成人机验证！");
+  if (!phone.value) return ElMessage.error("请填写手机号！");
+  if (!code.value) return ElMessage.error("请填写验证码！");
+  try {
+    await execute({
+      headers: {
+        Authorization: userToken
+      },
+      data: {
+        telephone: phone.value.toString(),
+        captchaKey: phoneCode.value!.captchaKey,
+        code: code.value.toString()
+      }
+    });
+    if (isReady.value) {
+      closeDialog();
+      ElMessage.success("绑定成功");
+      clearInterval(SMSTimer);
+    }
+  } catch (err: any) {
+    console.error(err);
+    ElMessage.error(err.response.data.error || err.message);
+  }
+};
+
 const closeDialog = () => {
   bili_login_dialog.value = false;
   clearInterval(getQRCodeStatus);
+  clearInterval(SMSTimer);
+  SMSTime.value = 60;
 };
 </script>
 
@@ -230,7 +266,7 @@ const closeDialog = () => {
           重新发送 {{ 0 < SMSTime && SMSTime <= 60 ? SMSTime : "" }}
         </button>
 
-        <button class="btn btn-success">登录</button>
+        <button class="btn btn-success" @click="verifyPhoneCode">登录</button>
       </el-col>
     </el-row>
 

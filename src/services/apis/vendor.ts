@@ -40,6 +40,7 @@ export const getBiliBiliCaptcha = useDefineApi<
 // 获取 哔哩哔哩 手机验证码
 export const getBiliBiliPhoneCode = useDefineApi<
   {
+    headers: { Authorization: string };
     data: {
       token: string;
       challenge: string;
@@ -52,5 +53,21 @@ export const getBiliBiliPhoneCode = useDefineApi<
   }
 >({
   url: "/api/vendor/bilibili/login/sms/send",
+  method: "POST"
+});
+
+// 验证 哔哩哔哩 手机验证码
+export const veriBiliBiliPhoneCode = useDefineApi<
+  {
+    headers: { Authorization: string };
+    data: {
+      telephone: string;
+      captchaKey: string;
+      code: string;
+    };
+  },
+  any
+>({
+  url: "/api/vendor/bilibili/login/sms/login",
   method: "POST"
 });
