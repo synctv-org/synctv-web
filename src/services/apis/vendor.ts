@@ -36,3 +36,21 @@ export const getBiliBiliCaptcha = useDefineApi<
   url: "/api/vendor/bilibili/login/captcha",
   method: "GET"
 });
+
+// 获取 哔哩哔哩 手机验证码
+export const getBiliBiliPhoneCode = useDefineApi<
+  {
+    data: {
+      token: string;
+      challenge: string;
+      validate: string;
+      telephone: string;
+    };
+  },
+  {
+    captchaKey: string;
+  }
+>({
+  url: "/api/vendor/bilibili/login/sms/send",
+  method: "POST"
+});

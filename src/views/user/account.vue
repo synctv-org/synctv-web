@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { getBiliBiliQRCode, veriBiliBiliQRCode, getBiliBiliCaptcha } from "@/services/apis/vendor";
+import { onMounted, ref } from "vue";
+import {
+  getBiliBiliQRCode,
+  veriBiliBiliQRCode,
+  getBiliBiliCaptcha,
+  getBiliBiliPhoneCode
+} from "@/services/apis/vendor";
 import QRCodeVue3 from "qrcode-vue3";
 import { roomStore } from "@/stores/room";
 import { ElMessage } from "element-plus";
@@ -17,6 +22,10 @@ const {
 
 const useBilibiliLogin = async () => {
   bili_login_dialog.value = true;
+  if (!(window as any).captchaObj) {
+    getBiliCaptcha();
+  }
+
   // 获取二维码
   try {
     await reqBiliBiliQRCode({
@@ -100,15 +109,46 @@ const getBiliCaptcha = async () => {
   }
 };
 
-function validate() {
-  var result = (window as any).captchaObj.getValidate();
-  if (!result) {
-    alert("请先完成验证！");
-    return;
+// 发送手机验证码
+const phone = ref<number>();
+const code = ref<number>();
+const SMSTime = ref(60);
+let SMSTimer: number;
+const { state: phoneCode, execute: reqBiliBiliPhoneCode } = getBiliBiliPhoneCode();
+const sendCode = async () => {
+  let result = (window as any).captchaObj.getValidate();
+  if (!result) return ElMessage.error("请先完成人机验证！");
+  if (!phone.value) return ElMessage.error("请填写手机号！");
+  const geetest_validate = result.geetest_validate;
+  try {
+    await reqBiliBiliPhoneCode({
+      headers: {
+        Authorization: userToken
+      },
+      data: {
+        token: biliCaptcha.value!.token,
+        challenge: biliCaptcha.value!.challenge,
+        validate: geetest_validate,
+        telephone: phone.value.toString()
+      }
+    });
+    if (phoneCode.value) {
+      ElMessage.success("验证码已发送！");
+    }
+  } catch (err: any) {
+    console.error(err);
   }
-  alert("OK");
-  // do sth
-}
+
+  // seccode.value = result.geetest_seccode;
+  if (SMSTimer) clearInterval(SMSTimer);
+  SMSTime.value = 60;
+  SMSTimer = setInterval(() => {
+    SMSTime.value--;
+    if (SMSTime.value <= 0) {
+      clearInterval(SMSTimer);
+    }
+  }, 1000);
+};
 
 const closeDialog = () => {
   bili_login_dialog.value = false;
@@ -129,7 +169,7 @@ const closeDialog = () => {
     destroy-on-close
     draggable
     title="登录 哔哩哔哩"
-    class="rounded-lg dark:bg-zinc-800"
+    class="rounded-lg dark:bg-zinc-800 max-sm:w-full"
     @closed="closeDialog"
   >
     <el-row :gutter="20">
@@ -162,13 +202,13 @@ const closeDialog = () => {
           :backgroundOptions="{ color: isDarkMode ? '#27272a' : '#ffffff' }"
           :cornersSquareOptions="{ type: 'square', color: '#f87171' }"
           :cornersDotOptions="{ type: undefined, color: '#4ade80' }"
-          myclass="mx-auto px-10 py-5"
+          myclass="mx-auto px-10 py-5 max-sm:w-52 max-md:w-56"
         />
         <p
           v-else-if="biliQRCodeStatus && biliQRCodeStatus.status === 'expired'"
           class="mx-auto px-10 py-5 text-center"
         >
-          二维码加载失败或已过期，请重试。
+          二维码加载失败或已过期，请重试
           <br />
           <a href="javascript:;" @click="useBilibiliLogin">重新加载二维码</a>
         </p>
@@ -182,12 +222,15 @@ const closeDialog = () => {
       </el-col>
       <el-col :md="14">
         <h2 class="text-xl font-semibold">短信登录</h2>
-        <input type="number" class="l-input" placeholder="手机号" />
-        <input type="number" class="l-input" placeholder="短信验证码" />
+        <input type="number" class="l-input" placeholder="手机号" v-model="phone" />
+        <input type="number" class="l-input" placeholder="短信验证码" v-model="code" />
         <div id="captcha"></div>
-        <button class="btn" @click="getBiliCaptcha">发送验证码</button>
+        <button class="btn" @click="sendCode" v-if="SMSTime === 60">发送验证码</button>
+        <button class="btn" @click="sendCode" v-else :disabled="SMSTime > 0">
+          重新发送 {{ 0 < SMSTime && SMSTime <= 60 ? SMSTime : "" }}
+        </button>
 
-        <button class="btn btn-success" @click="validate">登录</button>
+        <button class="btn btn-success">登录</button>
       </el-col>
     </el-row>
 
