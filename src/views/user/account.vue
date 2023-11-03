@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { getBiliBiliQRCode, veriBiliBiliQRCode } from "@/services/apis/vendor";
+import { getBiliBiliQRCode, veriBiliBiliQRCode, getBiliBiliCaptcha } from "@/services/apis/vendor";
 import QRCodeVue3 from "qrcode-vue3";
 import { roomStore } from "@/stores/room";
 import { ElMessage } from "element-plus";
@@ -30,6 +30,7 @@ const useBilibiliLogin = async () => {
   }
 };
 
+// 验证二维码
 const { state: biliQRCodeStatus, execute: reqVeriBiliBiliQRCode } = veriBiliBiliQRCode();
 const vBiliQRCode = () => {
   if (getQRCodeStatus) clearInterval(getQRCodeStatus);
@@ -60,6 +61,54 @@ const vBiliQRCode = () => {
     }
   }, 2000);
 };
+
+// 获取人机验证
+const { state: biliCaptcha, execute: reqBiliBiliCaptcha } = getBiliBiliCaptcha();
+const getBiliCaptcha = async () => {
+  try {
+    await reqBiliBiliCaptcha({
+      headers: {
+        Authorization: userToken
+      }
+    });
+    if (biliCaptcha.value) {
+      // 调用 initGeetest 进行初始化
+      // 参数1：配置参数
+      // 参数2：回调，回调的第一个参数验证码对象，之后可以使用它调用相应的接口
+      (window as any).initGeetest(
+        {
+          // 以下 4 个配置参数为必须，不能缺少
+          gt: biliCaptcha.value.gt,
+          challenge: biliCaptcha.value.challenge,
+          offline: false, // 表示用户后台检测极验服务器是否宕机
+          new_captcha: true, // 用于宕机时表示是新验证码的宕机
+
+          product: "popup", // 产品形式，包括：float，popup
+          width: "300px",
+          https: true
+
+          // 更多前端配置参数说明请参见：http://docs.geetest.com/install/client/web-front/
+        },
+        function captchaHandler(captchaObj: any) {
+          (window as any).captchaObj = captchaObj;
+          captchaObj.appendTo("#captcha");
+        }
+      );
+    }
+  } catch (err: any) {
+    console.error(err);
+  }
+};
+
+function validate() {
+  var result = (window as any).captchaObj.getValidate();
+  if (!result) {
+    alert("请先完成验证！");
+    return;
+  }
+  alert("OK");
+  // do sth
+}
 
 const closeDialog = () => {
   bili_login_dialog.value = false;
@@ -133,10 +182,12 @@ const closeDialog = () => {
       </el-col>
       <el-col :md="14">
         <h2 class="text-xl font-semibold">短信登录</h2>
-        <input type="text" class="l-input" placeholder="手机号" />
-        <input type="text" class="l-input" placeholder="短信验证码" />
-        <button class="btn">发送验证码</button>
-        <button class="btn btn-success">登录</button>
+        <input type="number" class="l-input" placeholder="手机号" />
+        <input type="number" class="l-input" placeholder="短信验证码" />
+        <div id="captcha"></div>
+        <button class="btn" @click="getBiliCaptcha">发送验证码</button>
+
+        <button class="btn btn-success" @click="validate">登录</button>
       </el-col>
     </el-row>
 

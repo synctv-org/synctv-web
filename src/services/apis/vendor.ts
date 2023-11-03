@@ -21,3 +21,18 @@ export const veriBiliBiliQRCode = useDefineApi<
   url: "/api/vendor/bilibili/login/qr",
   method: "POST"
 });
+
+// 获取 哔哩哔哩 人机验证
+export const getBiliBiliCaptcha = useDefineApi<
+  {
+    headers: { Authorization: string };
+  },
+  {
+    token: string;
+    gt: string;
+    challenge: string;
+  }
+>({
+  url: "/api/vendor/bilibili/login/captcha",
+  method: "GET"
+});
