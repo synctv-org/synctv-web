@@ -94,7 +94,7 @@ const getBiliCaptcha = async () => {
           new_captcha: true, // 用于宕机时表示是新验证码的宕机
 
           product: "popup", // 产品形式，包括：float，popup
-          width: "300px",
+          width: "100%",
           https: true
 
           // 更多前端配置参数说明请参见：http://docs.geetest.com/install/client/web-front/
@@ -189,6 +189,7 @@ const closeDialog = () => {
   clearInterval(getQRCodeStatus);
   clearInterval(SMSTimer);
   SMSTime.value = 60;
+  phone.value = code.value = NaN;
 };
 </script>
 
@@ -246,7 +247,14 @@ const closeDialog = () => {
         >
           二维码加载失败或已过期，请重试
           <br />
-          <a href="javascript:;" @click="useBilibiliLogin">重新加载二维码</a>
+          <a
+            href="javascript:;"
+            @click="
+              useBilibiliLogin();
+              ElMessage.info('加载中...');
+            "
+            >重新加载二维码</a
+          >
         </p>
         <p v-else class="mx-auto px-10 py-5 text-center">二维码加载中，请稍后...</p>
         <h2 class="text-base text-center">
@@ -257,16 +265,32 @@ const closeDialog = () => {
         </h2>
       </el-col>
       <el-col :md="14">
-        <h2 class="text-xl font-semibold">短信登录</h2>
-        <input type="number" class="l-input" placeholder="手机号" v-model="phone" />
-        <input type="number" class="l-input" placeholder="短信验证码" v-model="code" />
-        <div id="captcha"></div>
-        <button class="btn" @click="sendCode" v-if="SMSTime === 60">发送验证码</button>
-        <button class="btn" @click="sendCode" v-else :disabled="SMSTime > 0">
-          重新发送 {{ 0 < SMSTime && SMSTime <= 60 ? SMSTime : "" }}
-        </button>
+        <div class="text-center max-lg:mt-5">
+          <h2 class="text-xl font-semibold mb-5">短信登录</h2>
+          <div class="w-4/5 mx-auto">
+            <input
+              type="number"
+              class="l-input block w-full"
+              placeholder="手机号"
+              v-model="phone"
+            />
+            <input
+              type="number"
+              class="l-input block w-full"
+              placeholder="短信验证码"
+              v-model="code"
+            />
+            <div class="m-[10px] w-full" id="captcha"></div>
 
-        <button class="btn btn-success" @click="verifyPhoneCode">登录</button>
+            <div class="m-[10px] w-full flex flex-wrap justify-between text-base">
+              <button class="btn px-6" @click="sendCode" v-if="SMSTime === 60">发送验证码</button>
+              <button class="btn px-6" @click="sendCode" v-else :disabled="SMSTime > 0">
+                重新发送 {{ 0 < SMSTime && SMSTime <= 60 ? SMSTime : "" }}
+              </button>
+              <button class="btn btn-success px-7 py-2" @click="verifyPhoneCode">登录</button>
+            </div>
+          </div>
+        </div>
       </el-col>
     </el-row>
 
