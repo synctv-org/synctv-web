@@ -111,6 +111,7 @@ export interface BaseMovieInfo {
   rtmpSource: boolean;
   type: string;
   headers: { [key: string]: string };
+  vendorInfo: VendorInfo | undefined;
 }
 
 export interface BaseMovieInfo_HeadersEntry {
@@ -119,9 +120,8 @@ export interface BaseMovieInfo_HeadersEntry {
 }
 
 export interface MovieInfo {
-  id: number;
+  id: string;
   base: BaseMovieInfo | undefined;
-  pullKey: string;
   createdAt: number;
   creator: string;
 }
@@ -137,6 +137,19 @@ export interface Current {
   status: Status | undefined;
 }
 
+export interface VendorInfo {
+  vendor: string;
+  shared: boolean;
+  bilibili?: BilibiliVendorInfo | undefined;
+}
+
+export interface BilibiliVendorInfo {
+  bvid: string;
+  cid: number;
+  epid: number;
+  quality: number;
+}
+
 export interface ElementMessage {
   type: ElementMessageType;
   sender: string;
@@ -149,7 +162,16 @@ export interface ElementMessage {
 }
 
 function createBaseBaseMovieInfo(): BaseMovieInfo {
-  return { url: "", name: "", live: false, proxy: false, rtmpSource: false, type: "", headers: {} };
+  return {
+    url: "",
+    name: "",
+    live: false,
+    proxy: false,
+    rtmpSource: false,
+    type: "",
+    headers: {},
+    vendorInfo: undefined,
+  };
 }
 
 export const BaseMovieInfo = {
@@ -175,6 +197,9 @@ export const BaseMovieInfo = {
     Object.entries(message.headers).forEach(([key, value]) => {
       BaseMovieInfo_HeadersEntry.encode({ key: key as any, value }, writer.uint32(58).fork()).ldelim();
     });
+    if (message.vendorInfo !== undefined) {
+      VendorInfo.encode(message.vendorInfo, writer.uint32(66).fork()).ldelim();
+    }
     return writer;
   },
 
@@ -237,6 +262,13 @@ export const BaseMovieInfo = {
             message.headers[entry7.key] = entry7.value;
           }
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.vendorInfo = VendorInfo.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -260,6 +292,7 @@ export const BaseMovieInfo = {
           return acc;
         }, {})
         : {},
+      vendorInfo: isSet(object.vendorInfo) ? VendorInfo.fromJSON(object.vendorInfo) : undefined,
     };
   },
 
@@ -292,6 +325,9 @@ export const BaseMovieInfo = {
         });
       }
     }
+    if (message.vendorInfo !== undefined) {
+      obj.vendorInfo = VendorInfo.toJSON(message.vendorInfo);
+    }
     return obj;
   },
 
@@ -312,6 +348,9 @@ export const BaseMovieInfo = {
       }
       return acc;
     }, {});
+    message.vendorInfo = (object.vendorInfo !== undefined && object.vendorInfo !== null)
+      ? VendorInfo.fromPartial(object.vendorInfo)
+      : undefined;
     return message;
   },
 };
@@ -391,25 +430,22 @@ export const BaseMovieInfo_HeadersEntry = {
 };
 
 function createBaseMovieInfo(): MovieInfo {
-  return { id: 0, base: undefined, pullKey: "", createdAt: 0, creator: "" };
+  return { id: "", base: undefined, createdAt: 0, creator: "" };
 }
 
 export const MovieInfo = {
   encode(message: MovieInfo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
     }
     if (message.base !== undefined) {
       BaseMovieInfo.encode(message.base, writer.uint32(18).fork()).ldelim();
     }
-    if (message.pullKey !== "") {
-      writer.uint32(26).string(message.pullKey);
-    }
     if (message.createdAt !== 0) {
-      writer.uint32(32).int64(message.createdAt);
+      writer.uint32(24).int64(message.createdAt);
     }
     if (message.creator !== "") {
-      writer.uint32(42).string(message.creator);
+      writer.uint32(34).string(message.creator);
     }
     return writer;
   },
@@ -422,11 +458,11 @@ export const MovieInfo = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.id = longToNumber(reader.uint64() as Long);
+          message.id = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
@@ -436,21 +472,14 @@ export const MovieInfo = {
           message.base = BaseMovieInfo.decode(reader, reader.uint32());
           continue;
         case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.pullKey = reader.string();
-          continue;
-        case 4:
-          if (tag !== 32) {
+          if (tag !== 24) {
             break;
           }
 
           message.createdAt = longToNumber(reader.int64() as Long);
           continue;
-        case 5:
-          if (tag !== 42) {
+        case 4:
+          if (tag !== 34) {
             break;
           }
 
@@ -467,9 +496,8 @@ export const MovieInfo = {
 
   fromJSON(object: any): MovieInfo {
     return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
       base: isSet(object.base) ? BaseMovieInfo.fromJSON(object.base) : undefined,
-      pullKey: isSet(object.pullKey) ? globalThis.String(object.pullKey) : "",
       createdAt: isSet(object.createdAt) ? globalThis.Number(object.createdAt) : 0,
       creator: isSet(object.creator) ? globalThis.String(object.creator) : "",
     };
@@ -477,14 +505,11 @@ export const MovieInfo = {
 
   toJSON(message: MovieInfo): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
+    if (message.id !== "") {
+      obj.id = message.id;
     }
     if (message.base !== undefined) {
       obj.base = BaseMovieInfo.toJSON(message.base);
-    }
-    if (message.pullKey !== "") {
-      obj.pullKey = message.pullKey;
     }
     if (message.createdAt !== 0) {
       obj.createdAt = Math.round(message.createdAt);
@@ -500,11 +525,10 @@ export const MovieInfo = {
   },
   fromPartial<I extends Exact<DeepPartial<MovieInfo>, I>>(object: I): MovieInfo {
     const message = createBaseMovieInfo();
-    message.id = object.id ?? 0;
+    message.id = object.id ?? "";
     message.base = (object.base !== undefined && object.base !== null)
       ? BaseMovieInfo.fromPartial(object.base)
       : undefined;
-    message.pullKey = object.pullKey ?? "";
     message.createdAt = object.createdAt ?? 0;
     message.creator = object.creator ?? "";
     return message;
@@ -674,6 +698,201 @@ export const Current = {
     message.status = (object.status !== undefined && object.status !== null)
       ? Status.fromPartial(object.status)
       : undefined;
+    return message;
+  },
+};
+
+function createBaseVendorInfo(): VendorInfo {
+  return { vendor: "", shared: false, bilibili: undefined };
+}
+
+export const VendorInfo = {
+  encode(message: VendorInfo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.vendor !== "") {
+      writer.uint32(10).string(message.vendor);
+    }
+    if (message.shared === true) {
+      writer.uint32(16).bool(message.shared);
+    }
+    if (message.bilibili !== undefined) {
+      BilibiliVendorInfo.encode(message.bilibili, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): VendorInfo {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVendorInfo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.vendor = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.shared = reader.bool();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.bilibili = BilibiliVendorInfo.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): VendorInfo {
+    return {
+      vendor: isSet(object.vendor) ? globalThis.String(object.vendor) : "",
+      shared: isSet(object.shared) ? globalThis.Boolean(object.shared) : false,
+      bilibili: isSet(object.bilibili) ? BilibiliVendorInfo.fromJSON(object.bilibili) : undefined,
+    };
+  },
+
+  toJSON(message: VendorInfo): unknown {
+    const obj: any = {};
+    if (message.vendor !== "") {
+      obj.vendor = message.vendor;
+    }
+    if (message.shared === true) {
+      obj.shared = message.shared;
+    }
+    if (message.bilibili !== undefined) {
+      obj.bilibili = BilibiliVendorInfo.toJSON(message.bilibili);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<VendorInfo>, I>>(base?: I): VendorInfo {
+    return VendorInfo.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<VendorInfo>, I>>(object: I): VendorInfo {
+    const message = createBaseVendorInfo();
+    message.vendor = object.vendor ?? "";
+    message.shared = object.shared ?? false;
+    message.bilibili = (object.bilibili !== undefined && object.bilibili !== null)
+      ? BilibiliVendorInfo.fromPartial(object.bilibili)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseBilibiliVendorInfo(): BilibiliVendorInfo {
+  return { bvid: "", cid: 0, epid: 0, quality: 0 };
+}
+
+export const BilibiliVendorInfo = {
+  encode(message: BilibiliVendorInfo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.bvid !== "") {
+      writer.uint32(10).string(message.bvid);
+    }
+    if (message.cid !== 0) {
+      writer.uint32(16).uint64(message.cid);
+    }
+    if (message.epid !== 0) {
+      writer.uint32(24).uint64(message.epid);
+    }
+    if (message.quality !== 0) {
+      writer.uint32(32).uint32(message.quality);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): BilibiliVendorInfo {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBilibiliVendorInfo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.bvid = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.cid = longToNumber(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.epid = longToNumber(reader.uint64() as Long);
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.quality = reader.uint32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BilibiliVendorInfo {
+    return {
+      bvid: isSet(object.bvid) ? globalThis.String(object.bvid) : "",
+      cid: isSet(object.cid) ? globalThis.Number(object.cid) : 0,
+      epid: isSet(object.epid) ? globalThis.Number(object.epid) : 0,
+      quality: isSet(object.quality) ? globalThis.Number(object.quality) : 0,
+    };
+  },
+
+  toJSON(message: BilibiliVendorInfo): unknown {
+    const obj: any = {};
+    if (message.bvid !== "") {
+      obj.bvid = message.bvid;
+    }
+    if (message.cid !== 0) {
+      obj.cid = Math.round(message.cid);
+    }
+    if (message.epid !== 0) {
+      obj.epid = Math.round(message.epid);
+    }
+    if (message.quality !== 0) {
+      obj.quality = Math.round(message.quality);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<BilibiliVendorInfo>, I>>(base?: I): BilibiliVendorInfo {
+    return BilibiliVendorInfo.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<BilibiliVendorInfo>, I>>(object: I): BilibiliVendorInfo {
+    const message = createBaseBilibiliVendorInfo();
+    message.bvid = object.bvid ?? "";
+    message.cid = object.cid ?? 0;
+    message.epid = object.epid ?? 0;
+    message.quality = object.quality ?? 0;
     return message;
   },
 };
