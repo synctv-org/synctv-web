@@ -266,7 +266,7 @@ const liveInfoForm = ref({
   token: ""
 });
 const { state: liveInfo, execute: reqLiveInfoApi } = liveInfoApi();
-const getLiveInfo = async (id: number) => {
+const getLiveInfo = async (id: string) => {
   try {
     await reqLiveInfoApi({
       data: {
@@ -299,7 +299,7 @@ const getLiveInfo = async (id: number) => {
 
 // 当前影片信息
 let cMovieInfo = ref<EditMovieInfo>({
-  id: 0,
+  id: "",
   url: "",
   name: "",
   type: "",
@@ -349,7 +349,7 @@ const editMovieInfo = async () => {
 
 // 删除影片
 const { execute: reqDelMovieApi } = delMovieApi();
-const deleteMovie = async (ids: Array<number>) => {
+const deleteMovie = async (ids: Array<string>) => {
   try {
     await reqDelMovieApi({
       data: {
@@ -380,7 +380,7 @@ const deleteMovie = async (ids: Array<number>) => {
 };
 
 // 交换两个影片的位置
-const selectMovies = ref<number[]>([]);
+const selectMovies = ref<string[]>([]);
 const { execute: reqSwapMovieApi } = swapMovieApi();
 const swapMovie = async () => {
   try {
@@ -410,7 +410,7 @@ const swapMovie = async () => {
 
 // 设置当前正在播放的影片
 const { execute: reqChangeCurrentMovieApi } = changeCurrentMovieApi();
-const changeCurrentMovie = async (id: number) => {
+const changeCurrentMovie = async (id: string) => {
   try {
     await reqChangeCurrentMovieApi({
       data: {
@@ -641,12 +641,12 @@ const danmukuPlugin = artplayerPluginDanmuku({
 });
 
 const playerUrl = computed(() => {
-  if (room.currentMovie.pullKey) {
+  if (room.currentMovie.base?.rtmpSource) {
     switch (room.currentMovie.base!.type) {
       case "m3u8":
-        return `${window.location.origin}/api/movie/live/${room.currentMovie.pullKey}.m3u8`;
+        return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.m3u8`;
       default:
-        return `${window.location.origin}/api/movie/live/${room.currentMovie.pullKey}.flv`;
+        return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.flv`;
     }
   } else {
     return room.currentMovie.base!.url;
@@ -818,7 +818,7 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
                   查看推流信息
                 </button>
               </b>
-              <small class="truncate">{{ item.base!.url || item.pullKey }}</small>
+              <small class="truncate">{{ item.base!.url || item.id }}</small>
             </div>
 
             <div class="m-auto p-2">

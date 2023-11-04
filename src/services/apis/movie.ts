@@ -97,7 +97,7 @@ export const editMovieInfoApi = useDefineApi<
 export const delMovieApi = useDefineApi<
   {
     data: {
-      ids: Array<number>;
+      ids: Array<string>;
     };
     headers: { Authorization: string };
   },
@@ -111,8 +111,8 @@ export const delMovieApi = useDefineApi<
 export const swapMovieApi = useDefineApi<
   {
     data: {
-      id1: number;
-      id2: number;
+      id1: string;
+      id2: string;
     };
     headers: { Authorization: string };
   },
@@ -143,7 +143,7 @@ export const changeCurrentMovieApi = useDefineApi<
   {
     headers: { Authorization: string };
     data: {
-      id: number;
+      id: string;
     };
   },
   {}
@@ -167,7 +167,7 @@ export const clearMovieListApi = useDefineApi<
 export const liveInfoApi = useDefineApi<
   {
     data: {
-      id: number;
+      id: string;
     };
     headers: { Authorization: string };
   },

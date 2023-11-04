@@ -13,6 +13,7 @@ export const roomStore = defineStore("roomStore", () => {
 
   // 设置播放当前影片
   const currentMovie = ref<MovieInfo>({
+    id: "",
     base: {
       name: "",
       live: false,
@@ -20,12 +21,11 @@ export const roomStore = defineStore("roomStore", () => {
       url: "",
       rtmpSource: false,
       type: "",
-      headers: {}
+      headers: {},
+      vendorInfo: undefined
     },
-    pullKey: "",
     createdAt: Date.now(),
-    creator: "SYSTEM",
-    id: 1
+    creator: "SYSTEM"
   });
 
   // 当前影片播放状态

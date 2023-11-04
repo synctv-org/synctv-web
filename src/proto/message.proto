@@ -27,14 +27,14 @@ message BaseMovieInfo {
   bool rtmpSource = 5;
   string type = 6;
   map<string, string> headers = 7;
+  VendorInfo vendorInfo = 8;
 }
 
 message MovieInfo {
-  uint64 id = 1;
+  string id = 1;
   BaseMovieInfo base = 2;
-  string pullKey = 3;
-  int64 createdAt = 4;
-  string creator = 5;
+  int64 createdAt = 3;
+  string creator = 4;
 }
 
 message Status {
@@ -46,6 +46,19 @@ message Status {
 message Current {
   MovieInfo movie = 1;
   Status status = 2;
+}
+
+message VendorInfo {
+  string vendor = 1;
+  bool shared = 2;
+  optional BilibiliVendorInfo bilibili = 3;
+}
+
+message BilibiliVendorInfo {
+  string bvid = 1;
+  uint64 cid = 2;
+  uint64 epid = 3;
+  uint32 quality = 4;
 }
 
 message ElementMessage {
