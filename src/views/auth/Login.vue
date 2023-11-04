@@ -56,10 +56,10 @@ onMounted(async () => {
       <h1 class="text-[28px] font-bold">请选择登陆方式</h1>
       <button
         v-for="item in OAuth2Platforms_?.enabled"
-        :class="`btn ${platforms[item].class} m-[10px]`"
+        :class="`btn ${platforms[item] ? platforms[item].class : ''} m-[10px]`"
         @click="useOAuth2(item)"
       >
-        使用 {{ platforms[item].name }} 账号登录
+        使用 {{ platforms[item] ? platforms[item].name : item }} 账号登录
       </button>
     </div>
   </div>
