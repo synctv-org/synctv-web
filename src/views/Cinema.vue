@@ -648,6 +648,8 @@ const playerUrl = computed(() => {
       default:
         return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.flv`;
     }
+  } else if (room.currentMovie.base?.proxy) {
+    return `${window.location.origin}/api/movie/proxy/${roomID.value}/${room.currentMovie.id}`;
   } else {
     return room.currentMovie.base!.url;
   }
