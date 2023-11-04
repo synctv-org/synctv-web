@@ -6,7 +6,7 @@ import { ElNotification } from "element-plus";
 import { logOutApi } from "@/services/apis/auth";
 import { userInfo } from "@/services/apis/user";
 
-import account from "./account.vue";
+import account from "./account/index.vue";
 
 const user = userStore();
 
@@ -169,7 +169,7 @@ onMounted(() => {
         </div>
       </el-col>
       <el-col :lg="17" :md="15" class="mb-6 max-sm:my-2">
-        <div class="card mb-6">
+        <div class="card mb-6 max-sm:mb-1">
           <div class="card-title tabs">
             <span
               v-for="tab in tabs"

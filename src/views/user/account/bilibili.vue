@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import {
   getBiliBiliQRCode,
   veriBiliBiliQRCode,
@@ -13,28 +13,24 @@ import { ElMessage, ElNotification } from "element-plus";
 const { isDarkMode } = roomStore();
 const userToken = localStorage.getItem("userToken") ?? "";
 
-const bili_login_dialog = ref(false);
+const dialog = ref(false);
 let getQRCodeStatus: number;
-const {
-  state: biliQRCode,
-  execute: reqBiliBiliQRCode,
-  isReady: biliQRCodeReady
-} = getBiliBiliQRCode();
+const { state: biliQRCode, execute: reqQRCode, isReady: biliQRCodeReady } = getBiliBiliQRCode();
 
 const useBilibiliLogin = async () => {
-  bili_login_dialog.value = true;
+  dialog.value = true;
   if (!(window as any).captchaObj) {
-    getBiliCaptcha();
+    geCaptcha();
   }
 
   // 获取二维码
   try {
-    await reqBiliBiliQRCode({
+    await reqQRCode({
       headers: {
         Authorization: userToken
       }
     });
-    vBiliQRCode();
+    verifyQRCode();
   } catch (err: any) {
     console.error(err);
   }
@@ -42,7 +38,7 @@ const useBilibiliLogin = async () => {
 
 // 验证二维码
 const { state: biliQRCodeStatus, execute: reqVeriBiliBiliQRCode } = veriBiliBiliQRCode();
-const vBiliQRCode = () => {
+const verifyQRCode = () => {
   if (getQRCodeStatus) clearInterval(getQRCodeStatus);
   getQRCodeStatus = setInterval(async () => {
     try {
@@ -74,7 +70,7 @@ const vBiliQRCode = () => {
 
 // 获取人机验证
 const { state: biliCaptcha, execute: reqBiliBiliCaptcha } = getBiliBiliCaptcha();
-const getBiliCaptcha = async () => {
+const geCaptcha = async () => {
   try {
     await reqBiliBiliCaptcha({
       headers: {
@@ -96,8 +92,6 @@ const getBiliCaptcha = async () => {
           product: "popup", // 产品形式，包括：float，popup
           width: "100%",
           https: true
-
-          // 更多前端配置参数说明请参见：http://docs.geetest.com/install/client/web-front/
         },
         function captchaHandler(captchaObj: any) {
           (window as any).captchaObj = captchaObj;
@@ -144,7 +138,6 @@ const sendCode = async () => {
     });
   }
 
-  // seccode.value = result.geetest_seccode;
   if (SMSTimer) clearInterval(SMSTimer);
   SMSTime.value = 60;
   SMSTimer = setInterval(() => {
@@ -185,7 +178,7 @@ const verifyPhoneCode = async () => {
 };
 
 const closeDialog = () => {
-  bili_login_dialog.value = false;
+  dialog.value = false;
   clearInterval(getQRCodeStatus);
   clearInterval(SMSTimer);
   SMSTime.value = 60;
@@ -194,15 +187,18 @@ const closeDialog = () => {
 </script>
 
 <template>
-  <div class="card">
-    <div class="card-title">账户绑定</div>
-    <div class="card-body">
-      <!-- TODO: is bind? -->
-      <button class="btn" @click="useBilibiliLogin()">哔哩哔哩</button>
+  <div
+    class="app-list-item hover:bg-pink-100 dark:hover:bg-neutral-700"
+    @click="useBilibiliLogin()"
+  >
+    <img src="/src/assets/appIcons/bilibili.png" />
+    <div class="mt-3">
+      <a href="javascript:;" class="text-inherit">哔哩哔哩</a>
     </div>
   </div>
+
   <el-dialog
-    v-model="bili_login_dialog"
+    v-model="dialog"
     destroy-on-close
     draggable
     title="登录 哔哩哔哩"
@@ -270,19 +266,19 @@ const closeDialog = () => {
           <div class="w-4/5 mx-auto">
             <input
               type="number"
-              class="l-input block w-full"
+              class="l-input block w-full m-0 my-[10px]"
               placeholder="手机号"
               v-model="phone"
             />
             <input
               type="number"
-              class="l-input block w-full"
+              class="l-input block w-full m-0 my-[10px]"
               placeholder="短信验证码"
               v-model="code"
             />
-            <div class="m-[10px] w-full" id="captcha"></div>
+            <div class="my-[10px] w-full" id="captcha"></div>
 
-            <div class="m-[10px] w-full flex flex-wrap justify-between text-base">
+            <div class="my-[10px] w-full flex flex-wrap justify-between text-base">
               <button class="btn px-6" @click="sendCode" v-if="SMSTime === 60">发送验证码</button>
               <button class="btn px-6" @click="sendCode" v-else :disabled="SMSTime > 0">
                 重新发送 {{ 0 < SMSTime && SMSTime <= 60 ? SMSTime : "" }}
