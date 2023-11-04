@@ -66,9 +66,6 @@ export const currentMovieApi = useDefineApi<
 export const pushMovieApi = useDefineApi<
   // request
   {
-    params: {
-      pos: string;
-    };
     data: BaseMovieInfo;
     headers: { Authorization: string };
   },

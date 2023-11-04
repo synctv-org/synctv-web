@@ -17,13 +17,14 @@ const roomToken = localStorage.getItem(`room-${roomID.value}-token`) ?? "";
 
 // 新影片信息
 let newMovieInfo = ref<BaseMovieInfo>({
+  url: "",
   name: "",
   live: false,
   proxy: false,
-  url: "",
   rtmpSource: false,
   type: "",
-  headers: {}
+  headers: {},
+  vendorInfo: undefined
 });
 
 enum pushType {
@@ -151,7 +152,7 @@ const updateHeaders = (header: { [key: string]: string }) => {
 
 // 把视频链接添加到列表
 const { execute: reqPushMovieApi } = pushMovieApi();
-const pushMovie = async (dir: string) => {
+const pushMovie = async () => {
   if (newMovieInfo.value.live) {
     if (newMovieInfo.value.name === "")
       return ElNotification({
@@ -177,9 +178,6 @@ const pushMovie = async (dir: string) => {
       strLengthLimit(key, 32);
     }
     await reqPushMovieApi({
-      params: {
-        pos: dir
-      },
       data: newMovieInfo.value,
       headers: { Authorization: roomToken }
     });
@@ -266,9 +264,8 @@ onMounted(() => {});
       </el-collapse>
     </div>
 
-    <div class="card-footer flex-wrap pt-3" style="justify-content: space-around">
-      <button class="btn" @click="pushMovie('front')">添加到列表最<b>前</b>面</button>
-      <button class="btn" @click="pushMovie('back')">添加到列表最<b>后</b>面</button>
+    <div class="card-footer pt-3">
+      <button class="btn" @click="pushMovie()">添加到列表</button>
     </div>
   </div>
 
