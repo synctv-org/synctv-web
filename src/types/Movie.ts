@@ -1,9 +1,7 @@
-export interface EditMovieInfo {
+import type { BaseMovieInfo } from "@/proto/message";
+
+export interface EditMovieInfo extends BaseMovieInfo {
   id: string;
-  url: string;
-  name: string;
-  type: string;
-  headers: { [key: string]: string };
 }
 
 export interface BilibiliVideoInfos {

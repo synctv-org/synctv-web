@@ -302,18 +302,21 @@ let cMovieInfo = ref<EditMovieInfo>({
   id: "",
   url: "",
   name: "",
+  live: false,
+  proxy: false,
+  rtmpSource: false,
   type: "",
-  headers: {}
+  headers: {},
+  vendorInfo: undefined
 });
 
 // 打开编辑对话框
 const editDialog = ref(false);
 const openEditDialog = (item: MovieInfo) => {
-  cMovieInfo.value.id = item.id;
-  cMovieInfo.value.url = item.base!.url;
-  cMovieInfo.value.name = item.base!.name;
-  cMovieInfo.value.type = item.base!.type;
-  cMovieInfo.value.headers = item.base!.headers;
+  cMovieInfo.value = {
+    id: item.id,
+    ...item.base
+  } as EditMovieInfo;
   editDialog.value = true;
 };
 
