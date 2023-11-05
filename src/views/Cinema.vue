@@ -546,6 +546,7 @@ const handleElementMessage = (msg: ElementMessage) => {
     // 播放列表更新
     case ElementMessageType.CHANGE_MOVIES: {
       getMovies();
+      resetChatAreaHeight();
       break;
     }
 
