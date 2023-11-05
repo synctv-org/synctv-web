@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
-import type { BaseMovieInfo } from "@/proto/message";
+import { BaseMovieInfo, BilibiliVendorInfo, VendorInfo } from "@/proto/message";
 import { parseBiliBiliVideo } from "@/services/apis/vendor";
 import { pushMoviesApi } from "@/services/apis/movie";
 import { useRouteParams } from "@vueuse/router";
@@ -30,6 +30,7 @@ const { state, execute } = parseBiliBiliVideo();
 const openDialog = async () => {
   if (props.newMovieInfo.url) {
     try {
+      ElMessage.info("正在解析中，成功将会弹窗显示");
       await execute({
         headers: { Authorization: localStorage.userToken },
         data: {
@@ -107,25 +108,21 @@ const submit = async () => {
     if (selectedItems.value.length === 0) return ElMessage.error("请选择视频");
     await reqPushMoviesApi({
       headers: { Authorization: roomToken },
-      data: selectedItems.value.map((item) => ({
-        url: "",
-        live: false,
-        rtmpSource: false,
-        type: "",
-        name: item.name,
-        proxy: item.proxy,
-        headers: {},
-        vendorInfo: {
-          vendor: "bilibili",
-          shared: item.shared,
-          bilibili: {
-            bvid: item.bvid ?? "",
-            cid: item.cid ?? NaN,
-            epid: item.epid ?? NaN,
-            quality: NaN
-          }
-        }
-      }))
+      data: selectedItems.value.map((item) =>
+        BaseMovieInfo.create({
+          name: item.name,
+          proxy: item.proxy,
+          vendorInfo: VendorInfo.create({
+            vendor: "bilibili",
+            shared: item.shared,
+            bilibili: BilibiliVendorInfo.create({
+              bvid: item.bvid,
+              cid: item.cid,
+              epid: item.epid
+            })
+          })
+        })
+      )
     });
     open.value = false;
     selectedItems.value = [];
