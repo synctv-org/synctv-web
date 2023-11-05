@@ -244,10 +244,12 @@ const clearMovieList = async (id: number) => {
     await reqClearMovieListApi({
       headers: { Authorization: roomToken }
     });
+    await changeCurrentMovie("", false);
     ElNotification({
       title: "已清空",
       type: "success"
     });
+    msgList.value.push("PLAYER：视频已清空");
   } catch (err: any) {
     console.error(err);
     ElNotification({
@@ -413,7 +415,7 @@ const swapMovie = async () => {
 
 // 设置当前正在播放的影片
 const { execute: reqChangeCurrentMovieApi } = changeCurrentMovieApi();
-const changeCurrentMovie = async (id: string) => {
+const changeCurrentMovie = async (id: string, showMsg = true) => {
   try {
     await reqChangeCurrentMovieApi({
       data: {
@@ -422,18 +424,20 @@ const changeCurrentMovie = async (id: string) => {
       headers: { Authorization: roomToken }
     });
 
-    ElNotification({
-      title: "设置成功",
-      type: "success"
-    });
+    showMsg &&
+      ElNotification({
+        title: "设置成功",
+        type: "success"
+      });
     resetChatAreaHeight();
   } catch (err: any) {
     console.error(err);
-    ElNotification({
-      title: "设置失败",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
+    showMsg &&
+      ElNotification({
+        title: "设置失败",
+        message: err.response.data.error || err.message,
+        type: "error"
+      });
   }
 };
 
