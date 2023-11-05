@@ -662,7 +662,8 @@ const playerOption = computed(() => {
     isLive: room.currentMovie.base!.live,
     type: parseVideoType(room.currentMovie),
     headers: room.currentMovie.base!.headers,
-    plugins: [danmukuPlugin, syncPlugin.plugin]
+    plugins: [danmukuPlugin, syncPlugin.plugin],
+    token: roomToken
   };
 });
 
