@@ -49,12 +49,19 @@ const openDialog = async () => {
         open.value = true;
       }
     } catch (err: any) {
-      ElNotification({
+      console.log(err);
+      return ElNotification({
         type: "error",
         title: "解析失败",
         message: err.response.data.error || err.message
       });
     }
+  } else {
+    return ElNotification({
+      type: "error",
+      title: "错误",
+      message: "请输入视频地址或 AV、BV、SS 号"
+    });
   }
 };
 
@@ -72,9 +79,32 @@ const removeItem = (item: BilibiliVideo) => {
   selectedItems.value.splice(selectedItems.value.indexOf(item), 1);
 };
 
+const selectAll = () => {
+  for (const item of biliVideos.value) {
+    selectedItems.value.push(item);
+  }
+};
+
+const removeAll = () => {
+  selectedItems.value = [];
+};
+
+const allProxy = () => {
+  for (const item of biliVideos.value) {
+    item.proxy = !item.proxy;
+  }
+};
+
+const allShared = () => {
+  for (const item of biliVideos.value) {
+    item.shared = !item.shared;
+  }
+};
+
 const { execute: reqPushMoviesApi } = pushMoviesApi();
 const submit = async () => {
   try {
+    if (selectedItems.value.length === 0) return ElMessage.error("请选择视频");
     await reqPushMoviesApi({
       headers: { Authorization: roomToken },
       data: selectedItems.value.map((item) => ({
@@ -127,6 +157,27 @@ defineExpose({
   >
     <h1 class="-mt-8 text-xl font-medium">{{ state?.title }}</h1>
     <p class="mt-2">UP / 主演 ：{{ state?.actors }}</p>
+    <p>
+      <b>说明：</b>
+      当share或proxy勾选时，将会共享创建者的bilibili账号
+    </p>
+    <p>
+      <b>快捷操作：</b>
+      <a
+        href="javascript:;"
+        class="mr-3"
+        v-if="selectedItems.length < biliVideos.length"
+        @click="selectAll"
+        >选中所有视频</a
+      >
+      <a href="javascript:;" class="mr-3" v-else @click="removeAll">取消选中所有视频</a>
+      <a href="javascript:;" class="mr-3" v-if="!biliVideos[0].epid" @click="allProxy">
+        所有视频 开启/关闭 proxy
+      </a>
+      <a href="javascript:;" class="mr-3" v-if="!biliVideos[0].epid" @click="allShared"
+        >所有视频 开启/关闭 shared</a
+      >
+    </p>
     <el-row :gutter="20">
       <el-col v-for="(item, i) in biliVideos" :key="i" :md="biliVideos.length === 1 ? 24 : 12">
         <div class="flex my-2">
@@ -163,7 +214,9 @@ defineExpose({
     <div class="flex flex-wrap"></div>
     <template #footer>
       <button class="btn mr-4" @click="open = false">取消</button>
-      <button class="btn btn-success" @click="submit()">添加到列表</button>
+      <button v-if="selectedItems.length > 0" class="btn btn-success" @click="submit()">
+        添加到列表
+      </button>
     </template>
   </el-dialog>
 </template>
