@@ -71,3 +71,27 @@ export const veriBiliBiliPhoneCode = useDefineApi<
   url: "/api/vendor/bilibili/login/sms/login",
   method: "POST"
 });
+
+// 解析 哔哩哔哩 视频
+export const parseBiliBiliVideo = useDefineApi<
+  {
+    headers: { Authorization: string };
+    data: {
+      url: string;
+    };
+  },
+  {
+    title: string;
+    actors: string;
+    videoInfos: {
+      bvid: string;
+      epid: string;
+      cid: number;
+      name: string;
+      coverImage: string;
+    }[];
+  }
+>({
+  url: "/api/vendor/bilibili/parse",
+  method: "POST"
+});

@@ -5,11 +5,13 @@ import type { BaseMovieInfo } from "@/proto/message";
 import { strLengthLimit } from "@/utils/utils";
 import { pushMovieApi } from "@/services/apis/movie";
 import customHeaders from "@/components/dialogs/customHeaders.vue";
+import bilibiliParse from "@/components/dialogs/bilibiliParse.vue";
 import { useRouteParams } from "@vueuse/router";
 
 const Emits = defineEmits(["getMovies"]);
 
 const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
+const bilibiliParseDialog = ref<InstanceType<typeof bilibiliParse>>();
 
 // 获取房间信息
 const roomID = useRouteParams("roomId");
@@ -30,7 +32,8 @@ let newMovieInfo = ref<BaseMovieInfo>({
 enum pushType {
   MOVIE = 0,
   LIVE,
-  RTMP_SOURCE
+  RTMP_SOURCE,
+  BILIBILI
 }
 
 interface movieTypeRecord {
@@ -114,6 +117,14 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
         }
       ]
     }
+  ],
+  [
+    pushType.BILIBILI,
+    {
+      name: "哔哩哔哩",
+      defaultType: "",
+      allowedTypes: []
+    }
   ]
 ]);
 
@@ -123,16 +134,35 @@ const selectPushType = () => {
   switch (selectedMovieType.value) {
     case pushType.MOVIE:
       newMovieInfo.value.live = newMovieInfo.value.proxy = newMovieInfo.value.rtmpSource = false;
+      newMovieInfo.value.vendorInfo = undefined;
       break;
     case pushType.LIVE:
       newMovieInfo.value.live = true;
       newMovieInfo.value.proxy = newMovieInfo.value.rtmpSource = false;
+      newMovieInfo.value.vendorInfo = undefined;
       break;
     case pushType.RTMP_SOURCE:
       newMovieInfo.value.proxy = false;
       newMovieInfo.value.live = newMovieInfo.value.rtmpSource = true;
       newMovieInfo.value.headers = {};
+      newMovieInfo.value.vendorInfo = undefined;
+      break;
+    case pushType.BILIBILI:
+      newMovieInfo.value.live = newMovieInfo.value.proxy = newMovieInfo.value.rtmpSource = false;
+      newMovieInfo.value.headers = {};
+      newMovieInfo.value.vendorInfo = {
+        vendor: "bilibili",
+        shared: true,
+        bilibili: {
+          bvid: "",
+          cid: NaN,
+          epid: NaN,
+          quality: NaN
+        }
+      };
+      break;
   }
+
   newMovieInfo.value.type = movieTypeRecords.get(selectedMovieType.value)!.defaultType;
 };
 
@@ -148,6 +178,10 @@ const stringHeader = ref(JSON.stringify(newMovieInfo.value.headers));
 
 const updateHeaders = (header: { [key: string]: string }) => {
   newMovieInfo.value.headers = header;
+};
+
+const biliParse = () => {
+  bilibiliParseDialog.value?.openDialog();
 };
 
 // 把视频链接添加到列表
@@ -217,21 +251,25 @@ onMounted(() => {});
       <Transition name="fade">
         <input
           type="text"
-          placeholder="影片Url"
-          class="l-input-violet mb-1.5 w-full"
+          :placeholder="
+            newMovieInfo.vendorInfo?.vendor === 'bilibili' ? '视频Url或bv号' : '影片Url'
+          "
+          class="l-input-violet w-full"
           v-if="!(newMovieInfo.live && newMovieInfo.rtmpSource)"
           v-model="newMovieInfo.url"
         />
       </Transition>
-
-      <input
-        type="text"
-        placeholder="影片名称"
-        class="l-input-slate mt-1.5 w-full"
-        v-model="newMovieInfo.name"
-      />
+      <Transition name="fade">
+        <input
+          type="text"
+          placeholder="影片名称"
+          class="l-input-slate mt-2 w-full"
+          v-if="newMovieInfo.vendorInfo?.vendor !== 'bilibili'"
+          v-model="newMovieInfo.name"
+        />
+      </Transition>
     </div>
-    <div class="mx-5">
+    <div class="mx-5" v-if="!newMovieInfo.vendorInfo?.vendor">
       <el-collapse @change="" class="bg-transparent" style="background: #aaa0 !important">
         <el-collapse-item>
           <template #title><div class="text-base font-medium">高级选项</div></template>
@@ -265,7 +303,14 @@ onMounted(() => {});
     </div>
 
     <div class="card-footer pt-3">
-      <button class="btn" @click="pushMovie()">添加到列表</button>
+      <button
+        class="btn btn-warning"
+        @click="biliParse()"
+        v-if="newMovieInfo.vendorInfo?.vendor === 'bilibili'"
+      >
+        解析
+      </button>
+      <button v-else class="btn" @click="pushMovie()">添加到列表</button>
     </div>
   </div>
 
@@ -275,6 +320,9 @@ onMounted(() => {});
     :customHeader="newMovieInfo.headers"
     @updateHeaders="updateHeaders"
   />
+
+  <!-- B站视频解析对话框 -->
+  <bilibiliParse ref="bilibiliParseDialog" :newMovieInfo="newMovieInfo" />
 </template>
 
 <style lang="less" scoped>

@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    BilibiliParse: typeof import('./src/components/dialogs/bilibiliParse.vue')['default']
     CustomHeaders: typeof import('./src/components/dialogs/customHeaders.vue')['default']
     DarkModeSwitcher: typeof import('./src/components/DarkModeSwitcher.vue')['default']
     Edit: typeof import('./src/components/icons/Edit.vue')['default']

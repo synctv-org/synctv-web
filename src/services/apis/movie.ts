@@ -1,5 +1,5 @@
 import { useDefineApi } from "@/stores/useDefineApi";
-import type { EditMovieInfo } from "@/types/Movie";
+import type { EditMovieInfo, PushMovies } from "@/types/Movie";
 import type { BaseMovieInfo, MovieInfo, Status } from "@/proto/message";
 
 // 获取影片列表
@@ -75,6 +75,18 @@ export const pushMovieApi = useDefineApi<
   }
 >({
   url: "/api/movie/push",
+  method: "POST"
+});
+
+// 批量添加影片
+export const pushMoviesApi = useDefineApi<
+  {
+    data: BaseMovieInfo[] | PushMovies[];
+    headers: { Authorization: string };
+  },
+  any
+>({
+  url: "/api/movie/pushs",
   method: "POST"
 });
 
