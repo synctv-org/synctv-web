@@ -1,4 +1,5 @@
 import { useDefineApi } from "@/stores/useDefineApi";
+import type { BilibiliVideoInfos } from "@/types/Movie";
 
 // 获取 哔哩哔哩 登录二维码
 export const getBiliBiliQRCode = useDefineApi<
@@ -83,13 +84,7 @@ export const parseBiliBiliVideo = useDefineApi<
   {
     title: string;
     actors: string;
-    videoInfos: {
-      bvid: string;
-      epid: string;
-      cid: number;
-      name: string;
-      coverImage: string;
-    }[];
+    videoInfos: BilibiliVideoInfos[];
   }
 >({
   url: "/api/vendor/bilibili/parse",

@@ -2,7 +2,6 @@
 import { ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import type { BaseMovieInfo } from "@/proto/message";
-import type { BilibiliVideoInfos, PushMovies } from "@/types/Movie";
 import { parseBiliBiliVideo } from "@/services/apis/vendor";
 import { pushMoviesApi } from "@/services/apis/movie";
 import { useRouteParams } from "@vueuse/router";
@@ -11,11 +10,21 @@ const props = defineProps<{
   newMovieInfo: BaseMovieInfo;
 }>();
 
+interface BilibiliVideo {
+  name: string;
+  bvid?: string;
+  cid?: number;
+  epid?: number;
+  coverImage: string;
+  proxy: boolean;
+  shared: boolean;
+}
+
 // 获取房间信息
 const roomID = useRouteParams("roomId");
 const roomToken = localStorage.getItem(`room-${roomID.value}-token`) ?? "";
 
-const biliVideos = ref<PushMovies[]>([]);
+const biliVideos = ref<BilibiliVideo[]>([]);
 const open = ref(false);
 const { state, execute } = parseBiliBiliVideo();
 const openDialog = async () => {
@@ -29,17 +38,13 @@ const openDialog = async () => {
       });
       if (state.value) {
         biliVideos.value = state.value.videoInfos.map((item) => ({
-          url: "",
-          live: false,
-          rtmpSource: false,
-          type: "",
           name: item.name,
+          bvid: item.bvid,
+          cid: item.cid,
+          epid: item.epid,
+          coverImage: item.coverImage,
           proxy: item.epid ? true : false,
-          vendorInfo: {
-            vendor: "bilibili",
-            shared: item.epid ? true : false,
-            bilibili: item
-          }
+          shared: item.epid ? true : false
         }));
         open.value = true;
       }
@@ -53,17 +58,17 @@ const openDialog = async () => {
   }
 };
 
-const selectedItems = ref<PushMovies[]>([]);
+const selectedItems = ref<BilibiliVideo[]>([]);
 
-const selectItem = (item: PushMovies) => {
+const selectItem = (item: BilibiliVideo) => {
   selectedItems.value.push(item);
 };
 
-const findItem = (item: PushMovies) => {
+const findItem = (item: BilibiliVideo) => {
   return selectedItems.value.some((i) => JSON.stringify(i) === JSON.stringify(item));
 };
 
-const removeItem = (item: PushMovies) => {
+const removeItem = (item: BilibiliVideo) => {
   selectedItems.value.splice(selectedItems.value.indexOf(item), 1);
 };
 
@@ -72,7 +77,25 @@ const submit = async () => {
   try {
     await reqPushMoviesApi({
       headers: { Authorization: roomToken },
-      data: selectedItems.value
+      data: selectedItems.value.map((item) => ({
+        url: "",
+        live: false,
+        rtmpSource: false,
+        type: "",
+        name: item.name,
+        proxy: item.proxy,
+        headers: {},
+        vendorInfo: {
+          vendor: "bilibili",
+          shared: item.shared,
+          bilibili: {
+            bvid: item.bvid ?? "",
+            cid: item.cid ?? NaN,
+            epid: item.epid ?? NaN,
+            quality: NaN
+          }
+        }
+      }))
     });
     open.value = false;
     selectedItems.value = [];
@@ -107,31 +130,20 @@ defineExpose({
     <el-row :gutter="20">
       <el-col v-for="(item, i) in biliVideos" :key="i" :md="biliVideos.length === 1 ? 24 : 12">
         <div class="flex my-2">
-          <img
-            :src="item.vendorInfo.bilibili.coverImage"
-            class="w-4/12 mr-3 object-cover rounded-sm"
-          />
+          <img :src="item.coverImage" class="w-4/12 mr-3 object-cover rounded-sm" />
           <ul class="">
             <li>{{ item.name }}</li>
-            <li v-if="item.vendorInfo.bilibili.bvid">BVID: {{ item.vendorInfo.bilibili.bvid }}</li>
-            <li v-if="item.vendorInfo.bilibili.cid">CID: {{ item.vendorInfo.bilibili.cid }}</li>
-            <li v-if="item.vendorInfo.bilibili.epid">EPID: {{ item.vendorInfo.bilibili.epid }}</li>
+            <li v-if="item.bvid">BVID: {{ item.bvid }}</li>
+            <li v-if="item.cid">CID: {{ item.cid }}</li>
+            <li v-if="item.epid">EPID: {{ item.epid }}</li>
             <li class="flex items-center">
               <div class="mr-2">
                 Proxy:
-                <input
-                  type="checkbox"
-                  v-model="item.proxy"
-                  :disabled="item.vendorInfo.bilibili.epid ? true : false"
-                />
+                <input type="checkbox" v-model="item.proxy" :disabled="item.epid ? true : false" />
               </div>
               <div class="mr-2">
                 Shared:
-                <input
-                  type="checkbox"
-                  v-model="item.vendorInfo.shared"
-                  :disabled="item.vendorInfo.bilibili.epid ? true : false"
-                />
+                <input type="checkbox" v-model="item.shared" :disabled="item.epid ? true : false" />
               </div>
               <div>
                 <button
