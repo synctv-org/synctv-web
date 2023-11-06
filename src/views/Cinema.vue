@@ -661,13 +661,20 @@ const playerUrl = computed(() => {
 });
 
 const playerOption = computed(() => {
-  return {
+  let option = {
     url: playerUrl.value,
     isLive: room.currentMovie.base!.live,
     type: parseVideoType(room.currentMovie),
     headers: room.currentMovie.base!.headers,
     plugins: [danmukuPlugin, syncPlugin.plugin]
   };
+  if (option.url.startsWith(window.location.origin)) {
+    option.headers = {
+      ...option.headers,
+      Authorization: roomToken
+    };
+  }
+  return option;
 });
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
