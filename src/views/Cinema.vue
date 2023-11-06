@@ -613,6 +613,7 @@ let player: Artplayer;
 
 function getPlayerInstance(art: Artplayer) {
   player = art;
+  resetChatAreaHeight();
 }
 
 const parseVideoType = (movie: MovieInfo) => {
@@ -629,10 +630,6 @@ const resetChatAreaHeight = () => {
 };
 
 onMounted(() => {
-  setTimeout(() => {
-    resetChatAreaHeight();
-  }, 233);
-
   watchers.push(
     watch(WindowWidth, () => {
       resetChatAreaHeight();
