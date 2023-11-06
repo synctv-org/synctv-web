@@ -67,11 +67,6 @@ const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
     .then((mpegts) => {
       if (mpegts.isSupported()) {
         const Config: Record<string, Record<string, string>> = {};
-        if (url.startsWith(window.location.origin) && localStorage.token) {
-          Config["headers"] = {
-            Authorization: localStorage.token
-          };
-        }
         for (const key in Props.options.headers) {
           Config["headers"][key] = Props.options.headers[key];
         }
@@ -94,11 +89,6 @@ const playMse = (player: HTMLMediaElement, url: string, art: any) => {
     .then((mpegts) => {
       if (mpegts.isSupported()) {
         const Config: Record<string, Record<string, string>> = {};
-        if (url.startsWith(window.location.origin) && localStorage.token) {
-          Config["headers"] = {
-            Authorization: localStorage.token
-          };
-        }
         for (const key in Props.options.headers) {
           Config["headers"][key] = Props.options.headers[key];
         }
@@ -121,11 +111,6 @@ const playMpegts = (player: HTMLMediaElement, url: string, art: any) => {
     .then((mpegts) => {
       if (mpegts.isSupported()) {
         const Config: Record<string, Record<string, string>> = {};
-        if (url.startsWith(window.location.origin) && localStorage.token) {
-          Config["headers"] = {
-            Authorization: localStorage.token
-          };
-        }
         for (const key in Props.options.headers) {
           Config["headers"][key] = Props.options.headers[key];
         }
@@ -151,11 +136,6 @@ const playM2ts = (player: HTMLMediaElement, url: string, art: any) => {
     .then((mpegts) => {
       if (mpegts.isSupported()) {
         const Config: Record<string, Record<string, string>> = {};
-        if (url.startsWith(window.location.origin) && localStorage.token) {
-          Config["headers"] = {
-            Authorization: localStorage.token
-          };
-        }
         for (const key in Props.options.headers) {
           Config["headers"][key] = Props.options.headers[key];
         }
@@ -172,35 +152,19 @@ const playM2ts = (player: HTMLMediaElement, url: string, art: any) => {
     });
 };
 
-const playM3u8Config = {
-  xhrSetup: function (xhr: XMLHttpRequest, url: string): void | Promise<void> {
-    // xhr.open("GET", url, true);
-
-    for (const key in Props.options.headers) {
-      xhr.setRequestHeader(key, Props.options.headers[key]);
-    }
-
-    if (url.startsWith(window.location.origin) && localStorage.token) {
-      xhr.setRequestHeader("Authorization", localStorage.token);
-    }
-  }
-};
-
 const playM3u8 = (player: HTMLMediaElement, url: string, art: any) => {
-  import("hls.js")
-    .then((Hls) => Hls.default)
-    .then((Hls) => {
-      if (Hls.isSupported()) {
-        if (art.hls) art.hls.destroy();
-        const hls = new Hls(playM3u8Config);
-        hls.loadSource(url);
-        hls.attachMedia(player);
-        art.hls = hls;
-        art.on("destroy", () => hls.destroy());
-      } else {
-        art.notice.show = "Unsupported playback format: m3u8";
-      }
-    });
+  import("@/utils/hls").then((Hls) => {
+    if (Hls.isSupported()) {
+      if (art.hls) art.hls.destroy();
+      const hls = Hls.newHls(Props.options.headers);
+      hls.loadSource(url);
+      hls.attachMedia(player);
+      art.hls = hls;
+      art.on("destroy", () => hls.destroy());
+    } else {
+      art.notice.show = "Unsupported playback format: m3u8";
+    }
+  });
 };
 
 const playerOption = computed<Option>(() => {
