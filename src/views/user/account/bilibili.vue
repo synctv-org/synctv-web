@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import {
   getBiliBiliQRCode,
   veriBiliBiliQRCode,
   getBiliBiliCaptcha,
   getBiliBiliPhoneCode,
-  veriBiliBiliPhoneCode
+  veriBiliBiliPhoneCode,
+  getBiliBiliAccountInfo
 } from "@/services/apis/vendor";
 import QRCodeVue3 from "qrcode-vue3";
 import { roomStore } from "@/stores/room";
@@ -13,12 +14,13 @@ import { ElMessage, ElNotification } from "element-plus";
 const { isDarkMode } = roomStore();
 const userToken = localStorage.getItem("userToken") ?? "";
 
-const dialog = ref(false);
+const loginDialog = ref(false);
+const infoDialog = ref(false);
 let getQRCodeStatus: number;
 const { state: biliQRCode, execute: reqQRCode, isReady: biliQRCodeReady } = getBiliBiliQRCode();
 
 const useBilibiliLogin = async () => {
-  dialog.value = true;
+  loginDialog.value = true;
   if (!(window as any).captchaObj) {
     geCaptcha();
   }
@@ -52,7 +54,7 @@ const verifyQRCode = () => {
       });
       if (biliQRCodeStatus.value) {
         if (biliQRCodeStatus.value.status === "success") {
-          closeDialog();
+          closeLoginDialog();
           ElMessage.success("绑定成功");
           clearInterval(getQRCodeStatus);
         }
@@ -167,7 +169,7 @@ const verifyPhoneCode = async () => {
       }
     });
     if (isReady.value) {
-      closeDialog();
+      closeLoginDialog();
       ElMessage.success("绑定成功");
       clearInterval(SMSTimer);
     }
@@ -177,20 +179,49 @@ const verifyPhoneCode = async () => {
   }
 };
 
-const closeDialog = () => {
-  dialog.value = false;
+// 获取账号信息
+const { state: accountInfo, execute: reqAccountInfo } = getBiliBiliAccountInfo();
+const getAccountInfo = async () => {
+  try {
+    await reqAccountInfo({
+      headers: {
+        Authorization: userToken
+      }
+    });
+  } catch (err: any) {
+    console.error(err);
+    ElMessage.error(err.response.data.error || err.message);
+  }
+};
+
+const openDialog = () => {
+  if (!accountInfo.value) return;
+  if (accountInfo.value.isLogin) {
+    infoDialog.value = true;
+  } else {
+    useBilibiliLogin();
+  }
+};
+
+const biliLogout = async () => {};
+
+const closeLoginDialog = () => {
+  loginDialog.value = false;
   clearInterval(getQRCodeStatus);
   clearInterval(SMSTimer);
+  (window as any).captchaObj = null;
   SMSTime.value = 60;
   phone.value = code.value = NaN;
 };
+
+onMounted(async () => {
+  // 获取账号信息
+  await getAccountInfo();
+});
 </script>
 
 <template>
-  <div
-    class="app-list-item hover:bg-pink-100 dark:hover:bg-neutral-700"
-    @click="useBilibiliLogin()"
-  >
+  <div class="app-list-item hover:bg-pink-100 dark:hover:bg-neutral-700" @click="openDialog()">
     <img src="/src/assets/appIcons/bilibili.png" />
     <div class="mt-3">
       <a href="javascript:;" class="text-inherit">哔哩哔哩</a>
@@ -198,12 +229,12 @@ const closeDialog = () => {
   </div>
 
   <el-dialog
-    v-model="dialog"
+    v-model="loginDialog"
     destroy-on-close
     draggable
     title="登录 哔哩哔哩"
     class="rounded-lg dark:bg-zinc-800 max-sm:w-full"
-    @closed="closeDialog"
+    @closed="closeLoginDialog"
   >
     <el-row :gutter="20">
       <el-col :md="10">
@@ -291,7 +322,37 @@ const closeDialog = () => {
     </el-row>
 
     <template #footer>
-      <button class="btn mr-2" @click="closeDialog">取消</button>
+      <button class="btn mr-2" @click="closeLoginDialog">取消</button>
     </template>
+  </el-dialog>
+
+  <el-dialog
+    v-model="infoDialog"
+    destroy-on-close
+    draggable
+    title="哔哩哔哩账号信息"
+    class="rounded-lg dark:bg-zinc-800 w-1/5 max-sm:w-full"
+  >
+    <div class="text-center">
+      <img :src="accountInfo?.face" class="rounded-full mx-auto w-1/2 mb-2" />
+      <p class="text-lg mb-1">{{ accountInfo?.username }}</p>
+      <p
+        v-if="accountInfo?.isVip"
+        class="bg-pink-500 rounded-lg text-white mx-auto w-fit py-1 px-2 shadow-sm shadow-pink-400 mb-2"
+      >
+        大会员
+      </p>
+      <el-popconfirm
+        width="220"
+        confirm-button-text="是"
+        cancel-button-text="否"
+        title="你确定要解除绑定吗？"
+        @confirm="biliLogout()"
+      >
+        <template #reference>
+          <button class="btn btn-error">解除绑定</button>
+        </template>
+      </el-popconfirm>
+    </div>
   </el-dialog>
 </template>

@@ -90,3 +90,19 @@ export const parseBiliBiliVideo = useDefineApi<
   url: "/api/vendor/bilibili/parse",
   method: "POST"
 });
+
+// 获取 哔哩哔哩 账号信息
+export const getBiliBiliAccountInfo = useDefineApi<
+  {
+    headers: { Authorization: string };
+  },
+  {
+    isLogin: boolean;
+    username: string;
+    face: string;
+    isVip: boolean;
+  }
+>({
+  url: "/api/vendor/bilibili/me",
+  method: "GET"
+});
