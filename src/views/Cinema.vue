@@ -43,8 +43,6 @@ const room = roomStore();
 const roomID = useRouteParams("roomId");
 const roomToken = localStorage.getItem(`room-${roomID.value}-token`) ?? "";
 
-let password = localStorage.password;
-
 // 启动websocket连接
 const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
 const { status, data, send } = useWebSocket(`${wsProtocol}//${window.location.host}/api/room/ws`, {
@@ -67,24 +65,24 @@ const SendElement = (msg: ElementMessage) => {
 };
 
 // 更新房间密码
+const password = ref("");
 const { state: newToken, execute: reqUpdateRoomPasswordApi } = updateRoomPasswordApi();
 const changePassword = async () => {
   try {
     strLengthLimit(password, 32);
     await reqUpdateRoomPasswordApi({
       data: {
-        password: password
+        password: password.value
       },
       headers: { Authorization: roomToken }
     });
 
-    ElNotification({
-      title: "更新成功",
-      type: "success"
-    });
     if (newToken.value) {
-      localStorage.setItem("token", newToken.value.token);
-      localStorage.setItem("password", password);
+      ElNotification({
+        title: "更新成功",
+        type: "success"
+      });
+      localStorage.setItem(`room-${roomID.value}-token`, newToken.value.token);
       setInterval(() => {
         window.location.reload();
       }, 500);
@@ -630,6 +628,7 @@ const resetChatAreaHeight = () => {
 };
 
 onMounted(() => {
+  setTimeout(() => resetChatAreaHeight(), 233);
   watchers.push(
     watch(WindowWidth, () => {
       resetChatAreaHeight();
@@ -981,7 +980,7 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
 .chatArea {
   overflow-y: scroll;
-  // height: 33vmax;
+  height: 67vh;
 }
 
 .i-table {
