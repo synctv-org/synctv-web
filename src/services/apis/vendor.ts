@@ -106,3 +106,9 @@ export const getBiliBiliAccountInfo = useDefineApi<
   url: "/api/vendor/bilibili/me",
   method: "GET"
 });
+
+// 退出 哔哩哔哩 登录
+export const logoutBiliBili = useDefineApi<{ headers: { Authorization: string } }, any>({
+  url: "/api/vendor/bilibili/logout",
+  method: "POST"
+});

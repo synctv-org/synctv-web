@@ -6,7 +6,8 @@ import {
   getBiliBiliCaptcha,
   getBiliBiliPhoneCode,
   veriBiliBiliPhoneCode,
-  getBiliBiliAccountInfo
+  getBiliBiliAccountInfo,
+  logoutBiliBili
 } from "@/services/apis/vendor";
 import QRCodeVue3 from "qrcode-vue3";
 import { roomStore } from "@/stores/room";
@@ -194,16 +195,37 @@ const getAccountInfo = async () => {
   }
 };
 
-const openDialog = () => {
-  if (!accountInfo.value) return;
-  if (accountInfo.value.isLogin) {
+const openDialog = async () => {
+  await getAccountInfo();
+  if (accountInfo.value?.isLogin) {
     infoDialog.value = true;
   } else {
     useBilibiliLogin();
   }
 };
 
-const biliLogout = async () => {};
+const biliLogout = async () => {
+  const { execute } = logoutBiliBili();
+  try {
+    await execute({
+      headers: {
+        Authorization: userToken
+      }
+    });
+    ElNotification({
+      type: "success",
+      title: "解绑成功"
+    });
+    infoDialog.value = false;
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      type: "error",
+      title: "错误",
+      message: err.response.data.error || err.message
+    });
+  }
+};
 
 const closeLoginDialog = () => {
   loginDialog.value = false;
@@ -338,7 +360,7 @@ onMounted(async () => {
       <p class="text-lg mb-1">{{ accountInfo?.username }}</p>
       <p
         v-if="accountInfo?.isVip"
-        class="bg-pink-500 rounded-lg text-white mx-auto w-fit py-1 px-2 shadow-sm shadow-pink-400 mb-2"
+        class="bg-pink-500 rounded-lg text-white text-sm mx-auto w-fit px-2 shadow-sm shadow-pink-400 mb-2"
       >
         大会员
       </p>
