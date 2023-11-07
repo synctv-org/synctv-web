@@ -21,9 +21,10 @@ interface resould {
 const debounceTime = 500;
 
 export const sync = (cbk: callback): resould => {
-  const debounce = debounces(debounceTime);
+  const playingStatusDebounce = debounces(debounceTime);
   let player: Artplayer | undefined = undefined;
-  const publishSeek = useDebounceFn((currentTime: number) => {
+
+  const publishSeek = (currentTime: number) => {
     if (!player || player.option.isLive) return;
     cbk["publishStatus"](
       ElementMessage.create({
@@ -33,7 +34,11 @@ export const sync = (cbk: callback): resould => {
       })
     );
     console.log("视频空降，:", player.currentTime);
-  }, debounceTime);
+  };
+
+  const seekDebounce = debounces(debounceTime);
+
+  const publishSeekDebounce = seekDebounce(publishSeek);
 
   const setAndNoPublishSeek = (seek: number) => {
     if (!player || player.option.isLive || Math.abs(player.currentTime - seek) < 2) return;
@@ -42,7 +47,6 @@ export const sync = (cbk: callback): resould => {
 
   const publishPlay = () => {
     if (!player || player.option.isLive) return;
-    room.isEnd = false;
     cbk["publishStatus"](
       ElementMessage.create({
         type: ElementMessageType.PLAY,
@@ -52,7 +56,7 @@ export const sync = (cbk: callback): resould => {
     );
   };
 
-  const publishPlayDebounce = debounce(publishPlay);
+  const publishPlayDebounce = playingStatusDebounce(publishPlay);
 
   const setAndNoPublishPlay = () => {
     if (!player || player.option.isLive || player.playing) return;
@@ -82,7 +86,7 @@ export const sync = (cbk: callback): resould => {
     );
   };
 
-  const publishPauseDebounce = debounce(publishPause);
+  const publishPauseDebounce = playingStatusDebounce(publishPause);
 
   const setAndNoPublishPause = () => {
     if (!player || player.option.isLive || !player.playing) return;
@@ -114,6 +118,20 @@ export const sync = (cbk: callback): resould => {
     player.playbackRate = rate;
   };
 
+  const checkSeek = () => {
+    if (!player || player.option.isLive) return;
+    player.duration - player.currentTime < 5 &&
+      cbk["publishStatus"](
+        ElementMessage.create({
+          type: ElementMessageType.CHECK_SEEK,
+          seek: player.currentTime,
+          rate: player.playbackRate
+        })
+      );
+  };
+
+  const checkSeekDebounce = seekDebounce(checkSeek);
+
   const plugin = (art: Artplayer) => {
     player = art;
     if (!art.option.isLive) {
@@ -128,20 +146,8 @@ export const sync = (cbk: callback): resould => {
         console.log("rate同步成功:", art.playbackRate);
         room.currentMovieStatus.playing ? setAndNoPublishPlay() : setAndNoPublishPause();
         cbk["sendDanmuku"]("PLAYER：视频已就绪");
-        room.isEnd = false;
 
-        intervals.push(
-          setInterval(() => {
-            !room.isEnd &&
-              cbk["publishStatus"](
-                ElementMessage.create({
-                  type: ElementMessageType.CHECK_SEEK,
-                  seek: art.currentTime,
-                  rate: art.playbackRate
-                })
-              );
-          }, 5000)
-        );
+        intervals.push(setInterval(checkSeekDebounce, 5000));
       });
 
       art.on("play", publishPlayDebounce);
@@ -150,15 +156,10 @@ export const sync = (cbk: callback): resould => {
       art.on("pause", publishPauseDebounce);
 
       // 空降
-      art.on("seek", publishSeek);
+      art.on("seek", publishSeekDebounce);
 
       // 倍速
       art.on("video:ratechange", publishRate);
-
-      // 播完了
-      art.on("video:ended", () => {
-        room.isEnd = true;
-      });
 
       art.on("destroy", () => {
         player = undefined;
@@ -167,7 +168,7 @@ export const sync = (cbk: callback): resould => {
         });
         art.off("play", publishPlayDebounce);
         art.off("pause", publishPauseDebounce);
-        art.off("seek", publishSeek);
+        art.off("seek", publishSeekDebounce);
         art.off("video:ratechange", publishRate);
       });
     } else {
