@@ -67,9 +67,7 @@ const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
     .then((mpegts) => {
       if (mpegts.isSupported()) {
         const Config: Record<string, Record<string, string>> = {};
-        for (const key in Props.options.headers) {
-          Config["headers"][key] = Props.options.headers[key];
-        }
+        Config["headers"] = Props.options.headers;
 
         const flv = mpegts.createPlayer({ type: "flv", url, isLive: art.option.isLive }, Config);
 
@@ -89,9 +87,7 @@ const playMse = (player: HTMLMediaElement, url: string, art: any) => {
     .then((mpegts) => {
       if (mpegts.isSupported()) {
         const Config: Record<string, Record<string, string>> = {};
-        for (const key in Props.options.headers) {
-          Config["headers"][key] = Props.options.headers[key];
-        }
+        Config["headers"] = Props.options.headers;
 
         const mse = mpegts.createPlayer({ type: "mse", url, isLive: art.option.isLive }, Config);
 
@@ -111,9 +107,7 @@ const playMpegts = (player: HTMLMediaElement, url: string, art: any) => {
     .then((mpegts) => {
       if (mpegts.isSupported()) {
         const Config: Record<string, Record<string, string>> = {};
-        for (const key in Props.options.headers) {
-          Config["headers"][key] = Props.options.headers[key];
-        }
+        Config["headers"] = Props.options.headers;
 
         const mpegtsPlayer = mpegts.createPlayer(
           { type: "mpegts", url, isLive: art.option.isLive },
@@ -136,9 +130,7 @@ const playM2ts = (player: HTMLMediaElement, url: string, art: any) => {
     .then((mpegts) => {
       if (mpegts.isSupported()) {
         const Config: Record<string, Record<string, string>> = {};
-        for (const key in Props.options.headers) {
-          Config["headers"][key] = Props.options.headers[key];
-        }
+        Config["headers"] = Props.options.headers;
 
         const m2ts = mpegts.createPlayer({ type: "m2ts", url, isLive: art.option.isLive }, Config);
 
