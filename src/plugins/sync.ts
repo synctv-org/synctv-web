@@ -120,7 +120,7 @@ export const sync = (cbk: callback): resould => {
 
   const checkSeek = () => {
     if (!player || player.option.isLive) return;
-    player.duration - player.currentTime < 5 &&
+    player.duration - player.currentTime > 5 &&
       cbk["publishStatus"](
         ElementMessage.create({
           type: ElementMessageType.CHECK_SEEK,

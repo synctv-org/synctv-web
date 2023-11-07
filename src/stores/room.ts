@@ -2,8 +2,6 @@ import { ref, computed } from "vue";
 import { defineStore } from "pinia";
 import type { MovieInfo, Status } from "@/proto/message";
 export const roomStore = defineStore("roomStore", () => {
-  const login = ref(false);
-
   const isDarkMode = ref(false);
 
   // 影片列表
@@ -48,7 +46,6 @@ export const roomStore = defineStore("roomStore", () => {
 
   return {
     isDarkMode,
-    login,
     movies,
     totalMovies,
     currentMovie,

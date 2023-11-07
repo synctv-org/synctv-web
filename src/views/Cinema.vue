@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch, defineAsyncComponent } from "vue";
 import type { WatchStopHandle } from "vue";
-import { useWebSocket, useWindowSize, useResizeObserver } from "@vueuse/core";
+import { useWebSocket, useResizeObserver } from "@vueuse/core";
 import { roomStore } from "@/stores/room";
 import { ElNotification, ElMessage } from "element-plus";
 import router from "@/router";
@@ -35,15 +35,16 @@ const watchers: WatchStopHandle[] = [];
 onBeforeUnmount(() => {
   watchers.forEach((w) => w());
 });
-const { width: WindowWidth } = useWindowSize();
-const room = roomStore();
 
-// 检查是否登录
-(() => !room.login && router.push("/"))();
+const room = roomStore();
 
 // 获取房间信息
 const roomID = useRouteParams("roomId");
 const roomToken = localStorage.getItem(`room-${roomID.value}-token`) ?? "";
+
+if (roomToken === "") {
+  router.push(`/joinRoom/${roomID.value}`);
+}
 
 // 启动websocket连接
 const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
