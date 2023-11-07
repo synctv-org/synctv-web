@@ -9,16 +9,6 @@ export const getFileExtension = (url: string) => {
   }
 };
 
-export const isDev = () => {
-  return localStorage.getItem("dev") === "true";
-};
-
-export const devLog = (...args: any[]) => {
-  if (isDev()) {
-    console.log(...args);
-  }
-};
-
 export const debounces = (delay: number): Function => {
   let timerId: ReturnType<typeof setTimeout> | null = null;
 

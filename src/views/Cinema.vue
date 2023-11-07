@@ -18,7 +18,7 @@ import {
 } from "@/services/apis/movie";
 import type { EditMovieInfo } from "@/types/Movie";
 import type { MovieInfo } from "@/proto/message";
-import { getFileExtension, devLog } from "@/utils/utils";
+import { getFileExtension } from "@/utils/utils";
 import { sync } from "@/plugins/sync";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUin8Array } from "@/utils/utils";
@@ -166,14 +166,14 @@ const getMovieList = async () => {
     });
 
     if (movieList.value) {
-      devLog(movieList.value);
+      console.log(movieList.value);
       room.movies = movieList.value.movies;
       room.totalMovies = movieList.value.total;
       room.currentMovieStatus = movieList.value.current.status;
       room.currentMovie = movieList.value.current.movie;
     }
   } catch (err: any) {
-    devLog(err);
+    console.log(err);
     if (err.response.status === 401) {
       ElNotification({
         title: "身份验证失败，请重新进入房间",
@@ -209,12 +209,12 @@ const getMovies = async () => {
     });
 
     if (movies.value) {
-      devLog(movies.value);
+      console.log(movies.value);
       room.movies = movies.value.movies;
       room.totalMovies = movies.value.total;
     }
   } catch (err: any) {
-    devLog(err);
+    console.log(err);
     if (err.response.status === 401) {
       ElNotification({
         title: "身份验证失败，请重新进入房间",
@@ -448,9 +448,9 @@ const playArea = ref();
 const chatArea = ref();
 
 const handleElementMessage = (msg: ElementMessage) => {
-  devLog(`-----Ws Message Start-----`);
-  devLog(msg);
-  devLog(`-----Ws Message End-----`);
+  console.log(`-----Ws Message Start-----`);
+  console.log(msg);
+  console.log(`-----Ws Message End-----`);
   switch (msg.type) {
     case ElementMessageType.ERROR: {
       console.error(msg.message);
@@ -606,7 +606,7 @@ const sendText = () => {
   );
   sendText_.value = "";
   if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
-  // devLog("sended:" + msg);
+  // console.log("sended:" + msg);
 };
 
 let player: Artplayer;

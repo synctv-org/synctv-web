@@ -1,5 +1,5 @@
 import { roomStore } from "@/stores/room";
-import { devLog, debounces } from "@/utils/utils";
+import { debounces } from "@/utils/utils";
 import { useDebounceFn } from "@vueuse/core";
 import { ElNotification } from "element-plus";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
@@ -32,7 +32,7 @@ export const sync = (cbk: callback): resould => {
         rate: player.playbackRate
       })
     );
-    devLog("视频空降，:", player.currentTime);
+    console.log("视频空降，:", player.currentTime);
   }, debounceTime);
 
   const setAndNoPublishSeek = (seek: number) => {
@@ -102,7 +102,7 @@ export const sync = (cbk: callback): resould => {
         rate: player.playbackRate
       })
     );
-    devLog("视频倍速,seek:", player.currentTime);
+    console.log("视频倍速,seek:", player.currentTime);
   };
 
   const setAndNoPublishRate = (rate: number) => {
