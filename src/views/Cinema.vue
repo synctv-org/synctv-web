@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch, defineAsyncComponent } from "vue";
 import type { WatchStopHandle } from "vue";
-import { useWebSocket, useWindowSize } from "@vueuse/core";
+import { useWebSocket, useWindowSize, useResizeObserver } from "@vueuse/core";
 import { roomStore } from "@/stores/room";
 import { ElNotification, ElMessage } from "element-plus";
 import router from "@/router";
@@ -26,6 +26,8 @@ import MoviePush from "@/components/MoviePush.vue";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
 import customHeaders from "@/components/dialogs/customHeaders.vue";
 import { useRouteParams } from "@vueuse/router";
+
+const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
 const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
 
@@ -612,6 +614,7 @@ let player: Artplayer;
 function getPlayerInstance(art: Artplayer) {
   player = art;
   resetChatAreaHeight();
+  player.once("ready", resetChatAreaHeight);
 }
 
 // 设置聊天框高度
@@ -620,14 +623,8 @@ const resetChatAreaHeight = () => {
   chatArea && h && (chatArea.value.style.height = h.value.scrollHeight - 112 + "px");
 };
 
-onMounted(() => {
-  setTimeout(() => resetChatAreaHeight(), 233);
-  watchers.push(
-    watch(WindowWidth, () => {
-      resetChatAreaHeight();
-    })
-  );
-});
+const card = ref(null);
+useResizeObserver(card, resetChatAreaHeight);
 
 getMovieList();
 
@@ -672,14 +669,12 @@ const playerOption = computed(() => {
 
   return option;
 });
-
-const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 </script>
 
 <template>
   <el-row :gutter="20">
     <el-col :md="18" class="mb-6 max-sm:my-2">
-      <div class="card">
+      <div class="card" ref="card">
         <div
           class="card-title flex flex-wrap justify-between max-sm:text-sm"
           v-if="playerOption.url"
