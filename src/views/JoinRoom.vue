@@ -6,6 +6,7 @@ import { useRoute } from "vue-router";
 import { joinRoomApi, checkRoomApi } from "@/services/apis/room";
 import { strLengthLimit } from "@/utils/utils";
 import { useRouteParams, useRouteQuery } from "@vueuse/router";
+import { roomStore } from "@/stores/room";
 const route = useRoute();
 const roomID = useRouteParams("roomId");
 const pwd = useRouteQuery("pwd");
@@ -32,6 +33,8 @@ const formData = ref<{
 
 if (props.item) formData.value = props.item;
 
+const room = roomStore();
+
 const { state: joinRoomInfo, execute: reqJoinRoomApi } = joinRoomApi();
 const JoinRoom = async () => {
   if (!formData.value?.roomId) {
@@ -49,7 +52,7 @@ const JoinRoom = async () => {
     await reqJoinRoomApi({
       data: formData.value,
       headers: {
-        Authorization: localStorage.userToken
+        Authorization: room.userToken
       }
     });
     if (!joinRoomInfo.value)

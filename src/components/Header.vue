@@ -4,8 +4,9 @@ import { RouterLink } from "vue-router";
 import { roomStore } from "@/stores/room";
 import DarkModeSwitcher from "@/components/DarkModeSwitcher.vue";
 import router from "@/router";
-const room = roomStore();
 const mobileMenu = ref(false);
+
+const room = roomStore();
 
 const menuLinks = computed(() => {
   const basicLinks = [

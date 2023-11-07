@@ -5,9 +5,11 @@ import { BaseMovieInfo, BilibiliVendorInfo, VendorInfo } from "@/proto/message";
 import { parseBiliBiliVideo } from "@/services/apis/vendor";
 import { pushMoviesApi } from "@/services/apis/movie";
 import { useRouteParams } from "@vueuse/router";
+import { roomStore } from "@/stores/room";
 
-const props = defineProps<{
+const Props = defineProps<{
   newMovieInfo: BaseMovieInfo;
+  token: string;
 }>();
 
 interface BilibiliVideo {
@@ -21,20 +23,18 @@ interface BilibiliVideo {
 }
 
 // 获取房间信息
-const roomID = useRouteParams("roomId");
-const roomToken = localStorage.getItem(`room-${roomID.value}-token`) ?? "";
-
+const { userToken } = roomStore();
 const biliVideos = ref<BilibiliVideo[]>([]);
 const open = ref(false);
 const { state, execute } = parseBiliBiliVideo();
 const openDialog = async () => {
-  if (props.newMovieInfo.url) {
+  if (Props.newMovieInfo.url) {
     try {
       ElMessage.info("正在解析中，成功将会弹窗显示");
       await execute({
-        headers: { Authorization: localStorage.userToken },
+        headers: { Authorization: userToken },
         data: {
-          url: props.newMovieInfo.url
+          url: Props.newMovieInfo.url
         }
       });
       if (state.value) {
@@ -107,7 +107,7 @@ const submit = async () => {
   try {
     if (selectedItems.value.length === 0) return ElMessage.error("请选择视频");
     await reqPushMoviesApi({
-      headers: { Authorization: roomToken },
+      headers: { Authorization: Props.token },
       data: selectedItems.value.map((item) =>
         BaseMovieInfo.create({
           name: item.name,

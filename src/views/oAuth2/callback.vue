@@ -25,7 +25,7 @@ const redirect = async () => {
     });
 
     if (userToken.value) {
-      localStorage.setItem("userToken", userToken.value.token);
+      room.userToken = userToken.value.token;
       await getUserInfo();
     }
   } catch (err: any) {
@@ -43,13 +43,12 @@ const getUserInfo = async () => {
   try {
     await execute({
       headers: {
-        Authorization: userToken.value?.token ?? ""
+        Authorization: room.userToken
       }
     });
     if (state.value) {
       isLoading.value = false;
       localStorage.setItem("uname", state.value.username);
-      room.login = true;
       ElNotification({
         title: "登录成功",
         type: "success"

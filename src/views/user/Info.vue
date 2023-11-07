@@ -1,21 +1,22 @@
 <script setup lang="ts">
-import { reactive, ref, type Component, onMounted } from "vue";
+import { shallowRef, type Component, onMounted } from "vue";
 import RoomList from "@/components/RoomList.vue";
 import { userStore } from "@/stores/user";
 import { ElNotification } from "element-plus";
 import { logOutApi } from "@/services/apis/auth";
 import { userInfo } from "@/services/apis/user";
-
+import { roomStore } from "@/stores/room";
 import account from "./account/index.vue";
 
 const user = userStore();
+const room = roomStore();
 
 const getUserInfo = async () => {
   const { state, execute } = userInfo();
   try {
     await execute({
       headers: {
-        Authorization: localStorage.userToken
+        Authorization: room.userToken
       }
     });
     if (state.value) {
@@ -32,12 +33,8 @@ const getUserInfo = async () => {
 };
 
 const logout = async () => {
-  localStorage.removeItem("userToken");
-  for (const i in localStorage) {
-    if (i.startsWith("room") && i.endsWith("token")) {
-      localStorage.removeItem(i);
-    }
-  }
+  room.userToken = "";
+  localStorage.clear();
   ElNotification({
     title: "登出成功",
     type: "success"
@@ -50,16 +47,12 @@ const logoff = async () => {
   try {
     await execute({
       headers: {
-        Authorization: localStorage.userToken
+        Authorization: room.userToken
       }
     });
     if (state.value) {
-      localStorage.removeItem("userToken");
-      for (const i in localStorage) {
-        if (i.startsWith("room") && i.endsWith("token")) {
-          localStorage.removeItem(i);
-        }
-      }
+      room.userToken = "";
+      localStorage.clear();
       ElNotification({
         title: "注销成功",
         type: "success"
@@ -92,14 +85,13 @@ const tabs: Tabs[] = [
   }
 ];
 
-const activeTab = reactive<Tabs>({
+const activeTab = shallowRef<Tabs>({
   name: "我的房间",
   component: RoomList
 });
 
 const switchTab = (tab: Tabs) => {
-  activeTab.name = tab.name;
-  activeTab.component = tab.component;
+  activeTab.value = tab;
 };
 
 onMounted(() => {

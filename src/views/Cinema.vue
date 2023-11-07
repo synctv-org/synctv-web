@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch, defineAsyncComponent } from "vue";
 import type { WatchStopHandle } from "vue";
-import { useWebSocket, useResizeObserver } from "@vueuse/core";
+import { useWebSocket, useResizeObserver, useLocalStorage } from "@vueuse/core";
 import { roomStore } from "@/stores/room";
 import { ElNotification, ElMessage } from "element-plus";
 import router from "@/router";
@@ -39,17 +39,20 @@ onBeforeUnmount(() => {
 const room = roomStore();
 
 // 获取房间信息
-const roomID = useRouteParams("roomId");
-const roomToken = localStorage.getItem(`room-${roomID.value}-token`) ?? "";
+const roomID = useRouteParams<string>("roomId");
+const roomToken = useLocalStorage<string>(
+  `room-${roomID.value}-token`,
+  localStorage.getItem(`room-${roomID.value}-token`) ?? ""
+);
 
-if (roomToken === "") {
+if (roomToken.value === "") {
   router.push(`/joinRoom/${roomID.value}`);
 }
 
 // 启动websocket连接
 const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
 const { status, data, send } = useWebSocket(`${wsProtocol}//${window.location.host}/api/room/ws`, {
-  protocols: [roomToken],
+  protocols: [roomToken.value],
   autoReconnect: {
     retries: 3,
     delay: 1000,
@@ -77,7 +80,7 @@ const changePassword = async () => {
       data: {
         password: password.value
       },
-      headers: { Authorization: roomToken }
+      headers: { Authorization: roomToken.value }
     });
 
     if (newToken.value) {
@@ -85,8 +88,8 @@ const changePassword = async () => {
         title: "更新成功",
         type: "success"
       });
-      localStorage.setItem(`room-${roomID.value}-token`, newToken.value.token);
-      setInterval(() => {
+      roomToken.value = newToken.value.token;
+      setTimeout(() => {
         window.location.reload();
       }, 500);
     }
@@ -109,20 +112,17 @@ const deleteRoom = async () => {
   try {
     await reqDelRoomApi({
       data: {
-        roomId: localStorage.roomId
+        roomId: roomID.value
       },
-      headers: { Authorization: roomToken }
+      headers: { Authorization: roomToken.value }
     });
 
     ElNotification({
       title: "删除成功",
       type: "success"
     });
+    roomToken.value = "";
     setTimeout(() => {
-      localStorage.removeItem("RoomID");
-      localStorage.removeItem("password");
-      localStorage.removeItem("login");
-      localStorage.removeItem("token");
       window.location.href = window.location.origin;
     }, 500);
   } catch (err: any) {
@@ -163,7 +163,7 @@ const getMovieList = async () => {
         max: pageSize.value,
         order: order.value
       },
-      headers: { Authorization: roomToken }
+      headers: { Authorization: roomToken.value }
     });
 
     if (movieList.value) {
@@ -181,11 +181,8 @@ const getMovieList = async () => {
         message: err.message,
         type: "error"
       });
-      setInterval(() => {
-        localStorage.removeItem("roomId");
-        localStorage.removeItem("password");
-        localStorage.removeItem("login");
-        localStorage.removeItem("token");
+      roomToken.value = "";
+      setTimeout(() => {
         window.location.href = window.location.origin;
       }, 500);
     }
@@ -206,7 +203,7 @@ const getMovies = async () => {
         max: pageSize.value,
         order: order.value
       },
-      headers: { Authorization: roomToken }
+      headers: { Authorization: roomToken.value }
     });
 
     if (movies.value) {
@@ -222,11 +219,8 @@ const getMovies = async () => {
         message: err.message,
         type: "error"
       });
-      setInterval(() => {
-        localStorage.removeItem("roomId");
-        localStorage.removeItem("password");
-        localStorage.removeItem("login");
-        localStorage.removeItem("token");
+      roomToken.value = "";
+      setTimeout(() => {
         window.location.href = window.location.origin;
       }, 500);
     }
@@ -243,7 +237,7 @@ const { execute: reqClearMovieListApi } = clearMovieListApi();
 const clearMovieList = async (id: number) => {
   try {
     await reqClearMovieListApi({
-      headers: { Authorization: roomToken }
+      headers: { Authorization: roomToken.value }
     });
     await changeCurrentMovie("", false);
     ElNotification({
@@ -275,7 +269,7 @@ const getLiveInfo = async (id: string) => {
       data: {
         id: id
       },
-      headers: { Authorization: roomToken }
+      headers: { Authorization: roomToken.value }
     });
 
     liveInfoDialog.value = true;
@@ -336,7 +330,7 @@ const editMovieInfo = async () => {
     }
     await reqEditMovieInfoApi({
       data: cMovieInfo.value,
-      headers: { Authorization: roomToken }
+      headers: { Authorization: roomToken.value }
     });
     ElNotification({
       title: "更新成功",
@@ -361,7 +355,7 @@ const deleteMovie = async (ids: Array<string>) => {
       data: {
         ids: ids
       },
-      headers: { Authorization: roomToken }
+      headers: { Authorization: roomToken.value }
     });
     for (const id of ids) {
       room.movies.splice(
@@ -395,7 +389,7 @@ const swapMovie = async () => {
         id1: selectMovies.value[0],
         id2: selectMovies.value[1]
       },
-      headers: { Authorization: roomToken }
+      headers: { Authorization: roomToken.value }
     });
 
     ElNotification({
@@ -422,7 +416,7 @@ const changeCurrentMovie = async (id: string, showMsg = true) => {
       data: {
         id: id
       },
-      headers: { Authorization: roomToken }
+      headers: { Authorization: roomToken.value }
     });
 
     showMsg &&
@@ -664,7 +658,7 @@ const playerOption = computed(() => {
   if (option.url.startsWith(window.location.origin)) {
     option.headers = {
       ...option.headers,
-      Authorization: roomToken
+      Authorization: roomToken.value
     };
   }
 
@@ -876,7 +870,7 @@ const playerOption = computed(() => {
             class="max-sm:mb-4"
             v-model:current-page="currentPage"
             v-model:page-size="pageSize"
-            :pager-count="4"
+            :pager-count="5"
             layout="total, sizes, prev, pager, next, jumper"
             :total="room.totalMovies"
             @size-change="getMovies()"
@@ -904,7 +898,7 @@ const playerOption = computed(() => {
 
     <!-- 添加影片 -->
     <el-col :lg="6" :md="14" :xs="24" class="mb-6 max-sm:mb-2">
-      <MoviePush @getMovies="getMovies()" />
+      <MoviePush @getMovies="getMovies()" :token="roomToken" />
     </el-col>
   </el-row>
 

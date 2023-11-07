@@ -6,7 +6,7 @@ import type { RoomList } from "@/types/Room";
 import JoinRoom from "./JoinRoom.vue";
 import { roomStore } from "@/stores/room";
 
-const { login: isLogin } = roomStore();
+const room = roomStore();
 const __roomList = ref<RoomList[]>([]);
 const JoinRoomDialog = ref(false);
 const formData = ref<{
@@ -18,7 +18,7 @@ const formData = ref<{
 });
 
 const openJoinRoomDialog = (item: RoomList) => {
-  if (!isLogin)
+  if (!room.login)
     return ElNotification({
       title: "错误",
       message: "请先登录",
@@ -39,7 +39,6 @@ const search = ref("all");
 const keyword = ref("");
 
 const getRoomList = async (showMsg = false) => {
-  __roomList.value = [];
   try {
     await reqRoomList({
       params: {
@@ -53,9 +52,7 @@ const getRoomList = async (showMsg = false) => {
     });
     if (roomList.value && roomList.value.list) {
       totalItems.value = roomList.value.total;
-      for (let i = 0; i < roomList.value.list.length; i++) {
-        __roomList.value.push(roomList.value.list[i]);
-      }
+      __roomList.value = roomList.value.list;
     }
   } catch (err: any) {
     console.error(err.message);
@@ -124,7 +121,7 @@ const getRoomList = async (showMsg = false) => {
         v-if="__roomList.length >= 10"
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
-        :pager-count="4"
+        :pager-count="5"
         layout="total, sizes, prev, pager, next, jumper"
         class="flex flex-wrap"
         :total="totalItems"
@@ -135,7 +132,7 @@ const getRoomList = async (showMsg = false) => {
   </div>
 
   <el-dialog v-model="JoinRoomDialog" class="rounded-lg dark:bg-zinc-800 w-[443px] max-sm:w-[90%]">
-    <template #title>
+    <template #header>
       <div class="overflow-hidden text-ellipsis">
         <span class="truncate">加入房间</span>
       </div>

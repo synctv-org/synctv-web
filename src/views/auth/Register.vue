@@ -37,16 +37,14 @@ const register = async () => {
         message: "服务器并未返回token",
         type: "error"
       });
-    localStorage.setItem("userToken", userToken.value?.token);
+    room.userToken = userToken.value.token;
     ElNotification({
       title: "注册成功",
       type: "success"
     });
-    room.login = true;
 
     localStorage.setItem("uname", formData.value.username);
     savePwd.value && localStorage.setItem("password", formData.value.password);
-    localStorage.setItem("login", "true");
 
     router.replace("/");
   } catch (err: any) {

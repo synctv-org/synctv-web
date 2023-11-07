@@ -10,8 +10,8 @@ import { roomStore } from "@/stores/room";
 const props = defineProps<{
   isMyRoom: boolean;
 }>();
-// const isMyRoom = ref(false);
-const { login: isLogin } = roomStore();
+
+const room = roomStore();
 const __roomList = ref<RoomList[]>([]);
 const JoinRoomDialog = ref(false);
 const formData = ref<{
@@ -23,7 +23,7 @@ const formData = ref<{
 });
 
 const openJoinRoomDialog = (item: RoomList) => {
-  if (!isLogin)
+  if (!room.login)
     return ElNotification({
       title: "错误",
       message: "请先登录",
@@ -42,7 +42,6 @@ const order = ref("name");
 const sort = ref("desc");
 
 const getRoomList = async (showMsg = false) => {
-  __roomList.value = [];
   try {
     if (props.isMyRoom) {
       await reqMyRoomList({
@@ -55,7 +54,7 @@ const getRoomList = async (showMsg = false) => {
           keyword: ""
         },
         headers: {
-          Authorization: localStorage.userToken
+          Authorization: room.userToken
         }
       });
     } else {
@@ -74,16 +73,12 @@ const getRoomList = async (showMsg = false) => {
     if (props.isMyRoom) {
       if (myRoomList_.value && myRoomList_.value.list) {
         totalItems.value = myRoomList_.value.total;
-        for (let i = 0; i < myRoomList_.value.list.length; i++) {
-          __roomList.value.push(myRoomList_.value.list[i]);
-        }
+        __roomList.value = myRoomList_.value.list;
       }
     } else {
       if (roomList.value && roomList.value.list) {
         totalItems.value = roomList.value.total;
-        for (let i = 0; i < roomList.value.list.length; i++) {
-          __roomList.value.push(roomList.value.list[i]);
-        }
+        __roomList.value = roomList.value.list;
       }
     }
 
@@ -180,10 +175,10 @@ onMounted(() => {
     <div class="card-footer justify-between flex-wrap overflow-hidden">
       <button class="btn btn-success max-sm:mb-4" @click="getRoomList(true)">更新列表</button>
       <el-pagination
-        v-if="__roomList.length > 0"
+        v-if="__roomList.length != 0"
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
-        :pager-count="4"
+        :pager-count="5"
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
         @size-change="getRoomList(false)"
@@ -193,7 +188,7 @@ onMounted(() => {
   </div>
 
   <el-dialog v-model="JoinRoomDialog" class="rounded-lg dark:bg-zinc-800 w-[443px] max-sm:w-[90%]">
-    <template #title>
+    <template #header>
       <div class="overflow-hidden text-ellipsis">
         <span class="truncate">加入房间</span>
       </div>

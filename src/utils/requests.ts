@@ -2,6 +2,9 @@ import axios, { type AxiosRequestConfig } from "axios";
 import { useAsyncState } from "@vueuse/core";
 import { decodeJWT } from "@/utils/utils";
 import router from "@/router";
+import { roomStore } from "@/stores/room";
+
+const room = roomStore();
 
 axios.interceptors.response.use(
   function (response) {
@@ -17,12 +20,8 @@ axios.interceptors.response.use(
         const { r: roomId } = decodeJWT(error.config.headers.Authorization);
         router.push(`/joinRoom/${roomId}`);
       } else {
-        localStorage.removeItem("userToken");
-        for (const i in localStorage) {
-          if (i.startsWith("room") && i.endsWith("token")) {
-            localStorage.removeItem(i);
-          }
-        }
+        room.userToken = "";
+        localStorage.clear();
         setTimeout(() => (window.location.href = "/"), 1000);
       }
     }

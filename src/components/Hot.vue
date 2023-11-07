@@ -7,7 +7,7 @@ import JoinRoom from "@/views/JoinRoom.vue";
 import { roomStore } from "@/stores/room";
 
 const __roomList = ref<RoomList[]>([]);
-const { login: isLogin } = roomStore();
+const room = roomStore();
 const JoinRoomDialog = ref(false);
 const formData = ref({
   roomId: "",
@@ -15,7 +15,7 @@ const formData = ref({
 });
 
 const openJoinRoomDialog = (item: RoomList) => {
-  if (!isLogin)
+  if (!room.login)
     return ElNotification({
       title: "错误",
       message: "请先登录",
@@ -36,7 +36,6 @@ const search = ref("all");
 const keyword = ref("all");
 
 const getRoomList = async (showMsg = false) => {
-  __roomList.value = [];
   try {
     await reqHotRoomList({
       params: {
@@ -51,9 +50,7 @@ const getRoomList = async (showMsg = false) => {
 
     if (roomList.value && roomList.value.list) {
       totalItems.value = roomList.value.total;
-      for (let i = 0; i < roomList.value.list.length; i++) {
-        __roomList.value.push(roomList.value.list[i]);
-      }
+      __roomList.value = roomList.value.list;
     }
 
     showMsg &&
@@ -120,7 +117,7 @@ onMounted(() => {
         v-if="__roomList.length > 0"
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
-        :pager-count="4"
+        :pager-count="5"
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
         @size-change="getRoomList(false)"
@@ -130,7 +127,7 @@ onMounted(() => {
   </div>
 
   <el-dialog v-model="JoinRoomDialog" class="rounded-lg dark:bg-zinc-800 w-[443px] max-sm:w-[90%]">
-    <template #title>
+    <template #header>
       <div class="overflow-hidden text-ellipsis">
         <span class="truncate">加入房间</span>
       </div>

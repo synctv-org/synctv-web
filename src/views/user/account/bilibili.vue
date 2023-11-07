@@ -12,8 +12,8 @@ import {
 import QRCodeVue3 from "qrcode-vue3";
 import { roomStore } from "@/stores/room";
 import { ElMessage, ElNotification } from "element-plus";
-const { isDarkMode } = roomStore();
-const userToken = localStorage.getItem("userToken") ?? "";
+
+const room = roomStore();
 
 const loginDialog = ref(false);
 const infoDialog = ref(false);
@@ -30,7 +30,7 @@ const useBilibiliLogin = async () => {
   try {
     await reqQRCode({
       headers: {
-        Authorization: userToken
+        Authorization: room.userToken
       }
     });
     verifyQRCode();
@@ -47,7 +47,7 @@ const verifyQRCode = () => {
     try {
       await reqVeriBiliBiliQRCode({
         headers: {
-          Authorization: userToken
+          Authorization: room.userToken
         },
         data: {
           key: biliQRCode.value?.key
@@ -77,7 +77,7 @@ const geCaptcha = async () => {
   try {
     await reqBiliBiliCaptcha({
       headers: {
-        Authorization: userToken
+        Authorization: room.userToken
       }
     });
     if (biliCaptcha.value) {
@@ -120,7 +120,7 @@ const sendCode = async () => {
   try {
     await reqBiliBiliPhoneCode({
       headers: {
-        Authorization: userToken
+        Authorization: room.userToken
       },
       data: {
         token: biliCaptcha.value!.token,
@@ -161,7 +161,7 @@ const verifyPhoneCode = async () => {
   try {
     await execute({
       headers: {
-        Authorization: userToken
+        Authorization: room.userToken
       },
       data: {
         telephone: phone.value.toString(),
@@ -186,7 +186,7 @@ const getAccountInfo = async () => {
   try {
     await reqAccountInfo({
       headers: {
-        Authorization: userToken
+        Authorization: room.userToken
       }
     });
   } catch (err: any) {
@@ -209,7 +209,7 @@ const biliLogout = async () => {
   try {
     await execute({
       headers: {
-        Authorization: userToken
+        Authorization: room.userToken
       }
     });
     ElNotification({
@@ -285,7 +285,7 @@ onMounted(async () => {
               ]
             }
           }"
-          :backgroundOptions="{ color: isDarkMode ? '#27272a' : '#ffffff' }"
+          :backgroundOptions="{ color: room.isDarkMode ? '#27272a' : '#ffffff' }"
           :cornersSquareOptions="{ type: 'square', color: '#f87171' }"
           :cornersDotOptions="{ type: undefined, color: '#4ade80' }"
           myclass="mx-auto px-10 py-5 max-sm:w-52 max-md:w-56"

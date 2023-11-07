@@ -7,15 +7,16 @@ import { pushMovieApi } from "@/services/apis/movie";
 import customHeaders from "@/components/dialogs/customHeaders.vue";
 import bilibiliParse from "@/components/dialogs/bilibiliParse.vue";
 import { useRouteParams } from "@vueuse/router";
+import { roomStore } from "@/stores/room";
 
 const Emits = defineEmits(["getMovies"]);
 
 const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
 const bilibiliParseDialog = ref<InstanceType<typeof bilibiliParse>>();
 
-// 获取房间信息
-const roomID = useRouteParams("roomId");
-const roomToken = localStorage.getItem(`room-${roomID.value}-token`) ?? "";
+const Props = defineProps<{
+  token: string;
+}>();
 
 // 新影片信息
 let newMovieInfo = ref<BaseMovieInfo>(BaseMovieInfo.create());
@@ -216,7 +217,7 @@ const pushMovie = async () => {
     }
     await reqPushMovieApi({
       data: newMovieInfo.value,
-      headers: { Authorization: roomToken }
+      headers: { Authorization: Props.token }
     });
 
     ElNotification({
@@ -335,7 +336,7 @@ onMounted(() => {});
   />
 
   <!-- B站视频解析对话框 -->
-  <bilibiliParse ref="bilibiliParseDialog" :newMovieInfo="newMovieInfo" />
+  <bilibiliParse ref="bilibiliParseDialog" :newMovieInfo="newMovieInfo" :token="token" />
 </template>
 
 <style lang="less" scoped>

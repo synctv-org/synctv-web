@@ -3,20 +3,14 @@ import SunIcon from "./icons/Sun.vue";
 import { roomStore } from "@/stores/room";
 const room = roomStore();
 
-if (
-  localStorage.darkMode === "true" ||
-  (!("darkMode" in localStorage) &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches)
-) {
+if (room.isDarkMode && window.matchMedia("(prefers-color-scheme: dark)").matches) {
   document.documentElement.classList.add("dark");
-  room.isDarkMode = true;
 } else {
   document.documentElement.classList.remove("dark");
-  room.isDarkMode = false;
 }
 
 const toggleDarkMode = () => {
-  localStorage.darkMode = room.isDarkMode = !room.isDarkMode;
+  room.isDarkMode = !room.isDarkMode;
   room.isDarkMode
     ? document.documentElement.classList.add("dark")
     : document.documentElement.classList.remove("dark");
