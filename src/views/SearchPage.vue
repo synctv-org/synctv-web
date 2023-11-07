@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { ElNotification } from "element-plus";
 import { roomListApi } from "@/services/apis/room";
 import type { RoomList } from "@/types/Room";
 import JoinRoom from "./JoinRoom.vue";
+import { roomStore } from "@/stores/room";
 
+const { login: isLogin } = roomStore();
 const __roomList = ref<RoomList[]>([]);
 const JoinRoomDialog = ref(false);
 const formData = ref<{
@@ -16,6 +18,13 @@ const formData = ref<{
 });
 
 const openJoinRoomDialog = (item: RoomList) => {
+  if (!isLogin)
+    return ElNotification({
+      title: "错误",
+      message: "请先登录",
+      type: "error"
+    });
+
   formData.value.roomId = item.roomId;
   JoinRoomDialog.value = true;
 };

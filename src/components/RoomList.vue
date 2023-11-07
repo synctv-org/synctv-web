@@ -11,6 +11,7 @@ const props = defineProps<{
   isMyRoom: boolean;
 }>();
 // const isMyRoom = ref(false);
+const { login: isLogin } = roomStore();
 const __roomList = ref<RoomList[]>([]);
 const JoinRoomDialog = ref(false);
 const formData = ref<{
@@ -22,7 +23,12 @@ const formData = ref<{
 });
 
 const openJoinRoomDialog = (item: RoomList) => {
-  // if (!hasPwd && hasUname) return joinRoom(localStorage.uname, RoomID, "");
+  if (!isLogin)
+    return ElNotification({
+      title: "错误",
+      message: "请先登录",
+      type: "error"
+    });
   formData.value.roomId = item.roomId;
   JoinRoomDialog.value = true;
 };

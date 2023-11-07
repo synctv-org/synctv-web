@@ -4,6 +4,9 @@ import { ElNotification } from "element-plus";
 import { hotRoom } from "@/services/apis/room";
 import type { RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
+import { roomStore } from "@/stores/room";
+
+const { login: isLogin } = roomStore();
 const __roomList = ref<RoomList[]>([]);
 const JoinRoomDialog = ref(false);
 const formData = ref({
@@ -12,6 +15,13 @@ const formData = ref({
 });
 
 const openJoinRoomDialog = (item: RoomList) => {
+  if (!isLogin)
+    return ElNotification({
+      title: "错误",
+      message: "请先登录",
+      type: "error"
+    });
+
   formData.value.roomId = item.roomId;
   JoinRoomDialog.value = true;
 };
