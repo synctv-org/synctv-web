@@ -84,10 +84,13 @@ const checkRoom = async () => {
       }
     });
     if (thisRoomInfo.value) {
+      if (localStorage.uname === thisRoomInfo.value.creator) {
+        return await JoinRoom();
+      }
       if (thisRoomInfo.value.needPassword) {
-        if (pwd.value) await JoinRoom();
+        if (pwd.value) return await JoinRoom();
       } else {
-        await JoinRoom();
+        return await JoinRoom();
       }
     }
   } catch (err: any) {
@@ -101,7 +104,7 @@ const checkRoom = async () => {
 };
 
 onMounted(() => {
-  if (roomID.value) checkRoom();
+  if (formData.value.roomId) checkRoom();
 });
 </script>
 

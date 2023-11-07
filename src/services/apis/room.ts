@@ -53,6 +53,7 @@ export const checkRoomApi = useDefineApi<
     };
   },
   {
+    creator: string;
     needPassword: boolean;
     peopleNum: number;
   }
