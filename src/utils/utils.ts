@@ -77,3 +77,17 @@ export const blobToUin8Array = (blob: Blob): Promise<Uint8Array> => {
       });
   });
 };
+
+export const decodeJWT = (jwt: string) => {
+  const parts = jwt.split(".");
+  if (parts.length !== 3) {
+    throw new Error("非 JWT 格式！");
+  }
+  try {
+    const decodedPayload = atob(parts[1]);
+    const parsedPayload = JSON.parse(decodedPayload);
+    return parsedPayload;
+  } catch (error) {
+    throw new Error("JWT 解析失败");
+  }
+};

@@ -1,5 +1,7 @@
 import axios, { type AxiosRequestConfig } from "axios";
 import { useAsyncState } from "@vueuse/core";
+import { decodeJWT } from "@/utils/utils";
+import router from "@/router";
 
 axios.interceptors.response.use(
   function (response) {
@@ -7,13 +9,18 @@ axios.interceptors.response.use(
   },
   function (error) {
     if (error.response.status === 401) {
-      localStorage.removeItem("userToken");
-      for (const i in localStorage) {
-        if (i.startsWith("room") && i.endsWith("token")) {
-          localStorage.removeItem(i);
+      if (error.config.url.startsWith("/api/movie") || error.config.url.startsWith("/api/room/")) {
+        const { r: roomId } = decodeJWT(error.config.headers.Authorization);
+        router.push(`/joinRoom/${roomId}`);
+      } else {
+        localStorage.removeItem("userToken");
+        for (const i in localStorage) {
+          if (i.startsWith("room") && i.endsWith("token")) {
+            localStorage.removeItem(i);
+          }
         }
+        setTimeout(() => (window.location.href = "/"), 1000);
       }
-      setTimeout(() => (window.location.href = "/"), 1000);
     }
     return Promise.reject(error);
   }

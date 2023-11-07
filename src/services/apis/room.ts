@@ -45,6 +45,21 @@ export const createRoomApi = useDefineApi<
   method: "POST"
 });
 
+// 检查房间状态
+export const checkRoomApi = useDefineApi<
+  {
+    params: {
+      roomId: string;
+    };
+  },
+  {
+    needPassword: boolean;
+    peopleNum: number;
+  }
+>({
+  url: "/api/room/check"
+});
+
 // 加入房间
 export const joinRoomApi = useDefineApi<
   // request

@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { ElNotification } from "element-plus";
 import router from "@/router/index";
 import { useRoute } from "vue-router";
-import { joinRoomApi } from "@/services/apis/room";
+import { joinRoomApi, checkRoomApi } from "@/services/apis/room";
 import { strLengthLimit } from "@/utils/utils";
+import { useRouteParams, useRouteQuery } from "@vueuse/router";
 const route = useRoute();
+const roomID = useRouteParams("roomId");
+const pwd = useRouteQuery("pwd");
 
 // 是否为弹窗加载
 const isModal = computed(() => {
@@ -23,14 +26,13 @@ const formData = ref<{
   roomId: string;
   password: string;
 }>({
-  roomId: "",
-  password: ""
+  roomId: (roomID.value as string) ?? "",
+  password: pwd.value as string
 });
 
 if (props.item) formData.value = props.item;
 
 const { state: joinRoomInfo, execute: reqJoinRoomApi } = joinRoomApi();
-
 const JoinRoom = async () => {
   if (!formData.value?.roomId) {
     ElNotification({
@@ -72,6 +74,35 @@ const JoinRoom = async () => {
     });
   }
 };
+
+const { state: thisRoomInfo, execute: reqCheckRoomApi } = checkRoomApi();
+const checkRoom = async () => {
+  try {
+    await reqCheckRoomApi({
+      params: {
+        roomId: formData.value.roomId
+      }
+    });
+    if (thisRoomInfo.value) {
+      if (thisRoomInfo.value.needPassword) {
+        if (pwd.value) await JoinRoom();
+      } else {
+        await JoinRoom();
+      }
+    }
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "错误",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+onMounted(() => {
+  if (roomID.value) checkRoom();
+});
 </script>
 
 <template>

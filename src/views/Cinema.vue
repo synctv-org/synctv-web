@@ -251,7 +251,7 @@ const clearMovieList = async (id: number) => {
   } catch (err: any) {
     console.error(err);
     ElNotification({
-      title: "清除成功",
+      title: "错误",
       message: err.response.data.error || err.message,
       type: "error"
     });

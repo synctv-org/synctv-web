@@ -30,8 +30,14 @@ const router = createRouter({
       component: () => import("../views/CreateRoom.vue"),
       meta: { title: "创建房间" }
     },
+    // {
+    //   path: "/joinRoom",
+    //   name: "joinRoom",
+    //   component: () => import("../views/JoinRoom.vue"),
+    //   meta: { title: "加入房间" }
+    // },
     {
-      path: "/joinRoom",
+      path: "/joinRoom/:roomId?",
       name: "joinRoom",
       component: () => import("../views/JoinRoom.vue"),
       meta: { title: "加入房间" }
