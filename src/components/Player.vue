@@ -22,7 +22,7 @@ let art: Artplayer;
 interface options {
   url: string;
   isLive: boolean;
-  type: string;
+  type?: string;
   headers: { [key: string]: string };
   plugins: ((art: Artplayer) => unknown)[];
 }
@@ -186,6 +186,7 @@ const playerOption = computed<Option>(() => {
     autoOrientation: true, // 移动端的网页全屏时，根据视频尺寸和视口尺寸，旋转播放器
     airplay: false, // 隔空播放
     ...Props.options,
+    type: Props.options.type,
     customType: {
       flv: playFlv,
       m3u8: playM3u8,

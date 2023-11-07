@@ -614,13 +614,6 @@ function getPlayerInstance(art: Artplayer) {
   resetChatAreaHeight();
 }
 
-const parseVideoType = (movie: MovieInfo) => {
-  if (movie.base!.type) {
-    return movie.base!.type;
-  }
-  return getFileExtension(movie.base!.url);
-};
-
 // 设置聊天框高度
 const resetChatAreaHeight = () => {
   const h = playArea.value ? playArea : noPlayArea;
@@ -645,12 +638,15 @@ const danmukuPlugin = artplayerPluginDanmuku({
 });
 
 const playerUrl = computed(() => {
-  if (room.currentMovie.base?.rtmpSource) {
+  if (
+    room.currentMovie.base?.rtmpSource ||
+    (room.currentMovie.base?.live && room.currentMovie.base?.proxy)
+  ) {
     switch (room.currentMovie.base!.type) {
-      case "m3u8":
-        return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.m3u8`;
-      default:
+      case "flv":
         return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.flv`;
+      default:
+        return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.m3u8`;
     }
   } else if (room.currentMovie.base?.proxy) {
     return `${window.location.origin}/api/movie/proxy/${roomID.value}/${room.currentMovie.id}`;
@@ -662,8 +658,8 @@ const playerUrl = computed(() => {
 const playerOption = computed(() => {
   let option = {
     url: playerUrl.value,
+    type: room.currentMovie.base?.type || getFileExtension(playerUrl.value),
     isLive: room.currentMovie.base!.live,
-    type: parseVideoType(room.currentMovie),
     headers: room.currentMovie.base!.headers,
     plugins: [danmukuPlugin, syncPlugin.plugin]
   };
@@ -673,6 +669,7 @@ const playerOption = computed(() => {
       Authorization: roomToken
     };
   }
+
   return option;
 });
 

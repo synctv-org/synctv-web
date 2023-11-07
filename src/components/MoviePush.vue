@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElNotification } from "element-plus";
-import type { BaseMovieInfo } from "@/proto/message";
+import { BaseMovieInfo, VendorInfo, BilibiliVendorInfo } from "@/proto/message";
 import { strLengthLimit } from "@/utils/utils";
 import { pushMovieApi } from "@/services/apis/movie";
 import customHeaders from "@/components/dialogs/customHeaders.vue";
@@ -18,26 +18,20 @@ const roomID = useRouteParams("roomId");
 const roomToken = localStorage.getItem(`room-${roomID.value}-token`) ?? "";
 
 // 新影片信息
-let newMovieInfo = ref<BaseMovieInfo>({
-  url: "",
-  name: "",
-  live: false,
-  proxy: false,
-  rtmpSource: false,
-  type: "",
-  headers: {},
-  vendorInfo: undefined
-});
+let newMovieInfo = ref<BaseMovieInfo>(BaseMovieInfo.create());
 
 enum pushType {
   MOVIE = 0,
   LIVE,
+  PROXY_LIVE,
   RTMP_SOURCE,
   BILIBILI
 }
 
 interface movieTypeRecord {
   name: string;
+  comment: string;
+  showProxy: boolean;
   defaultType: string;
   allowedTypes: Array<{ name: string; value: string }>;
 }
@@ -47,6 +41,8 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
     pushType.MOVIE,
     {
       name: "视频直链",
+      comment: "",
+      showProxy: true,
       defaultType: "",
       allowedTypes: [
         {
@@ -80,6 +76,8 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
     pushType.LIVE,
     {
       name: "直播流",
+      comment: "",
+      showProxy: false,
       defaultType: "",
       allowedTypes: [
         {
@@ -93,18 +91,26 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
         {
           name: "m3u8",
           value: "m3u8"
-        },
-        {
-          name: "ts",
-          value: "mpegts"
         }
       ]
+    }
+  ],
+  [
+    pushType.PROXY_LIVE,
+    {
+      name: "代理直播流",
+      comment: "仅支持rtmp和flv代理",
+      showProxy: false,
+      defaultType: "",
+      allowedTypes: []
     }
   ],
   [
     pushType.RTMP_SOURCE,
     {
       name: "创建直播",
+      comment: "用户可自行推流",
+      showProxy: false,
       defaultType: "flv",
       allowedTypes: [
         {
@@ -122,6 +128,8 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
     pushType.BILIBILI,
     {
       name: "哔哩哔哩",
+      comment: "解析Bilibili视频",
+      showProxy: false,
       defaultType: "",
       allowedTypes: []
     }
@@ -133,45 +141,40 @@ const selectedMovieType = ref(pushType.MOVIE);
 const selectPushType = () => {
   switch (selectedMovieType.value) {
     case pushType.MOVIE:
-      newMovieInfo.value.live = newMovieInfo.value.proxy = newMovieInfo.value.rtmpSource = false;
-      newMovieInfo.value.vendorInfo = undefined;
+      newMovieInfo.value = BaseMovieInfo.create({
+        url: newMovieInfo.value.url,
+        name: newMovieInfo.value.name
+      });
       break;
     case pushType.LIVE:
-      newMovieInfo.value.live = true;
-      newMovieInfo.value.proxy = newMovieInfo.value.rtmpSource = false;
-      newMovieInfo.value.vendorInfo = undefined;
+      newMovieInfo.value = BaseMovieInfo.create({
+        url: newMovieInfo.value.url,
+        name: newMovieInfo.value.name,
+        live: true
+      });
       break;
     case pushType.RTMP_SOURCE:
-      newMovieInfo.value.proxy = false;
-      newMovieInfo.value.live = newMovieInfo.value.rtmpSource = true;
-      newMovieInfo.value.headers = {};
-      newMovieInfo.value.vendorInfo = undefined;
+      newMovieInfo.value = BaseMovieInfo.create({
+        url: newMovieInfo.value.url,
+        name: newMovieInfo.value.name,
+        live: true,
+        rtmpSource: true
+      });
       break;
     case pushType.BILIBILI:
-      newMovieInfo.value.live = newMovieInfo.value.proxy = newMovieInfo.value.rtmpSource = false;
-      newMovieInfo.value.headers = {};
-      newMovieInfo.value.vendorInfo = {
-        vendor: "bilibili",
-        shared: true,
-        bilibili: {
-          bvid: "",
-          cid: NaN,
-          epid: NaN,
-          quality: NaN
-        }
-      };
+      newMovieInfo.value = BaseMovieInfo.create({
+        url: newMovieInfo.value.url,
+        name: newMovieInfo.value.name,
+        vendorInfo: VendorInfo.create({
+          vendor: "bilibili",
+          shared: true,
+          bilibili: BilibiliVendorInfo.create({})
+        })
+      });
       break;
   }
 
-  newMovieInfo.value.type = movieTypeRecords.get(selectedMovieType.value)!.defaultType;
-};
-
-const selectMovieType = () => {
-  newMovieInfo.value.type =
-    movieTypeRecords
-      .get(selectedMovieType.value)
-      ?.allowedTypes.find((v) => v.value === newMovieInfo.value.type)?.value ||
-    movieTypeRecords.get(selectedMovieType.value)!.defaultType;
+  newMovieInfo.value.type = movieTypeRecords.get(selectedMovieType.value)?.defaultType || "";
 };
 
 const stringHeader = ref(JSON.stringify(newMovieInfo.value.headers));
@@ -273,22 +276,32 @@ onMounted(() => {});
       <el-collapse @change="" class="bg-transparent" style="background: #aaa0 !important">
         <el-collapse-item>
           <template #title><div class="text-base font-medium">高级选项</div></template>
-          <div class="more-option-list">
+          <div
+            class="more-option-list"
+            v-if="movieTypeRecords.get(selectedMovieType)?.allowedTypes.length != 0"
+          >
             <span class="text-sm min-w-fit"> 视频类型： </span>
-
-            <select
-              @change="selectMovieType"
-              v-model="newMovieInfo.type"
-              class="bg-transparent p-0 text-base w-full h-5"
-            >
+            <select v-model="newMovieInfo.type" class="bg-transparent p-0 text-base w-full h-5">
               <option
-                v-for="allowedType in movieTypeRecords.get(selectedMovieType)?.allowedTypes"
+                v-for="allowedType in movieTypeRecords.get(selectedMovieType)!.allowedTypes"
                 :value="allowedType.value"
               >
                 {{ allowedType.name }}
               </option>
             </select>
           </div>
+          <Transition name="fade">
+            <div class="more-option-list" v-if="movieTypeRecords.get(selectedMovieType)?.showProxy">
+              <label
+                >代理：
+                <input
+                  type="checkbox"
+                  v-model="newMovieInfo.proxy"
+                  :value="true"
+                  :unchecked-value="false"
+              /></label>
+            </div>
+          </Transition>
           <Transition name="fade">
             <div
               class="more-option-list cursor-pointer"
