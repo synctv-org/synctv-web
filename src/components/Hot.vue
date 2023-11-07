@@ -6,8 +6,8 @@ import type { RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
 import { roomStore } from "@/stores/room";
 
-const { login: isLogin } = roomStore();
 const __roomList = ref<RoomList[]>([]);
+const { login: isLogin } = roomStore();
 const JoinRoomDialog = ref(false);
 const formData = ref({
   roomId: "",
