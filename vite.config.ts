@@ -19,7 +19,7 @@ export default defineConfig({
       },
       "/oauth2": {
         target: "http://127.0.0.1:8088",
-        ws: true
+        ws: false
       }
     }
   },
@@ -39,7 +39,24 @@ export default defineConfig({
   },
   build: {
     cssCodeSplit: true,
-    minify: "terser"
+    minify: "terser",
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      },
+      mangle: true,
+      toplevel: true
+    },
+    cssMinify: "lightningcss",
+    reportCompressedSize: false
   },
-  base: env.VITE_BASEURL
+  base: env.VITE_BASEURL,
+  css: {
+    lightningcss: {}
+  },
+  json: {
+    stringify: true
+  },
+  envPrefix: "VITE_"
 });
