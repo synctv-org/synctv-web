@@ -9,7 +9,11 @@ axios.interceptors.response.use(
   },
   function (error) {
     if (error.response.status === 401) {
-      if (error.config.url.startsWith("/api/movie") || error.config.url.startsWith("/api/room/")) {
+      if (
+        error.config.url.startsWith("/api/movie") ||
+        error.config.url.startsWith("/api/room/delete") ||
+        error.config.url.startsWith("/api/room/pwd")
+      ) {
         const { r: roomId } = decodeJWT(error.config.headers.Authorization);
         router.push(`/joinRoom/${roomId}`);
       } else {
