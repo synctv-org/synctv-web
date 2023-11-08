@@ -9,7 +9,7 @@ export const roomStore = defineStore("roomStore", () => {
     return userToken.value !== "";
   });
 
-  const userToken = useStorage<string>("userToken", localStorage.userToken as string);
+  const userToken = useStorage<string>("userToken", "");
 
   // 影片列表
   const movies = ref<MovieInfo[]>([]);
