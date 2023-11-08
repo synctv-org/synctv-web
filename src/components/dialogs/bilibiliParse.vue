@@ -73,7 +73,7 @@ const selectItem = (item: BilibiliVideo) => {
 };
 
 const findItem = (item: BilibiliVideo) => {
-  return selectedItems.value.some((i) => JSON.stringify(i) === JSON.stringify(item));
+  return selectedItems.value.find((i) => i.name === item.name);
 };
 
 const removeItem = (item: BilibiliVideo) => {
