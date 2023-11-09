@@ -91,14 +91,13 @@ const geCaptcha = async () => {
           challenge: biliCaptcha.value.challenge,
           offline: false, // 表示用户后台检测极验服务器是否宕机
           new_captcha: true, // 用于宕机时表示是新验证码的宕机
-
-          product: "popup", // 产品形式，包括：float，popup
-          width: "100%",
-          https: true
+          product: "bind" // 产品形式，包括：float，popup
         },
         function captchaHandler(captchaObj: any) {
           (window as any).captchaObj = captchaObj;
-          captchaObj.appendTo("#captcha");
+          captchaObj.onSuccess(async function () {
+            await sendCode();
+          });
         }
       );
     }
@@ -108,15 +107,14 @@ const geCaptcha = async () => {
 };
 
 // 发送手机验证码
-const phone = ref<number>();
+const phone = ref<number>(NaN);
 const SMSTime = ref(60);
 let SMSTimer: number;
 const { state: phoneCode, execute: reqBiliBiliPhoneCode } = getBiliBiliPhoneCode();
 const sendCode = async () => {
   let result = (window as any).captchaObj.getValidate();
   if (!result) return ElMessage.error("请先完成人机验证！");
-  if (!phone.value) return ElMessage.error("请填写手机号！");
-  const geetest_validate = result.geetest_validate;
+  const geetest_validate = (window as any).captchaObj.getValidate().geetest_validate;
   try {
     await reqBiliBiliPhoneCode({
       headers: {
@@ -149,6 +147,11 @@ const sendCode = async () => {
       clearInterval(SMSTimer);
     }
   }, 1000);
+};
+
+const showGeetest = () => {
+  if (!phone.value) return ElMessage.error("请填写手机号！");
+  (window as any).captchaObj.verify();
 };
 
 // 验证手机验证码
@@ -323,19 +326,29 @@ onMounted(async () => {
               placeholder="手机号"
               v-model="phone"
             />
-            <input
-              type="number"
-              class="l-input block w-full m-0 my-[10px]"
-              placeholder="短信验证码"
-              v-model="code"
-            />
+            <div class="l-input w-full m-0 my-[10px] flex justify-between">
+              <input
+                type="number"
+                class="w-full bg-transparent transition-all duration-500 outline-none focus:outline-none"
+                placeholder="短信验证码"
+                v-model="code"
+              />
+              <button class="text-blue-500 w-2/5" @click="showGeetest" v-if="SMSTime === 60">
+                发送验证码
+              </button>
+              <button
+                class="text-blue-500 w-2/5"
+                @click="showGeetest"
+                v-else
+                :disabled="SMSTime > 0"
+              >
+                重新发送 {{ 0 < SMSTime && SMSTime <= 60 ? SMSTime : "" }}
+              </button>
+            </div>
+
             <div class="my-[10px] w-full" id="captcha"></div>
 
             <div class="my-[10px] w-full flex flex-wrap justify-between text-base">
-              <button class="btn px-6" @click="sendCode" v-if="SMSTime === 60">发送验证码</button>
-              <button class="btn px-6" @click="sendCode" v-else :disabled="SMSTime > 0">
-                重新发送 {{ 0 < SMSTime && SMSTime <= 60 ? SMSTime : "" }}
-              </button>
               <button class="btn btn-success px-7 py-2" @click="verifyPhoneCode">登录</button>
             </div>
           </div>
