@@ -7,6 +7,7 @@ import { logOutApi } from "@/services/apis/auth";
 import { userInfo } from "@/services/apis/user";
 import { roomStore } from "@/stores/room";
 import account from "./account/index.vue";
+import { ROLE, role } from "@/types/User";
 
 const user = userStore();
 const room = roomStore();
@@ -112,12 +113,6 @@ onMounted(() => {
                 <col width="100" />
               </colgroup>
               <tbody>
-                <!-- <tr>
-                  <td>ID</td>
-                  <td>
-                    {{ user.info?.id }}
-                  </td>
-                </tr> -->
                 <tr>
                   <td>用户名</td>
                   <td>{{ user.info?.username }}</td>
@@ -125,7 +120,7 @@ onMounted(() => {
                 <tr>
                   <td>权限组</td>
                   <td>
-                    {{ user.info?.role }}
+                    {{ role[user.info?.role ?? 0] }}
                   </td>
                 </tr>
                 <tr>
@@ -134,10 +129,10 @@ onMounted(() => {
                     {{ user.info && new Date(user.info.createdAt).toLocaleString() }}
                   </td>
                 </tr>
-                <tr v-if="user.info?.role === 'admin'">
+                <tr v-if="user.info?.role ?? 0 >= ROLE.Admin">
                   <td>后台管理</td>
                   <td>
-                    <a href="/admin">点击进入</a>
+                    <RouterLink to="/admin">点我进入</RouterLink>
                   </td>
                 </tr>
               </tbody>

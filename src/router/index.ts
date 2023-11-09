@@ -30,12 +30,6 @@ const router = createRouter({
       component: () => import("../views/CreateRoom.vue"),
       meta: { title: "创建房间" }
     },
-    // {
-    //   path: "/joinRoom",
-    //   name: "joinRoom",
-    //   component: () => import("../views/JoinRoom.vue"),
-    //   meta: { title: "加入房间" }
-    // },
     {
       path: "/joinRoom/:roomId?",
       name: "joinRoom",
@@ -65,6 +59,12 @@ const router = createRouter({
       name: "myself",
       component: () => import("../views/user/Info.vue"),
       meta: { title: "个人信息" }
+    },
+    {
+      path: "/admin",
+      name: "admin",
+      component: () => import("../views/admin/index.vue"),
+      meta: { title: "管理后台" }
     }
   ],
   scrollBehavior(to, from, savedPosition) {
