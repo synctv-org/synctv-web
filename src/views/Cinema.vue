@@ -867,7 +867,7 @@ const playerOption = computed(() => {
           </div>
           <el-pagination
             v-else
-            class="max-sm:mb-4"
+            class="max-sm:mb-4 flex-wrap"
             v-model:current-page="currentPage"
             v-model:page-size="pageSize"
             :pager-count="5"

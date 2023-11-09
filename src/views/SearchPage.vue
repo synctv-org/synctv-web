@@ -123,7 +123,7 @@ const getRoomList = async (showMsg = false) => {
         v-model:page-size="pageSize"
         :pager-count="5"
         layout="total, sizes, prev, pager, next, jumper"
-        class="flex flex-wrap"
+        class="flex-wrap"
         :total="totalItems"
         @size-change="getRoomList(false)"
         @current-change="getRoomList(false)"

@@ -122,6 +122,7 @@ onMounted(() => {
         :total="totalItems"
         @size-change="getRoomList(false)"
         @current-change="getRoomList(false)"
+        class="flex-wrap"
       />
     </div>
   </div>
