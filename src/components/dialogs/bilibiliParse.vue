@@ -48,6 +48,7 @@ const openDialog = async () => {
           shared: item.epid ? true : false
         }));
         open.value = true;
+        totalItems.value = biliVideos.value.length;
       }
     } catch (err: any) {
       console.log(err);
@@ -66,6 +67,9 @@ const openDialog = async () => {
   }
 };
 
+const totalItems = ref(0);
+const currentPage = ref(1);
+const pageSize = ref(20);
 const selectedItems = ref<BilibiliVideo[]>([]);
 
 const selectItem = (item: BilibiliVideo) => {
@@ -158,25 +162,41 @@ defineExpose({
       <b>说明：</b>
       当share或proxy勾选时，将会共享创建者的bilibili账号
     </p>
-    <p>
-      <b>快捷操作：</b>
-      <a
-        href="javascript:;"
-        class="mr-3"
-        v-if="selectedItems.length < biliVideos.length"
-        @click="selectAll"
-        >选中所有视频</a
-      >
-      <a href="javascript:;" class="mr-3" v-else @click="removeAll">取消选中所有视频</a>
-      <a href="javascript:;" class="mr-3" v-if="!biliVideos[0].epid" @click="allProxy">
-        所有视频 开启/关闭 proxy
-      </a>
-      <a href="javascript:;" class="mr-3" v-if="!biliVideos[0].epid" @click="allShared"
-        >所有视频 开启/关闭 shared</a
-      >
-    </p>
+    <div class="flex flex-wrap justify-between items-center">
+      <p>
+        <b>快捷操作：</b>
+        <a
+          href="javascript:;"
+          class="mr-3"
+          v-if="selectedItems.length < biliVideos.length"
+          @click="selectAll"
+          >选中所有视频</a
+        >
+        <a href="javascript:;" class="mr-3" v-else @click="removeAll">取消选中所有视频</a>
+        <a href="javascript:;" class="mr-3" v-if="!biliVideos[0].epid" @click="allProxy">
+          所有视频 开启/关闭 proxy
+        </a>
+        <a href="javascript:;" class="mr-3" v-if="!biliVideos[0].epid" @click="allShared"
+          >所有视频 开启/关闭 shared</a
+        >
+      </p>
+      <el-pagination
+        v-if="biliVideos.length != 0"
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :pager-count="4"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="totalItems"
+        class="flex-wrap"
+      />
+    </div>
+
     <el-row :gutter="20">
-      <el-col v-for="(item, i) in biliVideos" :key="i" :md="biliVideos.length === 1 ? 24 : 12">
+      <el-col
+        v-for="(item, i) in biliVideos.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+        :key="i"
+        :md="biliVideos.length === 1 ? 24 : 12"
+      >
         <div class="flex my-2">
           <img :src="item.coverImage" class="w-4/12 mr-3 object-cover rounded-sm" />
           <ul class="">
@@ -208,12 +228,24 @@ defineExpose({
         </div>
       </el-col>
     </el-row>
-    <div class="flex flex-wrap"></div>
     <template #footer>
-      <button class="btn mr-4" @click="open = false">取消</button>
-      <button v-if="selectedItems.length > 0" class="btn btn-success" @click="submit()">
-        添加到列表
-      </button>
+      <div class="flex flex-wrap justify-between items-center">
+        <el-pagination
+          v-if="biliVideos.length != 0"
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :pager-count="5"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="totalItems"
+          class="flex-wrap"
+        />
+        <div>
+          <button class="btn mr-4" @click="open = false">取消</button>
+          <button v-if="selectedItems.length > 0" class="btn btn-success" @click="submit()">
+            添加到列表
+          </button>
+        </div>
+      </div>
     </template>
   </el-dialog>
 </template>
