@@ -809,6 +809,12 @@ const playerOption = computed(() => {
             <div class="overflow-hidden text-ellipsis m-auto p-2 w-7/12">
               <b class="block text-base font-semibold" :title="`ID: ${item.id}`">
                 <el-tag class="mr-1" size="small" v-if="item.base!.live"> 直播流 </el-tag>
+                <BilibiliIcon
+                  v-if="item.base?.vendorInfo?.bilibili"
+                  class="inline leading-3"
+                  width="1rem"
+                  height="1rem"
+                />
                 {{ item.base!.name }}
                 <button
                   v-if="item.base!.rtmpSource"
