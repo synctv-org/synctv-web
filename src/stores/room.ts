@@ -2,14 +2,14 @@ import { ref, computed } from "vue";
 import { defineStore } from "pinia";
 import { useStorage } from "@vueuse/core";
 import type { MovieInfo, Status } from "@/proto/message";
+import { userStore } from "@/stores/user";
+const { token: userToken } = userStore();
 export const roomStore = defineStore("roomStore", () => {
   const isDarkMode = useStorage<boolean>("isDarkMode", localStorage.isDarkMode === "true");
 
   const login = computed(() => {
     return userToken.value !== "";
   });
-
-  const userToken = useStorage<string>("userToken", "");
 
   // 影片列表
   const movies = ref<MovieInfo[]>([]);
@@ -57,7 +57,6 @@ export const roomStore = defineStore("roomStore", () => {
     play,
     danmuku,
     peopleNum,
-    login,
-    userToken
+    login
   };
 });

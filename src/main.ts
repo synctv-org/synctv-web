@@ -8,6 +8,7 @@ import { createPinia } from "pinia";
 
 import App from "./App.vue";
 import router from "./router";
+import { userStore } from "@/stores/user";
 
 import SunIcon from "./components/icons/Sun.vue";
 import MoonIcon from "./components/icons/Moon.vue";
@@ -26,7 +27,19 @@ app
   .component("TrashIcon", TrashIcon)
   .component("PersonIcon", PersonIcon)
   .component("BilibiliIcon", BilibiliIcon);
-app.use(createPinia());
-app.use(router);
 
-app.mount("#app");
+const { getUserInfo, token } = userStore();
+
+const initApp = async () => {
+  try {
+    token.value && (await getUserInfo());
+  } catch (err: any) {
+    console.error(err);
+  } finally {
+    app.use(createPinia());
+    app.use(router);
+    app.mount("#app");
+  }
+};
+
+initApp();

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { RouterLink } from "vue-router";
-import { roomStore } from "@/stores/room";
+import { userStore } from "@/stores/user";
 import DarkModeSwitcher from "@/components/DarkModeSwitcher.vue";
 import router from "@/router";
 const mobileMenu = ref(false);
 
-const room = roomStore();
+const { isLogin } = userStore();
 
 const menuLinks = computed(() => {
   const basicLinks = [
@@ -30,7 +30,7 @@ const menuLinks = computed(() => {
     }
   ];
 
-  if (room.login) {
+  if (isLogin.value) {
     const loginLinks = [
       {
         name: "加入房间",
@@ -94,7 +94,7 @@ const toUserInfo = () => {
       </div>
       <div class="hidden lg:flex lg:flex-1 lg:justify-end">
         <DarkModeSwitcher />
-        <PersonIcon v-if="room.login" class="ml-4 cursor-pointer" @click="toUserInfo" />
+        <PersonIcon v-if="isLogin" class="ml-4 cursor-pointer" @click="toUserInfo" />
       </div>
     </nav>
 

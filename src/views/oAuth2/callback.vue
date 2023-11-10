@@ -2,17 +2,17 @@
 import { ref, onMounted } from "vue";
 import { useRouteQuery, useRouteParams } from "@vueuse/router";
 import { ElNotification, ElMessage } from "element-plus";
-import { roomStore } from "@/stores/room";
+import { userStore } from "@/stores/user";
 import router from "@/router/index";
 import { oAuth2Callback } from "@/services/apis/auth";
 import { userInfo } from "@/services/apis/user";
 
-const room = roomStore();
+const { getUserInfo: updateUserInfo, updateToken } = userStore();
 
 const code = useRouteQuery("code");
 const state = useRouteQuery("state");
 const platform = useRouteParams("platform");
-const { state: userToken, execute } = oAuth2Callback();
+const { state: loginUserInfo, execute } = oAuth2Callback();
 const isLoading = ref(true);
 const redirect = async () => {
   try {
@@ -24,8 +24,8 @@ const redirect = async () => {
       url: "/oauth2/callback/" + platform.value
     });
 
-    if (userToken.value) {
-      room.userToken = userToken.value.token;
+    if (loginUserInfo.value) {
+      updateToken(loginUserInfo.value.token);
       await getUserInfo();
     }
   } catch (err: any) {
@@ -39,14 +39,14 @@ const redirect = async () => {
 };
 
 const getUserInfo = async () => {
-  const { state, execute } = userInfo();
   try {
-    await execute({
+    const state = await userInfo().execute({
       headers: {
-        Authorization: room.userToken
+        Authorization: loginUserInfo.value?.token ?? ""
       }
     });
     if (state.value) {
+      updateUserInfo(state.value);
       isLoading.value = false;
       localStorage.setItem("uname", state.value.username);
       ElNotification({

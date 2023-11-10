@@ -6,6 +6,7 @@ export interface BaseUserInfo {
 }
 
 export enum ROLE {
+  Visitor = -1,
   Unknown = 0,
   Banned = 1,
   Pending = 2,
@@ -15,6 +16,7 @@ export enum ROLE {
 }
 
 export const role = {
+  [ROLE.Visitor]: "Visitor",
   [ROLE.Unknown]: "Unknown",
   [ROLE.Banned]: "Banned",
   [ROLE.Pending]: "Pending",

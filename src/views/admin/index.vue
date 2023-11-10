@@ -1,37 +1,15 @@
 <script setup lang="ts">
 import { ref, watch, shallowRef, type Component, onMounted } from "vue";
-import { useResizeObserver } from "@vueuse/core";
 import { userStore } from "@/stores/user";
 import { ElNotification } from "element-plus";
-import { userInfo } from "@/services/apis/user";
 import { roomStore } from "@/stores/room";
 import { useScreen } from "@/hooks/useScreen";
+
 import UserManager from "./settings/UserManager.vue";
 
-const user = userStore();
+const { info: userInfo } = userStore();
 const room = roomStore();
 const { isPhone } = useScreen();
-
-const getUserInfo = async () => {
-  const { state, execute } = userInfo();
-  try {
-    await execute({
-      headers: {
-        Authorization: room.userToken
-      }
-    });
-    if (state.value) {
-      user.info = state.value;
-    }
-  } catch (err: any) {
-    console.error(err);
-    ElNotification({
-      title: "错误",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
-};
 
 interface Tabs {
   name: string;
@@ -70,8 +48,6 @@ const menuToggle = () => {
 };
 
 onMounted(() => {
-  getUserInfo();
-
   watch(
     () => isPhone.value,
     () => {

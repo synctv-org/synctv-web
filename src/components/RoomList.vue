@@ -5,13 +5,13 @@ import { roomListApi } from "@/services/apis/room";
 import { myRoomList } from "@/services/apis/user";
 import type { RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
-import { roomStore } from "@/stores/room";
+import { userStore } from "@/stores/user";
 
 const props = defineProps<{
   isMyRoom: boolean;
 }>();
 
-const room = roomStore();
+const { token, isLogin } = userStore();
 const __roomList = ref<RoomList[]>([]);
 const JoinRoomDialog = ref(false);
 const formData = ref<{
@@ -23,7 +23,7 @@ const formData = ref<{
 });
 
 const openJoinRoomDialog = (item: RoomList) => {
-  if (!room.login)
+  if (!isLogin.value)
     return ElNotification({
       title: "错误",
       message: "请先登录",
@@ -54,7 +54,7 @@ const getRoomList = async (showMsg = false) => {
           keyword: ""
         },
         headers: {
-          Authorization: room.userToken
+          Authorization: token.value
         }
       });
     } else {

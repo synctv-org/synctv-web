@@ -4,37 +4,12 @@ import RoomList from "@/components/RoomList.vue";
 import { userStore } from "@/stores/user";
 import { ElNotification } from "element-plus";
 import { logOutApi } from "@/services/apis/auth";
-import { userInfo } from "@/services/apis/user";
-import { roomStore } from "@/stores/room";
 import account from "./account/index.vue";
 import { ROLE, role } from "@/types/User";
 
-const user = userStore();
-const room = roomStore();
-
-const getUserInfo = async () => {
-  const { state, execute } = userInfo();
-  try {
-    await execute({
-      headers: {
-        Authorization: room.userToken
-      }
-    });
-    if (state.value) {
-      user.info = state.value;
-    }
-  } catch (err: any) {
-    console.error(err);
-    ElNotification({
-      title: "错误",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
-};
+const { info, token } = userStore();
 
 const logout = async () => {
-  room.userToken = "";
   localStorage.clear();
   ElNotification({
     title: "登出成功",
@@ -48,11 +23,10 @@ const logoff = async () => {
   try {
     await execute({
       headers: {
-        Authorization: room.userToken
+        Authorization: token.value
       }
     });
     if (state.value) {
-      room.userToken = "";
       localStorage.clear();
       ElNotification({
         title: "注销成功",
@@ -95,9 +69,7 @@ const switchTab = (tab: Tabs) => {
   activeTab.value = tab;
 };
 
-onMounted(() => {
-  getUserInfo();
-});
+onMounted(() => {});
 </script>
 
 <template>
@@ -115,21 +87,21 @@ onMounted(() => {
               <tbody>
                 <tr>
                   <td>用户名</td>
-                  <td>{{ user.info?.username }}</td>
+                  <td>{{ info?.username }}</td>
                 </tr>
                 <tr>
                   <td>权限组</td>
                   <td>
-                    {{ role[user.info?.role ?? 0] }}
+                    {{ role[info?.role ?? 0] }}
                   </td>
                 </tr>
                 <tr>
                   <td>注册时间</td>
                   <td>
-                    {{ user.info && new Date(user.info.createdAt).toLocaleString() }}
+                    {{ info && new Date(info.createdAt).toLocaleString() }}
                   </td>
                 </tr>
-                <tr v-if="user.info?.role ?? 0 >= ROLE.Admin">
+                <tr v-if="info!.role! >= ROLE.Admin">
                   <td>后台管理</td>
                   <td>
                     <RouterLink to="/admin">点我进入</RouterLink>
