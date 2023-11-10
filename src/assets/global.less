@@ -201,6 +201,22 @@ a {
   }
 }
 
+.menu-item {
+  @apply bg-white px-4 py-2 rounded-lg my-3 first:mt-0 last:mb-0 transition-all duration-500 dark:bg-zinc-700;
+}
+
+.menu-item-active {
+  @apply bg-sky-400 text-white shadow-md shadow-sky-200 dark:bg-purple-600 dark:shadow-purple-500;
+}
+
+.menu-toggle {
+  @apply hidden absolute bg-pink-500 shadow-md shadow-pink-200 rounded-r-md w-2 h-20 z-50 left-0 top-1/2 bottom-1/2 transition-all duration-300 dark:shadow-pink-600;
+
+  &:hover {
+    @apply w-4 bg-purple-400 shadow-purple-200 dark:shadow-purple-600;
+  }
+}
+
 @media (max-width: 640px) {
   .el-main {
     padding: 0 !important;
@@ -218,5 +234,20 @@ a {
 
   .art-control-fullscreenWeb {
     display: none !important;
+  }
+
+  .menu-drawer {
+    position: absolute !important;
+    // background-color: rgba(0, 0, 0, 0.5);
+    width: 85vw !important;
+    @apply shadow-2xl h-full;
+
+    .card {
+      @apply h-full;
+    }
+  }
+
+  .menu-toggle {
+    @apply block;
   }
 }

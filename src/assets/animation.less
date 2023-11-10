@@ -23,3 +23,18 @@
 .slide-to-bottom-leave-active {
   transition: all 0.6s ease;
 }
+
+.slide-to-left-enter-from,
+.slide-to-left-leave-to {
+  transform: translateX(-100%);
+}
+
+.slide-to-left-enter-to,
+.slide-to-left-leave-from {
+  transform: translateX(0%);
+}
+
+.slide-to-left-enter-active,
+.slide-to-left-leave-active {
+  transition: all 0.3s ease;
+}
