@@ -93,15 +93,19 @@ const removeAll = () => {
   selectedItems.value = [];
 };
 
+const isAllProxy = ref(false);
 const allProxy = () => {
+  isAllProxy.value = !isAllProxy.value;
   for (const item of biliVideos.value) {
-    item.proxy = !item.proxy;
+    item.proxy = isAllProxy.value;
   }
 };
 
+const isAllShared = ref(false);
 const allShared = () => {
+  isAllShared.value = !isAllShared.value;
   for (const item of biliVideos.value) {
-    item.shared = !item.shared;
+    item.shared = isAllShared.value;
   }
 };
 
@@ -172,7 +176,7 @@ defineExpose({
           >选中所有视频</a
         >
         <a href="javascript:;" class="mr-3" v-else @click="removeAll">取消选中所有视频</a>
-        <a href="javascript:;" class="mr-3" v-if="!biliVideos[0].epid" @click="allProxy">
+        <a href="javascript:;" class="mr-3" v-if="!biliVideos[0].epid" @click="allProxy()">
           所有视频 开启/关闭 proxy
         </a>
         <a href="javascript:;" class="mr-3" v-if="!biliVideos[0].epid" @click="allShared"
