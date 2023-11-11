@@ -4,10 +4,9 @@ import { ElNotification } from "element-plus";
 import { BaseMovieInfo, VendorInfo, BilibiliVendorInfo } from "@/proto/message";
 import { strLengthLimit } from "@/utils/utils";
 import { pushMovieApi } from "@/services/apis/movie";
+import { getBiliBiliVendors as biliBiliVendors } from "@/services/apis/vendor";
 import customHeaders from "@/components/dialogs/customHeaders.vue";
 import bilibiliParse from "@/components/dialogs/bilibiliParse.vue";
-import { useRouteParams } from "@vueuse/router";
-import { roomStore } from "@/stores/room";
 
 const Emits = defineEmits(["getMovies"]);
 
@@ -236,7 +235,32 @@ const pushMovie = async () => {
   }
 };
 
-onMounted(() => {});
+// 获取可用的bilibili解析接口
+const { state: biliVendors, execute: reqBiliBiliVendors } = biliBiliVendors();
+const biliVendor = ref<string>("");
+const getBiliBiliVendors = async () => {
+  try {
+    await reqBiliBiliVendors({
+      headers: {
+        Authorization: Props.token
+      }
+    });
+    if (biliVendors.value) {
+      biliVendors.value.push("");
+    }
+  } catch (err: any) {
+    console.log(err);
+    ElNotification({
+      title: "获取可用接口错误",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+onMounted(async () => {
+  await getBiliBiliVendors();
+});
 </script>
 
 <template>
@@ -317,13 +341,18 @@ onMounted(() => {});
     </div>
 
     <div class="card-footer pt-3">
-      <button
-        class="btn btn-warning"
-        @click="biliParse()"
+      <div
         v-if="newMovieInfo.vendorInfo?.vendor === 'bilibili'"
+        class="flex flex-wrap justify-between w-full"
       >
-        解析
-      </button>
+        <select v-model="biliVendor" class="bg-transparent p-0 text-base">
+          <option v-for="item in biliVendors" :value="item">
+            {{ item === "" ? "默认" : item }}
+          </option>
+        </select>
+        <button class="btn btn-warning" @click="biliParse()">解析</button>
+      </div>
+
       <button v-else class="btn" @click="pushMovie()">添加到列表</button>
     </div>
   </div>
@@ -336,7 +365,12 @@ onMounted(() => {});
   />
 
   <!-- B站视频解析对话框 -->
-  <bilibiliParse ref="bilibiliParseDialog" :newMovieInfo="newMovieInfo" :token="token" />
+  <bilibiliParse
+    ref="bilibiliParseDialog"
+    :newMovieInfo="newMovieInfo"
+    :token="token"
+    :vendor="biliVendor"
+  />
 </template>
 
 <style lang="less" scoped>

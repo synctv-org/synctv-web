@@ -73,12 +73,26 @@ export const veriBiliBiliPhoneCode = useDefineApi<
   method: "POST"
 });
 
+// 获取可用的解析接口
+export const getBiliBiliVendors = useDefineApi<
+  {
+    headers: { Authorization: string };
+  },
+  string[]
+>({
+  url: "/api/vendor/bilibili/vendors",
+  method: "GET"
+});
+
 // 解析 哔哩哔哩 视频
 export const parseBiliBiliVideo = useDefineApi<
   {
     headers: { Authorization: string };
     data: {
       url: string;
+    };
+    params?: {
+      vendor: string;
     };
   },
   {

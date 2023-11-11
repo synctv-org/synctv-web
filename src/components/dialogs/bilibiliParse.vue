@@ -9,6 +9,7 @@ import { userStore } from "@/stores/user";
 const Props = defineProps<{
   newMovieInfo: BaseMovieInfo;
   token: string;
+  vendor: string;
 }>();
 
 interface BilibiliVideo {
@@ -34,6 +35,9 @@ const openDialog = async () => {
         headers: { Authorization: userToken.value },
         data: {
           url: Props.newMovieInfo.url
+        },
+        params: {
+          vendor: Props.vendor
         }
       });
       if (state.value) {
@@ -125,7 +129,8 @@ const submit = async () => {
             bilibili: BilibiliVendorInfo.create({
               bvid: item.bvid,
               cid: item.cid,
-              epid: item.epid
+              epid: item.epid,
+              vendorName: Props.vendor
             })
           })
         })
