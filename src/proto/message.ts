@@ -148,6 +148,7 @@ export interface BilibiliVendorInfo {
   cid: number;
   epid: number;
   quality: number;
+  vendorName: string;
 }
 
 export interface ElementMessage {
@@ -794,7 +795,7 @@ export const VendorInfo = {
 };
 
 function createBaseBilibiliVendorInfo(): BilibiliVendorInfo {
-  return { bvid: "", cid: 0, epid: 0, quality: 0 };
+  return { bvid: "", cid: 0, epid: 0, quality: 0, vendorName: "" };
 }
 
 export const BilibiliVendorInfo = {
@@ -809,7 +810,10 @@ export const BilibiliVendorInfo = {
       writer.uint32(24).uint64(message.epid);
     }
     if (message.quality !== 0) {
-      writer.uint32(32).uint32(message.quality);
+      writer.uint32(32).uint64(message.quality);
+    }
+    if (message.vendorName !== "") {
+      writer.uint32(42).string(message.vendorName);
     }
     return writer;
   },
@@ -847,7 +851,14 @@ export const BilibiliVendorInfo = {
             break;
           }
 
-          message.quality = reader.uint32();
+          message.quality = longToNumber(reader.uint64() as Long);
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.vendorName = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -864,6 +875,7 @@ export const BilibiliVendorInfo = {
       cid: isSet(object.cid) ? globalThis.Number(object.cid) : 0,
       epid: isSet(object.epid) ? globalThis.Number(object.epid) : 0,
       quality: isSet(object.quality) ? globalThis.Number(object.quality) : 0,
+      vendorName: isSet(object.vendorName) ? globalThis.String(object.vendorName) : "",
     };
   },
 
@@ -881,6 +893,9 @@ export const BilibiliVendorInfo = {
     if (message.quality !== 0) {
       obj.quality = Math.round(message.quality);
     }
+    if (message.vendorName !== "") {
+      obj.vendorName = message.vendorName;
+    }
     return obj;
   },
 
@@ -893,6 +908,7 @@ export const BilibiliVendorInfo = {
     message.cid = object.cid ?? 0;
     message.epid = object.epid ?? 0;
     message.quality = object.quality ?? 0;
+    message.vendorName = object.vendorName ?? "";
     return message;
   },
 };
