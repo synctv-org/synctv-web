@@ -4,7 +4,7 @@ import { ElNotification, ElMessage } from "element-plus";
 import router from "@/router/index";
 import { createRoomApi } from "@/services/apis/room";
 import { strLengthLimit } from "@/utils/utils";
-import { roomStore } from "@/stores/room";
+import { userStore } from "@/stores/user";
 
 const { state: createRoomInfo, execute: reqCreateRoomApi } = createRoomApi();
 
@@ -16,7 +16,7 @@ const formData = ref({
   }
 });
 
-const room = roomStore();
+const { token } = userStore();
 
 const operateRoom = async () => {
   if (formData.value?.roomName === "") {
@@ -34,7 +34,7 @@ const operateRoom = async () => {
     await reqCreateRoomApi({
       data: formData.value,
       headers: {
-        Authorization: room.userToken
+        Authorization: token.value
       }
     });
     if (!createRoomInfo.value)

@@ -4,8 +4,7 @@ import { ElNotification, ElMessage } from "element-plus";
 import { BaseMovieInfo, BilibiliVendorInfo, VendorInfo } from "@/proto/message";
 import { parseBiliBiliVideo } from "@/services/apis/vendor";
 import { pushMoviesApi } from "@/services/apis/movie";
-import { useRouteParams } from "@vueuse/router";
-import { roomStore } from "@/stores/room";
+import { userStore } from "@/stores/user";
 
 const Props = defineProps<{
   newMovieInfo: BaseMovieInfo;
@@ -23,16 +22,16 @@ interface BilibiliVideo {
 }
 
 // 获取房间信息
-const { userToken } = roomStore();
+const { token: userToken } = userStore();
 const biliVideos = ref<BilibiliVideo[]>([]);
 const open = ref(false);
 const { state, execute } = parseBiliBiliVideo();
 const openDialog = async () => {
   if (Props.newMovieInfo.url) {
     try {
-      ElMessage.info("正在解析中，成功将会弹窗显示");
+      ElMessage.info("正在解析中，成功后将会弹窗显示");
       await execute({
-        headers: { Authorization: userToken },
+        headers: { Authorization: userToken.value },
         data: {
           url: Props.newMovieInfo.url
         }

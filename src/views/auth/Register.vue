@@ -2,10 +2,12 @@
 import { ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import { roomStore } from "@/stores/room";
+import { userStore } from "@/stores/user";
 import router from "@/router/index";
 import { RegisterApi } from "@/services/apis/auth";
 import { strLengthLimit } from "@/utils/utils";
 const room = roomStore();
+const { updateToken } = userStore();
 
 const { state: userToken, execute: reqRegisterApi } = RegisterApi();
 
@@ -37,7 +39,7 @@ const register = async () => {
         message: "服务器并未返回token",
         type: "error"
       });
-    room.userToken = userToken.value.token;
+    updateToken(userToken.value.token);
     ElNotification({
       title: "注册成功",
       type: "success"

@@ -11,9 +11,11 @@ import {
 } from "@/services/apis/vendor";
 import QRCodeVue3 from "qrcode-vue3";
 import { roomStore } from "@/stores/room";
+import { userStore } from "@/stores/user";
 import { ElMessage, ElNotification } from "element-plus";
 
 const room = roomStore();
+const { token: userToken } = userStore();
 
 const loginDialog = ref(false);
 const infoDialog = ref(false);
@@ -30,7 +32,7 @@ const useBilibiliLogin = async () => {
   try {
     await reqQRCode({
       headers: {
-        Authorization: room.userToken
+        Authorization: userToken.value
       }
     });
     verifyQRCode();
@@ -47,7 +49,7 @@ const verifyQRCode = () => {
     try {
       await reqVeriBiliBiliQRCode({
         headers: {
-          Authorization: room.userToken
+          Authorization: userToken.value
         },
         data: {
           key: biliQRCode.value?.key
@@ -77,7 +79,7 @@ const geCaptcha = async () => {
   try {
     await reqBiliBiliCaptcha({
       headers: {
-        Authorization: room.userToken
+        Authorization: userToken.value
       }
     });
     if (biliCaptcha.value) {
@@ -118,7 +120,7 @@ const sendCode = async () => {
   try {
     await reqBiliBiliPhoneCode({
       headers: {
-        Authorization: room.userToken
+        Authorization: userToken.value
       },
       data: {
         token: biliCaptcha.value!.token,
@@ -164,7 +166,7 @@ const verifyPhoneCode = async () => {
   try {
     await execute({
       headers: {
-        Authorization: room.userToken
+        Authorization: userToken.value
       },
       data: {
         telephone: phone.value.toString(),
@@ -189,7 +191,7 @@ const getAccountInfo = async () => {
   try {
     await reqAccountInfo({
       headers: {
-        Authorization: room.userToken
+        Authorization: userToken.value
       }
     });
   } catch (err: any) {
@@ -212,7 +214,7 @@ const biliLogout = async () => {
   try {
     await execute({
       headers: {
-        Authorization: room.userToken
+        Authorization: userToken.value
       }
     });
     ElNotification({
