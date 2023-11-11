@@ -793,7 +793,7 @@ const playerOption = computed(() => {
     <!-- 影片列表 -->
     <el-col :lg="12" :md="16" :sm="15" :xs="24" class="mb-6 max-sm:mb-2">
       <div class="card">
-        <div class="card-title">影片列表（{{ room.movies.length }}）</div>
+        <div class="card-title">影片列表（{{ room.totalMovies }}）</div>
 
         <div class="card-body">
           <el-skeleton v-if="movieListLoading" :rows="1" animated />
