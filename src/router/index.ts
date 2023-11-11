@@ -67,6 +67,18 @@ const router = createRouter({
       name: "admin",
       component: () => import("../views/admin/index.vue"),
       meta: { title: "管理后台", permission: ROLE.Admin }
+    },
+    {
+      path: "/403",
+      name: "403",
+      component: () => import("../views/error/403.vue"),
+      meta: { title: "Forbidden", permission: ROLE.Visitor }
+    },
+    {
+      path: "/:pathMatch(.*)*",
+      name: "404",
+      component: () => import("../views/error/404.vue"),
+      meta: { title: "404 Not Found", permission: ROLE.Visitor }
     }
   ],
   scrollBehavior(to, from, savedPosition) {
@@ -84,7 +96,7 @@ router.beforeEach((to: any, from: any, next) => {
     window.document.title = Base_Title + " - " + to.meta.title;
     next();
   } else {
-    next("/");
+    next("/403");
   }
 });
 
