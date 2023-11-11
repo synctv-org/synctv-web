@@ -184,7 +184,7 @@ defineExpose({
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         :pager-count="4"
-        layout="total, sizes, prev, pager, next, jumper"
+        layout="sizes, prev, pager, next, jumper"
         :total="totalItems"
         class="flex-wrap"
       />
@@ -234,7 +234,7 @@ defineExpose({
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
           :pager-count="5"
-          layout="total, sizes, prev, pager, next, jumper"
+          layout="sizes, prev, pager, next, jumper"
           :total="totalItems"
           class="flex-wrap"
         />
