@@ -79,3 +79,19 @@ export const banUserApi = useDefineApi<
   url: "/api/admin/user/ban",
   method: "POST"
 });
+
+// 解封用户
+export const unBanUserApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/admin/user/unban",
+  method: "POST"
+});

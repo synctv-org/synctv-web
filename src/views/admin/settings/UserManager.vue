@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import { userStore } from "@/stores/user";
-import { userListApi, banUserApi } from "@/services/apis/admin";
+import { userListApi, banUserApi, unBanUserApi } from "@/services/apis/admin";
 import { ROLE, role } from "@/types/User";
 
 const props = defineProps<{
@@ -48,6 +48,7 @@ const getUserListApi = async () => {
   }
 };
 
+// 封禁用户
 const banUser = async (id: string) => {
   const { execute } = banUserApi();
   try {
@@ -67,7 +68,34 @@ const banUser = async (id: string) => {
   } catch (err: any) {
     console.error(err);
     ElNotification({
-      title: "获取用户列表失败",
+      title: "错误",
+      type: "error",
+      message: err.response.data.error || err.message
+    });
+  }
+};
+
+// 解封用户
+const unBanUser = async (id: string) => {
+  const { execute } = unBanUserApi();
+  try {
+    await execute({
+      headers: {
+        Authorization: token.value
+      },
+      data: {
+        id: id
+      }
+    });
+    ElNotification({
+      title: "解封成功",
+      type: "success"
+    });
+    await getUserListApi();
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "错误",
       type: "error",
       message: err.response.data.error || err.message
     });
@@ -109,7 +137,7 @@ onMounted(async () => {
                   >
                     封禁
                   </el-dropdown-item>
-                  <el-dropdown-item v-else command="b">解封</el-dropdown-item>
+                  <el-dropdown-item v-else @click="unBanUser(scope.row.id)">解封</el-dropdown-item>
                   <el-dropdown-item command="c">设为管理</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
