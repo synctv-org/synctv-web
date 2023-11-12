@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import { userStore } from "@/stores/user";
-import { userListApi } from "@/services/apis/admin";
+import { userListApi, banUserApi } from "@/services/apis/admin";
 import { ROLE, role } from "@/types/User";
 
 const props = defineProps<{
@@ -15,7 +15,7 @@ const { token } = userStore();
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
-const order = ref("name");
+const order = ref("createdAt");
 const sort = ref("desc");
 const { state, execute: reqUserListApi } = userListApi();
 const getUserListApi = async () => {
@@ -38,6 +38,32 @@ const getUserListApi = async () => {
     if (state.value) {
       totalItems.value = state.value.total;
     }
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "获取用户列表失败",
+      type: "error",
+      message: err.response.data.error || err.message
+    });
+  }
+};
+
+const banUser = async (id: string) => {
+  const { execute } = banUserApi();
+  try {
+    await execute({
+      headers: {
+        Authorization: token.value
+      },
+      data: {
+        id: id
+      }
+    });
+    ElNotification({
+      title: "封禁成功",
+      type: "success"
+    });
+    await getUserListApi();
   } catch (err: any) {
     console.error(err);
     ElNotification({
@@ -71,10 +97,23 @@ onMounted(async () => {
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作">
-          <template #default>
-            <el-button link type="primary">[封禁]</el-button>
-            <el-button link type="primary">[解封]</el-button>
-            <el-button link type="primary">[设为管理]</el-button>
+          <template #default="scope">
+            <button class="btn btn-dense mr-2" href="javascript:;">详情</button>
+            <el-dropdown>
+              <button class="btn btn-dense btn-warning" href="javascript:;">操作</button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    v-if="scope.row.role !== ROLE.Banned"
+                    @click="banUser(scope.row.id)"
+                  >
+                    封禁
+                  </el-dropdown-item>
+                  <el-dropdown-item v-else command="b">解封</el-dropdown-item>
+                  <el-dropdown-item command="c">设为管理</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>

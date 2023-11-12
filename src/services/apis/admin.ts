@@ -61,5 +61,21 @@ export const userListApi = useDefineApi<
     total: number;
   }
 >({
-  url: "/api/admin/users"
+  url: "/api/admin/user/list"
+});
+
+// 封禁用户
+export const banUserApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/admin/user/ban",
+  method: "POST"
 });
