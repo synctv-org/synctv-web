@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import { userStore } from "@/stores/user";
-import { addAdmin as addAdminApi } from "@/services/apis/admin";
+import { addAdminApi } from "@/services/apis/admin";
 
 const props = defineProps<{
   title: string;

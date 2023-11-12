@@ -19,7 +19,7 @@ export const roomSettings = useDefineApi<
 });
 
 // 添加管理员
-export const addAdmin = useDefineApi<
+export const addAdminApi = useDefineApi<
   {
     headers: {
       Authorization: string;
@@ -32,4 +32,34 @@ export const addAdmin = useDefineApi<
 >({
   url: "/api/admin/admin/add",
   method: "POST"
+});
+
+// 获取用户列表
+export const userListApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    params: {
+      page: number;
+      max: number;
+      sort: string;
+      order: string;
+
+      role: string;
+      search: string;
+      keyword: string;
+    };
+  },
+  {
+    list: {
+      id: string;
+      username: string;
+      role: number;
+      createdAt: number;
+    }[];
+    total: number;
+  }
+>({
+  url: "/api/admin/users"
 });
