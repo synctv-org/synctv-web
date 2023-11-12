@@ -129,6 +129,9 @@ const setAdmin = async (id: string) => {
   }
 };
 
+// 取消管理身份
+const unsetAdmin = async (id: string) => {};
+
 onMounted(async () => {
   await getUserListApi();
 });
@@ -169,6 +172,9 @@ onMounted(async () => {
                     v-if="scope.row.role < ROLE.Admin"
                     @click="setAdmin(scope.row.id)"
                     >设为管理</el-dropdown-item
+                  >
+                  <el-dropdown-item v-else @click="unsetAdmin(scope.row.id)"
+                    >取消管理身份</el-dropdown-item
                   >
                 </el-dropdown-menu>
               </template>

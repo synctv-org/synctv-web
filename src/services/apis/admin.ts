@@ -34,6 +34,8 @@ export const addAdminApi = useDefineApi<
   method: "POST"
 });
 
+// TODO: 取消管理员身份
+
 // 获取用户列表
 export const userListApi = useDefineApi<
   {
