@@ -4,8 +4,10 @@ import { userStore } from "@/stores/user";
 import { ElNotification } from "element-plus";
 import { roomStore } from "@/stores/room";
 import { useScreen } from "@/hooks/useScreen";
+import { ROLE } from "@/types/User";
 
 import UserManager from "./settings/UserManager.vue";
+import AdminManager from "./settings/AdminManager.vue";
 
 const { info: userInfo } = userStore();
 const room = roomStore();
@@ -26,7 +28,7 @@ const tabs: Tabs[] = [
   {
     name: "管理员设置",
     icon: "👮‍",
-    component: UserManager
+    component: AdminManager
   }
 ];
 
@@ -79,8 +81,20 @@ onMounted(() => {
       </div>
     </transition>
 
-    <div class="w-full">
+    <div class="w-full right-content">
       <component :is="activeTab.component" :title="activeTab.name" />
     </div>
   </div>
 </template>
+
+<style lang="less" scoped>
+.right-content {
+  max-width: calc(100% - 20rem);
+}
+
+@media (max-width: 768px) {
+  .right-content {
+    max-width: 100%;
+  }
+}
+</style>
