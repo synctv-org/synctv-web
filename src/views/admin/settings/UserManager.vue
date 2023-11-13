@@ -2,7 +2,13 @@
 import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import { userStore } from "@/stores/user";
-import { userListApi, banUserApi, unBanUserApi, addAdminApi } from "@/services/apis/admin";
+import {
+  userListApi,
+  banUserApi,
+  unBanUserApi,
+  addAdminApi,
+  delAdminApi
+} from "@/services/apis/admin";
 import { ROLE, role } from "@/types/User";
 
 const props = defineProps<{
@@ -102,18 +108,18 @@ const unBanUser = async (id: string) => {
   }
 };
 
-// 设为管理
-const setAdmin = async (id: string) => {
-  const { execute } = addAdminApi();
+// 设管理
+const setAdmin = async (id: string, is: boolean) => {
   try {
-    await execute({
+    const config = {
       headers: {
         Authorization: token.value
       },
       data: {
         id: id
       }
-    });
+    };
+    is ? await addAdminApi().execute(config) : await delAdminApi().execute(config);
     ElNotification({
       title: "设置成功",
       type: "success"
@@ -128,9 +134,6 @@ const setAdmin = async (id: string) => {
     });
   }
 };
-
-// 取消管理身份
-const unsetAdmin = async (id: string) => {};
 
 onMounted(async () => {
   await getUserListApi();
@@ -170,10 +173,10 @@ onMounted(async () => {
                   <el-dropdown-item v-else @click="unBanUser(scope.row.id)">解封</el-dropdown-item>
                   <el-dropdown-item
                     v-if="scope.row.role < ROLE.Admin"
-                    @click="setAdmin(scope.row.id)"
+                    @click="setAdmin(scope.row.id, true)"
                     >设为管理</el-dropdown-item
                   >
-                  <el-dropdown-item v-else @click="unsetAdmin(scope.row.id)"
+                  <el-dropdown-item v-else @click="setAdmin(scope.row.id, false)"
                     >取消管理身份</el-dropdown-item
                   >
                 </el-dropdown-menu>
