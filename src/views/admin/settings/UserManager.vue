@@ -54,47 +54,20 @@ const getUserListApi = async () => {
   }
 };
 
-// 封禁用户
-const banUser = async (id: string) => {
-  const { execute } = banUserApi();
+// 封禁 / 解封 用户
+const banUser = async (id: string, is: boolean) => {
   try {
-    await execute({
+    const config = {
       headers: {
         Authorization: token.value
       },
       data: {
         id: id
       }
-    });
+    };
+    is ? await banUserApi().execute(config) : await unBanUserApi().execute(config);
     ElNotification({
-      title: "封禁成功",
-      type: "success"
-    });
-    await getUserListApi();
-  } catch (err: any) {
-    console.error(err);
-    ElNotification({
-      title: "错误",
-      type: "error",
-      message: err.response.data.error || err.message
-    });
-  }
-};
-
-// 解封用户
-const unBanUser = async (id: string) => {
-  const { execute } = unBanUserApi();
-  try {
-    await execute({
-      headers: {
-        Authorization: token.value
-      },
-      data: {
-        id: id
-      }
-    });
-    ElNotification({
-      title: "解封成功",
+      title: `${is ? "封禁" : "解封"}成功`,
       type: "success"
     });
     await getUserListApi();
@@ -166,11 +139,13 @@ onMounted(async () => {
                 <el-dropdown-menu>
                   <el-dropdown-item
                     v-if="scope.row.role !== ROLE.Banned"
-                    @click="banUser(scope.row.id)"
+                    @click="banUser(scope.row.id, true)"
                   >
                     封禁
                   </el-dropdown-item>
-                  <el-dropdown-item v-else @click="unBanUser(scope.row.id)">解封</el-dropdown-item>
+                  <el-dropdown-item v-else @click="banUser(scope.row.id, false)"
+                    >解封</el-dropdown-item
+                  >
                   <el-dropdown-item
                     v-if="scope.row.role < ROLE.Admin"
                     @click="setAdmin(scope.row.id, true)"
