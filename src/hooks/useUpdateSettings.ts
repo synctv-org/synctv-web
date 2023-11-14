@@ -7,13 +7,15 @@ const { token } = userStore();
 export const useUpdateSettings = () => {
   const { state, isLoading, execute } = updateSettingApi();
 
-  const updateSet = async (sets: Record<string, any>) => {
+  const updateSet = async (kay: string, value: any) => {
+    const data: Record<string, any> = {};
+    data[kay] = value;
     try {
       await execute({
         headers: {
           Authorization: token.value
         },
-        data: sets
+        data: data
       });
     } catch (err: any) {
       console.error(err.message);

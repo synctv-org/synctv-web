@@ -138,6 +138,19 @@ export const userRoomListApi = useDefineApi<
   method: "GET"
 });
 
+// 获取所有设置
+export const allSettingsApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+  },
+  Record<string, Record<string, any>>
+>({
+  url: "/api/admin/settings",
+  method: "GET"
+});
+
 // 获取用户相关设置、
 export const userSettingsApi = useDefineApi<
   {
@@ -146,8 +159,7 @@ export const userSettingsApi = useDefineApi<
     };
   },
   {
-    disable_user_signup: boolean;
-    signup_need_review: boolean;
+    [key: string]: any;
   }
 >({
   url: "/api/admin/settings/user",
@@ -162,11 +174,7 @@ export const roomSettingsApi = useDefineApi<
     };
   },
   {
-    create_room_need_review: boolean;
-    disable_create_room: boolean;
-    room_must_need_pwd: boolean;
-    room_ttl: number;
-    user_max_room_count: number;
+    [key: string]: any;
   }
 >({
   url: "/api/admin/settings/room",
