@@ -63,8 +63,8 @@ const defaultSettings = new Map([
           "rtmp_player",
           {
             value: false,
-            comment: "可以通过RTMP协议观看直播流（无需身份验证，不安全）",
-            name: "启用RTMP播放器"
+            comment: "可以通过 RTMP 协议观看直播流（无需身份验证，不安全）",
+            name: "允许使用 RTMP 播放器"
           }
         ],
         ["ts_disguised_as_png", { value: false, name: "ts伪装成png图片" }]

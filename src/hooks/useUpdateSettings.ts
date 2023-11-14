@@ -7,9 +7,9 @@ const { token } = userStore();
 export const useUpdateSettings = () => {
   const { state, isLoading, execute } = updateSettingApi();
 
-  const updateSet = async (kay: string, value: any) => {
+  const updateSet = async (key: string, value: any) => {
     const data: Record<string, any> = {};
-    data[kay] = value;
+    data[key] = value;
     try {
       await execute({
         headers: {
@@ -20,8 +20,8 @@ export const useUpdateSettings = () => {
     } catch (err: any) {
       console.error(err.message);
       ElNotification({
-        title: "错误",
-        message: err.response.data.error || err.message,
+        title: `${key} 设置失败`,
+        message: err.response ? err.response.data.error : err.message,
         type: "error"
       });
     }
