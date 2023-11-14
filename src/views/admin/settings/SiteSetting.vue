@@ -34,7 +34,15 @@ const defaultSettings = new Map([
         ["create_room_need_review", { value: false, name: "创建房间需要审核" }],
         ["disable_create_room", { value: false, name: "禁止创建房间" }],
         ["room_must_need_pwd", { value: false, name: "创建房间必须填写密码" }],
-        ["room_ttl", { value: 172800000000000, append: "纳秒", name: "房间过期时间" }],
+        [
+          "room_ttl",
+          {
+            value: 172800000000000,
+            append: "纳秒",
+            comment: "回收房间仅仅只是释放内存，而不是删除房间",
+            name: "非活跃房间回收时间"
+          }
+        ],
         ["user_max_room_count", { value: 0, append: "个", name: "用户最大创建房间数" }]
       ])
     }

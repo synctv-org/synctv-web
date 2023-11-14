@@ -125,7 +125,7 @@ onMounted(async () => {
     <div class="card-title">{{ props.title }}</div>
     <div class="card-body">
       <el-table :data="state?.list" style="width: 100%">
-        <el-table-column fixed prop="username" label="用户名" width="200" />
+        <el-table-column prop="username" label="用户名" width="200" />
         <el-table-column prop="id" label="ID" />
         <el-table-column prop="role" label="权限组" width="120">
           <template #default="scope">
