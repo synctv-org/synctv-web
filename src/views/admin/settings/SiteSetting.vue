@@ -37,11 +37,6 @@ const getUserSettings = async () => {
   }
 };
 
-const updateUserSettings = async () => {
-  updateSet(userSetsForm.value);
-  await getUserSettings();
-};
-
 onMounted(async () => {
   await getUserSettings();
 });
@@ -55,15 +50,18 @@ onMounted(async () => {
         <div class="card-body">
           <el-form :inline="true">
             <el-form-item label="禁止用户注册">
-              <el-switch v-model="userSetsForm.disable_user_signup" />
+              <el-switch
+                v-model="userSetsForm.disable_user_signup"
+                @click="updateSet(userSetsForm)"
+                :loading="isLoading"
+              />
             </el-form-item>
             <el-form-item label="注册需要审核">
-              <el-switch v-model="userSetsForm.signup_need_review" />
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="updateUserSettings" :loading="isLoading">
-                保存
-              </el-button>
+              <el-switch
+                v-model="userSetsForm.signup_need_review"
+                @click="updateSet(userSetsForm)"
+                :loading="isLoading"
+              />
             </el-form-item>
           </el-form>
         </div>

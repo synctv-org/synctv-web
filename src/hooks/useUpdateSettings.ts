@@ -1,5 +1,4 @@
-import { computed } from "vue";
-import { ElNotification, ElMessage } from "element-plus";
+import { ElNotification } from "element-plus";
 import { updateSettingApi } from "@/services/apis/admin";
 import { userStore } from "@/stores/user";
 
@@ -16,7 +15,6 @@ export const useUpdateSettings = () => {
         },
         data: sets
       });
-      ElMessage.success("保存成功");
     } catch (err: any) {
       console.error(err.message);
       ElNotification({
