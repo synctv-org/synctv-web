@@ -154,6 +154,25 @@ export const userSettingsApi = useDefineApi<
   method: "GET"
 });
 
+// 获取房间相关设置
+export const roomSettingsApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+  },
+  {
+    create_room_need_review: boolean;
+    disable_create_room: boolean;
+    room_must_need_pwd: boolean;
+    room_ttl: number;
+    user_max_room_count: number;
+  }
+>({
+  url: "/api/admin/settings/room",
+  method: "GET"
+});
+
 // 修改相关设置
 export const updateSettingApi = useDefineApi<
   {
