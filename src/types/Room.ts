@@ -5,4 +5,6 @@ export interface RoomList {
   needPassword: boolean;
   creator: string;
   createdAt: number;
+  creatorId: string;
+  status: number;
 }

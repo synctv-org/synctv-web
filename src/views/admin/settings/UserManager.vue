@@ -9,12 +9,14 @@ import {
   addAdminApi,
   delAdminApi
 } from "@/services/apis/admin";
+import userRooms from "@/components/admin/dialogs/userRooms.vue";
 import { ROLE, role } from "@/types/User";
 
 const props = defineProps<{
   title: string;
 }>();
 
+const userRoomsDialog = ref<InstanceType<typeof userRooms>>();
 const getRole = (rawRole: ROLE) => role[rawRole];
 
 const { token } = userStore();
@@ -108,6 +110,11 @@ const setAdmin = async (id: string, is: boolean) => {
   }
 };
 
+// 查看用户房间
+const getUserRoom = async (id: string) => {
+  userRoomsDialog.value?.openDialog(id);
+};
+
 onMounted(async () => {
   await getUserListApi();
 });
@@ -132,7 +139,13 @@ onMounted(async () => {
         </el-table-column>
         <el-table-column fixed="right" label="操作">
           <template #default="scope">
-            <button class="btn btn-dense mr-2" href="javascript:;">详情</button>
+            <button
+              class="btn btn-dense mr-2"
+              href="javascript:;"
+              @click="getUserRoom(scope.row.id)"
+            >
+              详情
+            </button>
             <el-dropdown>
               <button class="btn btn-dense btn-warning" href="javascript:;">操作</button>
               <template #dropdown>
@@ -162,4 +175,6 @@ onMounted(async () => {
       </el-table>
     </div>
   </div>
+
+  <userRooms ref="userRoomsDialog" />
 </template>

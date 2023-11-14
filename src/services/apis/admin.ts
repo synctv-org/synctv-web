@@ -1,4 +1,5 @@
 import { useDefineApi } from "@/stores/useDefineApi";
+import type { RoomList } from "@/types/Room";
 
 // 获取房间设置
 export const roomSettings = useDefineApi<
@@ -110,4 +111,29 @@ export const unBanUserApi = useDefineApi<
 >({
   url: "/api/admin/user/unban",
   method: "POST"
+});
+
+// 获取用户创建的房间
+export const userRoomListApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    params: {
+      page: number;
+      max: number;
+      sort: string;
+      order: string;
+      search: string;
+      keyword: string;
+      id: string;
+    };
+  },
+  {
+    list: RoomList[] | null;
+    total: number;
+  }
+>({
+  url: "/api/admin/user/rooms",
+  method: "GET"
 });
