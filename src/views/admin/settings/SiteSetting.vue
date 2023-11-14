@@ -1,22 +1,22 @@
 <script lang="ts" setup>
-import { ref, watch, onMounted, onBeforeUnmount, type WatchStopHandle } from "vue";
-import { ElNotification, ElMessage } from "element-plus";
+import { ref, onMounted } from "vue";
+import { ElNotification } from "element-plus";
 import { userStore } from "@/stores/user";
 import { allSettingsApi } from "@/services/apis/admin";
 import { useUpdateSettings } from "@/hooks/useUpdateSettings";
-import _ from "lodash";
 
 const props = defineProps<{
   title: string;
 }>();
 
 const { token } = userStore();
-const { state, isLoading, updateSet } = useUpdateSettings();
+const { updateSet } = useUpdateSettings();
 
 interface settingType {
-  valueType: string;
   value: any;
-  isFloat?: boolean;
+  append?: string;
+  placeholder?: string;
+  comment?: string;
   name?: string;
 }
 
@@ -31,19 +31,53 @@ const defaultSettings = new Map([
     {
       name: "房间设置",
       value: new Map([
+        ["create_room_need_review", { value: false, name: "创建房间需要审核" }],
+        ["disable_create_room", { value: false, name: "禁止创建房间" }],
+        ["room_must_need_pwd", { value: false, name: "创建房间必须填写密码" }],
+        ["room_ttl", { value: 172800000000000, append: "纳秒", name: "房间过期时间" }],
+        ["user_max_room_count", { value: 0, append: "个", name: "用户最大创建房间数" }]
+      ])
+    }
+  ],
+  [
+    "proxy",
+    {
+      name: "代理设置",
+      value: new Map([
+        ["allow_proxy_to_local", { value: false, name: "允许代理到本机地址" }],
+        ["live_proxy", { value: false, name: "代理直播流" }],
+        ["movie_proxy", { value: false, name: "代理普通视频" }]
+      ])
+    }
+  ],
+  [
+    "rtmp",
+    {
+      name: "RTMP设置",
+      value: new Map([
         [
-          "create_room_need_review",
-          { valueType: "boolean", value: false, name: "创建房间需要审核" }
+          "custom_publish_host",
+          { value: "", placeholder: "example.com:1935", name: "自定义推流 Host" }
         ],
-        ["disable_create_room", { valueType: "boolean", value: false, name: "禁止创建房间" }],
         [
-          "room_must_need_pwd",
-          { valueType: "boolean", value: false, name: "创建房间必须填写密码" }
+          "rtmp_player",
+          {
+            value: false,
+            comment: "可以通过RTMP协议观看直播流（无需身份验证，不安全）",
+            name: "启用RTMP播放器"
+          }
         ],
-        [
-          "room_ttl",
-          { valueType: "number", value: 172800000000000, isFloat: false, name: "房间过期时间" }
-        ]
+        ["ts_disguised_as_png", { value: false, name: "ts伪装成png图片" }]
+      ])
+    }
+  ],
+  [
+    "user",
+    {
+      name: "用户相关",
+      value: new Map([
+        ["disable_user_signup", { value: false, name: "禁止用户注册" }],
+        ["signup_need_review", { value: false, name: "注册需要审核" }]
       ])
     }
   ]
@@ -71,7 +105,6 @@ const getAllSettings = async () => {
             settings.value.get(group)!.value.get(setting)!.value = state.value[group][setting];
           } else {
             settings.value.get(group)!.value.set(setting, {
-              valueType: typeof state.value[group][setting],
               value: state.value[group][setting]
             });
           }
@@ -81,7 +114,7 @@ const getAllSettings = async () => {
   } catch (err: any) {
     console.error(err);
     ElNotification({
-      title: "获取用户设置列表失败",
+      title: "获取设置列表失败",
       type: "error",
       message: err.response.data.error || err.message
     });
@@ -99,14 +132,26 @@ onMounted(async () => {
       <div class="card">
         <div class="card-title">{{ group[1].name || group[0] }}</div>
         <div class="card-body">
-          <el-form :inline="true">
-            <el-form-item v-for="setting in group[1].value" :label="setting[1].name || setting[0]">
+          <el-form :inline="false" label-width="160px" label-position="left">
+            <el-form-item v-for="setting in group[1].value">
+              <template #label>
+                <p :title="setting[1].comment">
+                  {{ setting[1].name || setting[0] }}
+                </p>
+              </template>
               <el-switch
-                v-if="setting[1].valueType === 'boolean'"
-                :loading="isLoading"
+                v-if="typeof setting[1].value === 'boolean'"
                 @click="updateSet(setting[0], setting[1].value)"
                 v-model="setting[1].value"
               />
+              <el-input
+                v-else
+                @change="updateSet(setting[0], setting[1].value)"
+                v-model.trim.lazy="setting[1].value"
+                :placeholder="setting[1].placeholder"
+              >
+                <template #append v-if="setting[1].append">{{ setting[1].append }}</template>
+              </el-input>
             </el-form-item>
           </el-form>
         </div>
