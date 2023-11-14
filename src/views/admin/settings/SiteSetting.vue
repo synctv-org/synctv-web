@@ -1,14 +1,16 @@
 <script lang="ts" setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, watch, onMounted, onBeforeUnmount, type WatchStopHandle } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import { userStore } from "@/stores/user";
 import { userSettingsApi, roomSettingsApi } from "@/services/apis/admin";
 import { useUpdateSettings } from "@/hooks/useUpdateSettings";
+import _ from "lodash";
 
 const props = defineProps<{
   title: string;
 }>();
 
+const watchers: WatchStopHandle[] = [];
 const { token } = userStore();
 const { state, isLoading, updateSet } = useUpdateSettings();
 
@@ -35,6 +37,7 @@ const getUserSettings = async () => {
     });
     if (state.value) {
       userSetsForm.value = state.value;
+      // watchers.push(watch(userSetsForm.value, () => updateSet(userSetsForm.value)));
     }
   } catch (err: any) {
     console.error(err);
@@ -56,6 +59,7 @@ const getRoomSettings = async () => {
     });
     if (state.value) {
       roomSetsForm.value = state.value;
+      watchers.push(watch(roomSetsForm.value, () => updateSet(roomSetsForm.value)));
     }
   } catch (err: any) {
     console.error(err);
@@ -71,6 +75,10 @@ onMounted(async () => {
   await getUserSettings();
   await getRoomSettings();
 });
+
+onBeforeUnmount(() => {
+  watchers.forEach((watcher) => watcher());
+});
 </script>
 
 <template>
@@ -81,18 +89,10 @@ onMounted(async () => {
         <div class="card-body">
           <el-form :inline="true">
             <el-form-item label="禁止用户注册">
-              <el-switch
-                v-model="userSetsForm.disable_user_signup"
-                @click="updateSet(userSetsForm)"
-                :loading="isLoading"
-              />
+              <el-switch v-model="userSetsForm.disable_user_signup" :loading="isLoading" />
             </el-form-item>
             <el-form-item label="注册需要审核">
-              <el-switch
-                v-model="userSetsForm.signup_need_review"
-                @click="updateSet(userSetsForm)"
-                :loading="isLoading"
-              />
+              <el-switch v-model="userSetsForm.signup_need_review" :loading="isLoading" />
             </el-form-item>
           </el-form>
         </div>
@@ -106,22 +106,22 @@ onMounted(async () => {
             <el-form-item label="创建房间需要审核">
               <el-switch
                 v-model="roomSetsForm.create_room_need_review"
-                @click="updateSet(roomSetsForm)"
                 :loading="isLoading"
+                @click="updateSet(roomSetsForm)"
               />
             </el-form-item>
             <el-form-item label="禁止创建房间">
               <el-switch
                 v-model="roomSetsForm.disable_create_room"
-                @click="updateSet(roomSetsForm)"
                 :loading="isLoading"
+                @click="updateSet(roomSetsForm)"
               />
             </el-form-item>
             <el-form-item label="创建房间必须填写密码">
               <el-switch
                 v-model="roomSetsForm.room_must_need_pwd"
-                @click="updateSet(roomSetsForm)"
                 :loading="isLoading"
+                @click="updateSet(roomSetsForm)"
               />
             </el-form-item>
             <el-form-item label="房间过期时间">
