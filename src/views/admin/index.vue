@@ -7,7 +7,7 @@ import { useScreen } from "@/hooks/useScreen";
 import { ROLE } from "@/types/User";
 
 import UserManager from "./settings/UserManager.vue";
-import AdminManager from "./settings/AdminManager.vue";
+import SiteSetting from "./settings/SiteSetting.vue";
 
 const { info: userInfo } = userStore();
 const room = roomStore();
@@ -26,16 +26,16 @@ const tabs: Tabs[] = [
     component: UserManager
   },
   {
-    name: "管理员设置",
+    name: "站点设置",
     icon: "👮‍",
-    component: AdminManager
+    component: SiteSetting
   }
 ];
 
 const activeTab = shallowRef<Tabs>({
-  name: "用户管理",
-  icon: "🐵",
-  component: UserManager
+  name: "站点设置",
+  icon: "👮‍",
+  component: SiteSetting
 });
 
 const switchTab = (tab: Tabs) => {
@@ -64,7 +64,7 @@ onMounted(() => {
   <div class="container mx-auto flex gap-5">
     <transition name="slide-to-left">
       <div class="w-96 relative menu-drawer" v-show="menu">
-        <div class="card">
+        <div class="card" style="height: 85vh">
           <div class="card-body py-5">
             <div
               v-for="menu in tabs"

@@ -137,3 +137,33 @@ export const userRoomListApi = useDefineApi<
   url: "/api/admin/user/rooms",
   method: "GET"
 });
+
+// 获取用户相关设置、
+export const userSettingsApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+  },
+  {
+    disable_user_signup: boolean;
+    signup_need_review: boolean;
+  }
+>({
+  url: "/api/admin/settings/user",
+  method: "GET"
+});
+
+// 修改相关设置
+export const updateSettingApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: Record<string, any>;
+  },
+  any
+>({
+  url: "/api/admin/settings",
+  method: "POST"
+});
