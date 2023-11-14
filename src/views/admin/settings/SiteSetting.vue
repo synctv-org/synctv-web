@@ -37,7 +37,7 @@ const getUserSettings = async () => {
     });
     if (state.value) {
       userSetsForm.value = state.value;
-      // watchers.push(watch(userSetsForm.value, () => updateSet(userSetsForm.value)));
+      watchers.push(watch(userSetsForm.value, () => updateSet(userSetsForm.value)));
     }
   } catch (err: any) {
     console.error(err);
@@ -59,7 +59,6 @@ const getRoomSettings = async () => {
     });
     if (state.value) {
       roomSetsForm.value = state.value;
-      watchers.push(watch(roomSetsForm.value, () => updateSet(roomSetsForm.value)));
     }
   } catch (err: any) {
     console.error(err);
