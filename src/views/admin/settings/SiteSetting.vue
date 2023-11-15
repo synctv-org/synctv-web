@@ -25,68 +25,73 @@ interface settingGroup {
   value: Map<string, settingType>;
 }
 
-const defaultSettings = new Map([
+const defaultRoomSettings: Map<string, settingType> = new Map([
+  ["create_room_need_review", { value: false, name: "创建房间需要审核" }],
+  ["disable_create_room", { value: false, name: "禁止创建房间" }],
+  ["room_must_need_pwd", { value: false, name: "创建房间必须填写密码" }],
+  [
+    "room_ttl",
+    {
+      value: 172800000000000,
+      append: "纳秒",
+      comment: "回收房间仅仅只是释放内存，而不是删除房间",
+      name: "非活跃房间回收时间"
+    }
+  ],
+  ["user_max_room_count", { value: 0, append: "个", name: "用户最大创建房间数" }]
+]);
+
+const defaultProxySettings: Map<string, settingType> = new Map([
+  ["allow_proxy_to_local", { value: false, name: "允许代理到本机地址" }],
+  ["live_proxy", { value: false, name: "代理直播流" }],
+  ["movie_proxy", { value: false, name: "代理普通视频" }]
+]);
+
+const defaultRtmpSettings: Map<string, settingType> = new Map([
+  ["custom_publish_host", { value: "", placeholder: "example.com:1935", name: "自定义推流 Host" }],
+  [
+    "rtmp_player",
+    {
+      value: false,
+      comment: "可以通过 RTMP 协议观看直播流（无需身份验证，不安全）",
+      name: "允许使用 RTMP 播放器"
+    }
+  ],
+  ["ts_disguised_as_png", { value: false, name: "ts伪装成png图片" }]
+]);
+
+const defaultUserSettings: Map<string, settingType> = new Map([
+  ["disable_user_signup", { value: false, name: "禁止用户注册" }],
+  ["signup_need_review", { value: false, name: "注册需要审核" }]
+]);
+
+const defaultSettings: Map<string, settingGroup> = new Map([
   [
     "room",
     {
       name: "房间设置",
-      value: new Map([
-        ["create_room_need_review", { value: false, name: "创建房间需要审核" }],
-        ["disable_create_room", { value: false, name: "禁止创建房间" }],
-        ["room_must_need_pwd", { value: false, name: "创建房间必须填写密码" }],
-        [
-          "room_ttl",
-          {
-            value: 172800000000000,
-            append: "纳秒",
-            comment: "回收房间仅仅只是释放内存，而不是删除房间",
-            name: "非活跃房间回收时间"
-          }
-        ],
-        ["user_max_room_count", { value: 0, append: "个", name: "用户最大创建房间数" }]
-      ])
+      value: defaultRoomSettings
     }
   ],
   [
     "proxy",
     {
       name: "代理设置",
-      value: new Map([
-        ["allow_proxy_to_local", { value: false, name: "允许代理到本机地址" }],
-        ["live_proxy", { value: false, name: "代理直播流" }],
-        ["movie_proxy", { value: false, name: "代理普通视频" }]
-      ])
+      value: defaultProxySettings
     }
   ],
   [
     "rtmp",
     {
       name: "RTMP设置",
-      value: new Map([
-        [
-          "custom_publish_host",
-          { value: "", placeholder: "example.com:1935", name: "自定义推流 Host" }
-        ],
-        [
-          "rtmp_player",
-          {
-            value: false,
-            comment: "可以通过 RTMP 协议观看直播流（无需身份验证，不安全）",
-            name: "允许使用 RTMP 播放器"
-          }
-        ],
-        ["ts_disguised_as_png", { value: false, name: "ts伪装成png图片" }]
-      ])
+      value: defaultRtmpSettings
     }
   ],
   [
     "user",
     {
       name: "用户相关",
-      value: new Map([
-        ["disable_user_signup", { value: false, name: "禁止用户注册" }],
-        ["signup_need_review", { value: false, name: "注册需要审核" }]
-      ])
+      value: defaultUserSettings
     }
   ]
 ]);
