@@ -47,18 +47,18 @@ watchers.push(
 );
 
 const playMpd = (player: HTMLMediaElement, url: string, art: any) => {
-  import("dashjs")
-    .then((dashjs) => dashjs.default)
-    .then((dashjs) => {
-      if (dashjs.supportsMediaSource()) {
-        const dash = dashjs.MediaPlayer().create();
-        dash.initialize(player, url, false);
-        art.dash = dash;
-        art.on("destroy", () => dash.reset());
-      } else {
-        art.notice.show = "Unsupported playback format: mpd";
-      }
-    });
+  import("@/utils/dash").then((dash) => {
+    if (dash.isSupported()) {
+      const plugin = dash.newDashQualityPlugin();
+      plugin(art);
+      const d = dash.newDash();
+      d.initialize(player, url, false);
+      art.dash = d;
+      art.on("destroy", () => d.destroy());
+    } else {
+      art.notice.show = "Unsupported playback format: mpd";
+    }
+  });
 };
 
 const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
