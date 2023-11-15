@@ -641,6 +641,9 @@ const playerUrl = computed(() => {
         return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.m3u8`;
     }
   } else if (room.currentMovie.base?.proxy) {
+    if (room.currentMovie.base!.vendorInfo?.bilibili) {
+      return `${window.location.origin}/api/movie/proxy/${roomID.value}/${room.currentMovie.id}?t=hevc`;
+    }
     return `${window.location.origin}/api/movie/proxy/${roomID.value}/${room.currentMovie.id}`;
   } else {
     return room.currentMovie.base!.url;
