@@ -11,6 +11,7 @@ declare module 'vue' {
     CustomHeaders: typeof import('./src/components/dialogs/customHeaders.vue')['default']
     DarkModeSwitcher: typeof import('./src/components/DarkModeSwitcher.vue')['default']
     Edit: typeof import('./src/components/icons/Edit.vue')['default']
+    ElButton: typeof import('element-plus/es')['ElButton']
     ElCol: typeof import('element-plus/es')['ElCol']
     ElCollapse: typeof import('element-plus/es')['ElCollapse']
     ElCollapseItem: typeof import('element-plus/es')['ElCollapseItem']
@@ -19,6 +20,7 @@ declare module 'vue' {
     ElEmpty: typeof import('element-plus/es')['ElEmpty']
     ElForm: typeof import('element-plus/es')['ElForm']
     ElFormItem: typeof import('element-plus/es')['ElFormItem']
+    ElInput: typeof import('element-plus/es')['ElInput']
     ElMain: typeof import('element-plus/es')['ElMain']
     ElOption: typeof import('element-plus/es')['ElOption']
     ElPagination: typeof import('element-plus/es')['ElPagination']
@@ -26,7 +28,11 @@ declare module 'vue' {
     ElRow: typeof import('element-plus/es')['ElRow']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSkeleton: typeof import('element-plus/es')['ElSkeleton']
+    ElSwitch: typeof import('element-plus/es')['ElSwitch']
+    ElTable: typeof import('element-plus/es')['ElTable']
+    ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     ElTag: typeof import('element-plus/es')['ElTag']
+    ElTooltip: typeof import('element-plus/es')['ElTooltip']
     Github: typeof import('./src/components/icons/Github.vue')['default']
     Header: typeof import('./src/components/Header.vue')['default']
     Hot: typeof import('./src/components/Hot.vue')['default']
@@ -40,5 +46,8 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     Sun: typeof import('./src/components/icons/Sun.vue')['default']
     Trash: typeof import('./src/components/icons/Trash.vue')['default']
+  }
+  export interface ComponentCustomProperties {
+    vLoading: typeof import('element-plus/es')['ElLoadingDirective']
   }
 }
