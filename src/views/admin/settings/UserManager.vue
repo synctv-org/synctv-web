@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
+import { Search } from "@element-plus/icons-vue";
 import { userStore } from "@/stores/user";
 import {
   userListApi,
@@ -25,7 +26,9 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const order = ref("createdAt");
 const sort = ref("desc");
-const { state, execute: reqUserListApi } = userListApi();
+const keyword = ref("");
+const search = ref("all");
+const { state, execute: reqUserListApi, isLoading: userListLoading } = userListApi();
 const getUserListApi = async () => {
   try {
     await reqUserListApi({
@@ -39,8 +42,8 @@ const getUserListApi = async () => {
         order: order.value,
 
         role: "",
-        search: "all",
-        keyword: ""
+        search: search.value,
+        keyword: keyword.value
       }
     });
     if (state.value) {
@@ -122,9 +125,53 @@ onMounted(async () => {
 
 <template>
   <div class="card">
-    <div class="card-title">{{ props.title }}</div>
+    <div class="card-title flex flex-wrap justify-between items-center">
+      <div>
+        {{ props.title }}
+      </div>
+
+      <el-input
+        class="w-fit"
+        v-model="keyword"
+        placeholder="搜索"
+        @keyup.enter="getUserListApi()"
+        required
+      >
+        <template #prepend>
+          <el-select v-model="search" placeholder="Select" style="width: 90px">
+            <el-option label="综合" value="all" />
+            <el-option label="名称" value="name" />
+            <el-option label="ID" value="roomId" />
+          </el-select>
+        </template>
+        <template #append>
+          <el-button :icon="Search" @click="getUserListApi()" />
+        </template>
+      </el-input>
+
+      <div class="text-base">
+        排序方式：<el-select
+          v-model="order"
+          class="mr-2"
+          placeholder="排序方式"
+          @change="getUserListApi()"
+        >
+          <el-option label="用户名" value="username" />
+          <el-option label="创建时间" value="createdAt" />
+        </el-select>
+        <button
+          class="btn btn-dense"
+          @click="
+            sort === 'desc' ? (sort = 'asc') : (sort = 'desc');
+            getUserListApi();
+          "
+        >
+          {{ sort === "asc" ? "👆" : "👇" }}
+        </button>
+      </div>
+    </div>
     <div class="card-body">
-      <el-table :data="state?.list" style="width: 100%">
+      <el-table :data="state?.list" v-loading="userListLoading" style="width: 100%">
         <el-table-column prop="username" label="用户名" width="200" />
         <el-table-column prop="id" label="ID" />
         <el-table-column prop="role" label="权限组" width="120">
@@ -173,6 +220,22 @@ onMounted(async () => {
           </template>
         </el-table-column>
       </el-table>
+    </div>
+    <div class="card-footer flex flex-wrap justify-between overflow-hidden">
+      <el-button type="success" @click="getUserListApi()" :loading="userListLoading"
+        >更新列表</el-button
+      >
+      <el-pagination
+        v-if="state?.list?.length != 0"
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :pager-count="5"
+        layout="sizes, prev, pager, next, jumper"
+        :total="totalItems"
+        @size-change="getUserListApi()"
+        @current-change="getUserListApi()"
+        class="flex-wrap"
+      />
     </div>
   </div>
 

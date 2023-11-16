@@ -233,6 +233,7 @@ export const banRoomApi = useDefineApi<
   method: "POST"
 });
 
+// 解封房间
 export const unBanRoomApi = useDefineApi<
   {
     headers: {
@@ -245,5 +246,21 @@ export const unBanRoomApi = useDefineApi<
   any
 >({
   url: "/api/admin/room/unban",
+  method: "POST"
+});
+
+// 允许房间创建
+export const approveRoomApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/admin/room/approve",
   method: "POST"
 });

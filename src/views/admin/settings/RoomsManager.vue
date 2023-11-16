@@ -1,14 +1,9 @@
 <script lang="ts" setup>
 import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
+import { Search } from "@element-plus/icons-vue";
 import { userStore } from "@/stores/user";
-import {
-  roomListApi,
-  banRoomApi,
-  unBanRoomApi,
-  addAdminApi,
-  delAdminApi
-} from "@/services/apis/admin";
+import { roomListApi, banRoomApi, unBanRoomApi, approveRoomApi } from "@/services/apis/admin";
 import CopyButton from "@/components/CopyButton.vue";
 import { RoomStatus, roomStatus } from "@/types/Room";
 
@@ -24,6 +19,8 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const order = ref("createdAt");
 const sort = ref("desc");
+const keyword = ref("");
+const search = ref("all");
 const { state, execute: reqRoomListApi, isLoading: roomListLoading } = roomListApi();
 const getRoomListApi = async () => {
   try {
@@ -36,10 +33,8 @@ const getRoomListApi = async () => {
         max: pageSize.value,
         sort: sort.value,
         order: order.value,
-
-        role: "",
-        search: "all",
-        keyword: ""
+        search: search.value,
+        keyword: keyword.value
       }
     });
     if (state.value) {
@@ -85,17 +80,16 @@ const banRoom = async (id: string, is: boolean) => {
 };
 
 // 允许创建
-const approveCreate = async (id: string, is: boolean) => {
+const approveCreate = async (id: string) => {
   try {
-    const config = {
+    await approveRoomApi().execute({
       headers: {
         Authorization: token.value
       },
       data: {
         id: id
       }
-    };
-    is ? await addAdminApi().execute(config) : await delAdminApi().execute(config);
+    });
     ElNotification({
       title: "设置成功",
       type: "success"
@@ -118,9 +112,50 @@ onMounted(async () => {
 
 <template>
   <div class="card">
-    <div class="card-title">
-      {{ props.title }}
-      <el-button>刷新列表</el-button>
+    <div class="card-title flex flex-wrap justify-between items-center">
+      <div>
+        {{ props.title }}
+      </div>
+
+      <el-input
+        class="w-fit"
+        v-model="keyword"
+        placeholder="搜索"
+        @keyup.enter="getRoomListApi()"
+        required
+      >
+        <template #prepend>
+          <el-select v-model="search" placeholder="Select" style="width: 90px">
+            <el-option label="综合" value="all" />
+            <el-option label="名称" value="name" />
+            <el-option label="ID" value="roomId" />
+          </el-select>
+        </template>
+        <template #append>
+          <el-button :icon="Search" @click="getRoomListApi()" />
+        </template>
+      </el-input>
+
+      <div class="text-base">
+        排序方式：<el-select
+          v-model="order"
+          class="mr-2"
+          placeholder="排序方式"
+          @change="getRoomListApi()"
+        >
+          <el-option label="房间名称" value="name" />
+          <el-option label="创建时间" value="createdAt" />
+        </el-select>
+        <button
+          class="btn btn-dense"
+          @click="
+            sort === 'desc' ? (sort = 'asc') : (sort = 'desc');
+            getRoomListApi();
+          "
+        >
+          {{ sort === "asc" ? "👆" : "👇" }}
+        </button>
+      </div>
     </div>
     <div class="card-body">
       <el-table :data="state?.list" v-loading="roomListLoading" style="width: 100%">
@@ -184,13 +219,29 @@ onMounted(async () => {
               v-if="scope.row.status === RoomStatus.Pending"
               type="success"
               :loading="banLoading"
-              @click="banRoom(scope.row.roomId, true)"
+              @click="approveCreate(scope.row.roomId)"
             >
               允许创建
             </el-button>
           </template>
         </el-table-column>
       </el-table>
+    </div>
+    <div class="card-footer flex flex-wrap justify-between overflow-hidden">
+      <el-button type="success" @click="getRoomListApi()" :loading="roomListLoading"
+        >更新列表</el-button
+      >
+      <el-pagination
+        v-if="state?.list?.length != 0"
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :pager-count="5"
+        layout="sizes, prev, pager, next, jumper"
+        :total="totalItems"
+        @size-change="getRoomListApi()"
+        @current-change="getRoomListApi()"
+        class="flex-wrap"
+      />
     </div>
   </div>
 
