@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import { Search } from "@element-plus/icons-vue";
 import { userStore } from "@/stores/user";
@@ -21,6 +21,10 @@ const props = defineProps<{
 
 const userRoomsDialog = ref<InstanceType<typeof userRooms>>();
 const getRole = (rawRole: ROLE) => role[rawRole];
+const roles = computed(() => {
+  const v = Object.values(role);
+  return v.filter((r) => r !== role[ROLE.Visitor] && r !== role[ROLE.Unknown]);
+});
 
 const { token } = userStore();
 const totalItems = ref(0);
@@ -160,24 +164,35 @@ onMounted(async () => {
         {{ props.title }}
       </div>
 
-      <el-input
-        class="w-fit"
-        v-model="keyword"
-        placeholder="搜索"
-        @keyup.enter="getUserListApi()"
-        required
-      >
-        <template #prepend>
-          <el-select v-model="search" placeholder="Select" style="width: 90px">
-            <el-option label="综合" value="all" />
-            <el-option label="名称" value="name" />
-            <el-option label="ID" value="roomId" />
-          </el-select>
-        </template>
-        <template #append>
-          <el-button :icon="Search" @click="getUserListApi()" />
-        </template>
-      </el-input>
+      <div>
+        <el-select
+          v-model="role_"
+          placeholder="权限组"
+          style="width: 90px"
+          @change="getUserListApi()"
+        >
+          <el-option label="ALL" value="" />
+          <el-option v-for="r in roles" :label="r" :value="r.toLowerCase()" />
+        </el-select>
+        <el-input
+          class="w-fit"
+          v-model="keyword"
+          placeholder="搜索"
+          @keyup.enter="getUserListApi()"
+          required
+        >
+          <template #prepend>
+            <el-select v-model="search" placeholder="Select" style="width: 90px">
+              <el-option label="综合" value="all" />
+              <el-option label="名称" value="name" />
+              <el-option label="ID" value="roomId" />
+            </el-select>
+          </template>
+          <template #append>
+            <el-button :icon="Search" @click="getUserListApi()" />
+          </template>
+        </el-input>
+      </div>
 
       <div class="text-base">
         排序方式：<el-select
@@ -269,17 +284,6 @@ onMounted(async () => {
       <el-button type="success" @click="getUserListApi()" :loading="userListLoading"
         >更新列表</el-button
       >
-
-      <div>
-        筛选：<el-select v-model="role_" placeholder="权限组" @change="getUserListApi()">
-          <el-option label="ALL" value="" />
-          <el-option label="Banned" value="banned" />
-          <el-option label="Pending" value="pending" />
-          <el-option label="User" value="user" />
-          <el-option label="Admin" value="admin" />
-          <el-option label="Root" value="root" />
-        </el-select>
-      </div>
 
       <el-pagination
         v-model:current-page="currentPage"
