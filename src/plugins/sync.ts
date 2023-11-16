@@ -24,6 +24,8 @@ export const sync = (cbk: callback): resould => {
   const playingStatusDebounce = debounces(debounceTime);
   let player: Artplayer | undefined = undefined;
 
+  let lastestSeek = 0;
+
   const publishSeek = (currentTime: number) => {
     if (!player || player.option.isLive) return;
     cbk["publishStatus"](
@@ -36,11 +38,15 @@ export const sync = (cbk: callback): resould => {
     console.log("视频空降，:", player.currentTime);
   };
 
-  const seekDebounce = debounces(debounceTime);
+  const __publishSeekDebounce = useDebounceFn(publishSeek, debounceTime);
 
-  const publishSeekDebounce = seekDebounce(publishSeek);
+  const publishSeekDebounce = function (currentTime: number) {
+    lastestSeek = Date.now();
+    __publishSeekDebounce(currentTime);
+  };
 
   const setAndNoPublishSeek = (seek: number) => {
+    lastestSeek = Date.now();
     if (!player || player.option.isLive || Math.abs(player.currentTime - seek) < 2) return;
     player.currentTime = seek;
   };
@@ -119,7 +125,8 @@ export const sync = (cbk: callback): resould => {
   };
 
   const checkSeek = () => {
-    if (!player || player.option.isLive) return;
+    // 距离上一次seek超过10s后才会检查seek
+    if (!player || Date.now() - lastestSeek < 10000 || player.option.isLive) return;
     player.duration - player.currentTime > 5 &&
       cbk["publishStatus"](
         ElementMessage.create({
@@ -130,10 +137,9 @@ export const sync = (cbk: callback): resould => {
       );
   };
 
-  const checkSeekDebounce = seekDebounce(checkSeek);
-
   const plugin = (art: Artplayer) => {
     player = art;
+    lastestSeek = Date.now();
     if (!art.option.isLive) {
       const intervals: number[] = [];
 
@@ -147,7 +153,7 @@ export const sync = (cbk: callback): resould => {
         room.currentMovieStatus.playing ? setAndNoPublishPlay() : setAndNoPublishPause();
         cbk["sendDanmuku"]("PLAYER：视频已就绪");
 
-        intervals.push(setInterval(checkSeekDebounce, 5000));
+        intervals.push(setInterval(checkSeek, 5000));
       });
 
       art.on("play", publishPlayDebounce);
