@@ -11,6 +11,10 @@ const platforms: { [key: string]: { name: string; class: string } } = {
   microsoft: {
     name: "Microsoft",
     class: "btn-default"
+  },
+  google: {
+    name: "Google",
+    class: "btn-warning"
   }
 };
 
