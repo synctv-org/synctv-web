@@ -113,6 +113,22 @@ export const unBanUserApi = useDefineApi<
   method: "POST"
 });
 
+// 允许用户注册
+export const approveUserApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/admin/user/approve",
+  method: "POST"
+});
+
 // 获取用户创建的房间
 export const userRoomListApi = useDefineApi<
   {

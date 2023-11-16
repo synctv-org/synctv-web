@@ -39,9 +39,9 @@ const tabs: Tabs[] = [
 ];
 
 const activeTab = shallowRef<Tabs>({
-  name: "房间管理",
-  icon: "🏡",
-  component: RoomsManager
+  name: "用户管理",
+  icon: "🐵",
+  component: UserManager
 });
 
 const switchTab = (tab: Tabs) => {

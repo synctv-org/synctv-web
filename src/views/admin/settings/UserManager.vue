@@ -8,8 +8,10 @@ import {
   banUserApi,
   unBanUserApi,
   addAdminApi,
-  delAdminApi
+  delAdminApi,
+  approveUserApi
 } from "@/services/apis/admin";
+import CopyButton from "@/components/CopyButton.vue";
 import userRooms from "@/components/admin/dialogs/userRooms.vue";
 import { ROLE, role } from "@/types/User";
 
@@ -28,6 +30,7 @@ const order = ref("createdAt");
 const sort = ref("desc");
 const keyword = ref("");
 const search = ref("all");
+const role_ = ref("");
 const { state, execute: reqUserListApi, isLoading: userListLoading } = userListApi();
 const getUserListApi = async () => {
   try {
@@ -41,7 +44,7 @@ const getUserListApi = async () => {
         sort: sort.value,
         order: order.value,
 
-        role: "",
+        role: role_.value,
         search: search.value,
         keyword: keyword.value
       }
@@ -118,6 +121,33 @@ const getUserRoom = async (id: string) => {
   userRoomsDialog.value?.openDialog(id);
 };
 
+// 允许用户注册
+const { execute: approveUser, isLoading: approveLoading } = approveUserApi();
+const approve = async (id: string) => {
+  try {
+    await approveUser({
+      headers: {
+        Authorization: token.value
+      },
+      data: {
+        id: id
+      }
+    });
+    ElNotification({
+      title: "设置成功",
+      type: "success"
+    });
+    await getUserListApi();
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "错误",
+      type: "error",
+      message: err.response.data.error || err.message
+    });
+  }
+};
+
 onMounted(async () => {
   await getUserListApi();
 });
@@ -157,7 +187,7 @@ onMounted(async () => {
           @change="getUserListApi()"
         >
           <el-option label="用户名" value="username" />
-          <el-option label="创建时间" value="createdAt" />
+          <el-option label="注册时间" value="createdAt" />
         </el-select>
         <button
           class="btn btn-dense"
@@ -173,10 +203,22 @@ onMounted(async () => {
     <div class="card-body">
       <el-table :data="state?.list" v-loading="userListLoading" style="width: 100%">
         <el-table-column prop="username" label="用户名" width="200" />
-        <el-table-column prop="id" label="ID" />
+        <el-table-column prop="id" label="ID" width="120">
+          <template #default="scope">
+            <div class="flex overflow-hidden text-ellipsis max-w-[100px]">
+              <span class="truncate">{{ scope.row.id }}</span>
+              <CopyButton size="small" :value="scope.row.id" />
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="role" label="权限组" width="120">
           <template #default="scope">
             {{ getRole(scope.row.role) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="roomList" label="房间列表" width="120">
+          <template #default="scope">
+            <el-button type="primary" plain @click="getUserRoom(scope.row.id)"> 查看 </el-button>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="注册时间">
@@ -186,37 +228,39 @@ onMounted(async () => {
         </el-table-column>
         <el-table-column fixed="right" label="操作">
           <template #default="scope">
-            <button
-              class="btn btn-dense mr-2"
-              href="javascript:;"
-              @click="getUserRoom(scope.row.id)"
+            <el-button
+              v-if="scope.row.role === ROLE.Pending"
+              type="success"
+              @click="approve(scope.row.id)"
+              :loading="approveLoading"
             >
-              详情
-            </button>
-            <el-dropdown>
-              <button class="btn btn-dense btn-warning" href="javascript:;">操作</button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item
-                    v-if="scope.row.role !== ROLE.Banned"
-                    @click="banUser(scope.row.id, true)"
-                  >
-                    封禁
-                  </el-dropdown-item>
-                  <el-dropdown-item v-else @click="banUser(scope.row.id, false)"
-                    >解封</el-dropdown-item
-                  >
-                  <el-dropdown-item
-                    v-if="scope.row.role < ROLE.Admin"
-                    @click="setAdmin(scope.row.id, true)"
-                    >设为管理</el-dropdown-item
-                  >
-                  <el-dropdown-item v-else @click="setAdmin(scope.row.id, false)"
-                    >取消管理身份</el-dropdown-item
-                  >
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+              通过注册
+            </el-button>
+            <div v-else>
+              <el-button
+                v-if="scope.row.role === ROLE.Banned"
+                type="warning"
+                @click="banUser(scope.row.id, false)"
+              >
+                解封
+              </el-button>
+
+              <div v-else>
+                <el-button type="danger" @click="banUser(scope.row.id, true)"> 封禁 </el-button>
+
+                <el-button
+                  v-if="scope.row.role < ROLE.Admin"
+                  type="primary"
+                  @click="setAdmin(scope.row.id, true)"
+                >
+                  设为管理
+                </el-button>
+
+                <el-button v-else type="warning" @click="setAdmin(scope.row.id, false)">
+                  取消管理身份
+                </el-button>
+              </div>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -225,8 +269,19 @@ onMounted(async () => {
       <el-button type="success" @click="getUserListApi()" :loading="userListLoading"
         >更新列表</el-button
       >
+
+      <div>
+        筛选：<el-select v-model="role_" placeholder="权限组" @change="getUserListApi()">
+          <el-option label="ALL" value="" />
+          <el-option label="Banned" value="banned" />
+          <el-option label="Pending" value="pending" />
+          <el-option label="User" value="user" />
+          <el-option label="Admin" value="admin" />
+          <el-option label="Root" value="root" />
+        </el-select>
+      </div>
+
       <el-pagination
-        v-if="state?.list?.length != 0"
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         :pager-count="5"
