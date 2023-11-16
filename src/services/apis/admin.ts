@@ -140,6 +140,7 @@ export const userRoomListApi = useDefineApi<
       max: number;
       sort: string;
       order: string;
+      status: string;
       search: string;
       keyword: string;
       id: string;

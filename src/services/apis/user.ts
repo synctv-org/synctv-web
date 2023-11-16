@@ -21,6 +21,9 @@ export const myRoomList = useDefineApi<
       max: number;
       sort: string;
       order: string;
+      search: string;
+      keyword: string;
+      status: string;
     };
     headers: { Authorization: string };
   },

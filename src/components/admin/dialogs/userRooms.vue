@@ -6,6 +6,7 @@ import type { RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
 import { userStore } from "@/stores/user";
 import { Search } from "@element-plus/icons-vue";
+import { roomStatus, RoomStatus } from "@/types/Room";
 
 const { token, isLogin } = userStore();
 const __roomList = ref<RoomList[]>([]);
@@ -47,6 +48,7 @@ const order = ref("name");
 const sort = ref("desc");
 const keyword = ref("");
 const search = ref("all");
+const status = ref("");
 
 const getRoomList = async (showMsg = false) => {
   try {
@@ -59,6 +61,7 @@ const getRoomList = async (showMsg = false) => {
         max: pageSize.value,
         sort: sort.value,
         order: order.value,
+        status: status.value,
         search: search.value,
         keyword: keyword.value,
         id: userId.value
@@ -119,7 +122,16 @@ const getRoomList = async (showMsg = false) => {
       </div>
     </template>
     <template #default>
-      <div class="m-auto w-80 -my-5 mb-3">
+      <div class="m-auto w-96 -my-5 mb-3 flex">
+        <el-select
+          v-model="status"
+          placeholder="状态"
+          style="width: 130px"
+          @change="getRoomList(false)"
+        >
+          <el-option label="ALL" value="" />
+          <el-option v-for="r in Object.values(roomStatus)" :label="r" :value="r.toLowerCase()" />
+        </el-select>
         <el-input v-model="keyword" placeholder="搜索" @keyup.enter="getRoomList(false)" required>
           <template #prepend>
             <el-select v-model="search" placeholder="Select" style="width: 90px">
@@ -139,7 +151,7 @@ const getRoomList = async (showMsg = false) => {
           v-else
           v-for="item in __roomList"
           :key="item.roomId"
-          class="flex flex-wrap m-2 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 max-w-[225px]"
+          class="flex flex-wrap m-2 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-all dark:bg-neutral-700 hover:dark:bg-zinc-900 max-w-[225px]"
         >
           <div class="overflow-hidden text-ellipsis m-auto p-2 w-full">
             <b class="block text-base font-semibold truncate"> {{ item["roomName"] }}</b>

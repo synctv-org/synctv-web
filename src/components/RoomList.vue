@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue";
 import { ElNotification } from "element-plus";
 import { roomListApi } from "@/services/apis/room";
 import { myRoomList } from "@/services/apis/user";
-import type { RoomList } from "@/types/Room";
+import { roomStatus, type RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
 import { userStore } from "@/stores/user";
 
@@ -40,6 +40,7 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const order = ref("name");
 const sort = ref("desc");
+const status = ref("");
 
 const getRoomList = async (showMsg = false) => {
   try {
@@ -51,7 +52,8 @@ const getRoomList = async (showMsg = false) => {
           sort: sort.value,
           order: order.value,
           search: "all",
-          keyword: ""
+          keyword: "",
+          status: status.value
         },
         headers: {
           Authorization: token.value
@@ -106,17 +108,7 @@ onMounted(() => {
   <div class="card mx-auto">
     <div class="card-title flex flex-wrap justify-between items-center">
       <div class="max-sm:mb-3">
-        <!-- :class="
-            isMyRoom
-              ? ' text-gray-700 cursor-pointer dark:text-slate-400 mr-4'
-              : 'border-b-2 border-slate-600 border-solid text-slate-700 dark:border-slate-200 dark:text-slate-200 mr-4'
-          " -->
         <span v-if="!isMyRoom"> 房间列表（{{ __roomList.length }}）</span>
-        <!-- :class="
-            isMyRoom
-              ? 'border-b-2 border-slate-600 border-solid text-slate-700 dark:border-slate-200 dark:text-slate-200'
-              : 'text-gray-500 cursor-pointer dark:text-slate-400'
-          " -->
         <span v-else>我创建的（{{ __roomList.length }}）</span>
       </div>
       <div class="text-base -my-2">
@@ -128,6 +120,17 @@ onMounted(() => {
         >
           <el-option label="房间名称" value="name" />
           <el-option label="创建时间" value="createdAt" />
+        </el-select>
+        <el-select
+          v-if="isMyRoom"
+          v-model="status"
+          class="m-2"
+          placeholder="状态"
+          style="width: 130px"
+          @change="getRoomList(false)"
+        >
+          <el-option label="ALL" value="" />
+          <el-option v-for="r in Object.values(roomStatus)" :label="r" :value="r.toLowerCase()" />
         </el-select>
         <button
           class="btn btn-dense"
