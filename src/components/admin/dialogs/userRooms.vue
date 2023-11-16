@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { ElNotification } from "element-plus";
 import { userRoomListApi } from "@/services/apis/admin";
-import type { RoomList } from "@/types/Room";
+import { roomStatus, type RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
 import { userStore } from "@/stores/user";
 import { Search } from "@element-plus/icons-vue";
-import { roomStatus, RoomStatus } from "@/types/Room";
 
 const { token, isLogin } = userStore();
 const __roomList = ref<RoomList[]>([]);

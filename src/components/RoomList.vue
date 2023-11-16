@@ -6,6 +6,7 @@ import { myRoomList } from "@/services/apis/user";
 import { roomStatus, type RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
 import { userStore } from "@/stores/user";
+import { Search } from "@element-plus/icons-vue";
 
 const props = defineProps<{
   isMyRoom: boolean;
@@ -40,6 +41,8 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const order = ref("name");
 const sort = ref("desc");
+const keyword = ref("");
+const search = ref("all");
 const status = ref("");
 
 const getRoomList = async (showMsg = false) => {
@@ -51,8 +54,8 @@ const getRoomList = async (showMsg = false) => {
           max: pageSize.value,
           sort: sort.value,
           order: order.value,
-          search: "all",
-          keyword: "",
+          search: search.value,
+          keyword: keyword.value,
           status: status.value
         },
         headers: {
@@ -121,17 +124,6 @@ onMounted(() => {
           <el-option label="房间名称" value="name" />
           <el-option label="创建时间" value="createdAt" />
         </el-select>
-        <el-select
-          v-if="isMyRoom"
-          v-model="status"
-          class="m-2"
-          placeholder="状态"
-          style="width: 130px"
-          @change="getRoomList(false)"
-        >
-          <el-option label="ALL" value="" />
-          <el-option v-for="r in Object.values(roomStatus)" :label="r" :value="r.toLowerCase()" />
-        </el-select>
         <button
           class="btn btn-dense"
           @click="
@@ -143,34 +135,60 @@ onMounted(() => {
         </button>
       </div>
     </div>
-    <div class="card-body flex flex-wrap justify-center">
-      <el-empty v-if="__roomList.length === 0" description="无房间，去创建一个吧~" />
-      <div
-        v-else
-        v-for="item in __roomList"
-        :key="item.roomId"
-        class="flex flex-wrap m-2 rounded-lg bg-stone-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 max-w-[225px]"
-      >
-        <div class="overflow-hidden text-ellipsis m-auto p-2 w-full">
-          <b class="block text-base font-semibold truncate"> {{ item["roomName"] }}</b>
-        </div>
-        <div class="overflow-hidden text-ellipsis text-sm p-2">
-          <div>
-            在线人数：<span :class="item.peopleNum > 0 ? 'text-green-500' : 'text-red-500'">{{
-              item["peopleNum"]
-            }}</span>
+    <div class="card-body">
+      <div class="m-auto w-96 mb-3 flex" v-if="isMyRoom">
+        <el-select
+          v-model="status"
+          placeholder="状态"
+          style="width: 130px"
+          @change="getRoomList(false)"
+        >
+          <el-option label="ALL" value="" />
+          <el-option v-for="r in Object.values(roomStatus)" :label="r" :value="r.toLowerCase()" />
+        </el-select>
+        <el-input v-model="keyword" placeholder="搜索" @keyup.enter="getRoomList(false)" required>
+          <template #prepend>
+            <el-select v-model="search" placeholder="Select" style="width: 90px">
+              <el-option label="综合" value="all" />
+              <el-option label="名称" value="name" />
+              <el-option label="ID" value="id" />
+            </el-select>
+          </template>
+          <template #append>
+            <el-button :icon="Search" @click="getRoomList(false)" />
+          </template>
+        </el-input>
+      </div>
+
+      <div class="flex flex-wrap justify-center">
+        <el-empty v-if="__roomList.length === 0" description="啥都没有哦~" />
+        <div
+          v-else
+          v-for="item in __roomList"
+          :key="item.roomId"
+          class="flex flex-wrap m-2 rounded-lg bg-stone-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 max-w-[225px]"
+        >
+          <div class="overflow-hidden text-ellipsis m-auto p-2 w-full">
+            <b class="block text-base font-semibold truncate"> {{ item["roomName"] }}</b>
           </div>
-          <div v-if="!isMyRoom" class="truncate">创建者：{{ item.creator }}</div>
-          <div>创建时间：{{ new Date(item.createdAt).toLocaleString() }}</div>
-        </div>
-        <div class="flex p-2 w-full justify-between items-center">
-          <el-tag v-if="!isMyRoom" disabled :type="item.needPassword ? 'danger' : 'success'">
-            {{ item.needPassword ? "有密码" : "无密码" }}
-          </el-tag>
-          <button class="btn btn-dense" @click="openJoinRoomDialog(item)">
-            加入房间
-            <PlayIcon class="inline-block" width="18px" />
-          </button>
+          <div class="overflow-hidden text-ellipsis text-sm p-2">
+            <div>
+              在线人数：<span :class="item.peopleNum > 0 ? 'text-green-500' : 'text-red-500'">{{
+                item["peopleNum"]
+              }}</span>
+            </div>
+            <div v-if="!isMyRoom" class="truncate">创建者：{{ item.creator }}</div>
+            <div>创建时间：{{ new Date(item.createdAt).toLocaleString() }}</div>
+          </div>
+          <div class="flex p-2 w-full justify-between items-center">
+            <el-tag v-if="!isMyRoom" disabled :type="item.needPassword ? 'danger' : 'success'">
+              {{ item.needPassword ? "有密码" : "无密码" }}
+            </el-tag>
+            <button class="btn btn-dense" @click="openJoinRoomDialog(item)">
+              加入房间
+              <PlayIcon class="inline-block" width="18px" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
