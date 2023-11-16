@@ -118,7 +118,7 @@ onMounted(async () => {
       </div>
 
       <el-input
-        class="w-fit"
+        class="w-fit max-lg:w-full max-xl:my-2"
         v-model="keyword"
         placeholder="搜索"
         @keyup.enter="getRoomListApi()"
@@ -136,12 +136,13 @@ onMounted(async () => {
         </template>
       </el-input>
 
-      <div class="text-base">
+      <div class="text-base max-xl:w-full">
         排序方式：<el-select
           v-model="order"
           class="mr-2"
           placeholder="排序方式"
           @change="getRoomListApi()"
+          style="width: 150px"
         >
           <el-option label="房间名称" value="name" />
           <el-option label="创建时间" value="createdAt" />

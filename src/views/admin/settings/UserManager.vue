@@ -167,6 +167,7 @@ onMounted(async () => {
       <div>
         <el-select
           v-model="role_"
+          class="max-xl:my-2 max-lg:w-full"
           placeholder="权限组"
           style="width: 90px"
           @change="getUserListApi()"
@@ -175,7 +176,7 @@ onMounted(async () => {
           <el-option v-for="r in roles" :label="r" :value="r.toLowerCase()" />
         </el-select>
         <el-input
-          class="w-fit"
+          class="w-fit max-lg:w-full"
           v-model="keyword"
           placeholder="搜索"
           @keyup.enter="getUserListApi()"
@@ -194,12 +195,13 @@ onMounted(async () => {
         </el-input>
       </div>
 
-      <div class="text-base">
+      <div class="text-base max-xl:w-full max-xl:my-2">
         排序方式：<el-select
           v-model="order"
           class="mr-2"
           placeholder="排序方式"
           @change="getUserListApi()"
+          style="width: 150px"
         >
           <el-option label="用户名" value="username" />
           <el-option label="注册时间" value="createdAt" />
@@ -260,7 +262,7 @@ onMounted(async () => {
                 解封
               </el-button>
 
-              <div v-else>
+              <div v-else class="phone-button">
                 <el-button type="danger" @click="banUser(scope.row.id, true)"> 封禁 </el-button>
 
                 <el-button
@@ -300,3 +302,13 @@ onMounted(async () => {
 
   <userRooms ref="userRoomsDialog" />
 </template>
+
+<style lang="less" scoped>
+@media (max-width: 1540px) {
+  .phone-button {
+    .el-button {
+      @apply m-0 mb-2 mr-2;
+    }
+  }
+}
+</style>
