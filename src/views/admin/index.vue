@@ -7,6 +7,7 @@ import { useScreen } from "@/hooks/useScreen";
 import { ROLE } from "@/types/User";
 
 import UserManager from "./settings/UserManager.vue";
+import RoomsManager from "./settings/RoomsManager.vue";
 import SiteSetting from "./settings/SiteSetting.vue";
 
 const { info: userInfo } = userStore();
@@ -26,16 +27,21 @@ const tabs: Tabs[] = [
     component: UserManager
   },
   {
+    name: "房间管理",
+    icon: "🏡",
+    component: RoomsManager
+  },
+  {
     name: "站点设置",
-    icon: "👮‍",
+    icon: "🌏",
     component: SiteSetting
   }
 ];
 
 const activeTab = shallowRef<Tabs>({
-  name: "站点设置",
-  icon: "👮‍",
-  component: SiteSetting
+  name: "房间管理",
+  icon: "🏡",
+  component: RoomsManager
 });
 
 const switchTab = (tab: Tabs) => {

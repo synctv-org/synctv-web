@@ -194,3 +194,56 @@ export const updateSettingApi = useDefineApi<
   url: "/api/admin/settings",
   method: "POST"
 });
+
+// 获取房间列表
+export const roomListApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    params: {
+      page: number;
+      max: number;
+      sort: string;
+      order: string;
+    };
+  },
+  {
+    list: RoomList[] | null;
+    total: number;
+  }
+>({
+  url: "/api/admin/room/list",
+  method: "GET"
+});
+
+// 封禁房间
+export const banRoomApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/admin/room/ban",
+  method: "POST"
+});
+
+export const unBanRoomApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/admin/room/unban",
+  method: "POST"
+});
