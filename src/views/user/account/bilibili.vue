@@ -273,8 +273,8 @@ onMounted(async () => {
             biliQRCodeStatus &&
             biliQRCodeStatus.status !== 'expired'
           "
-          :width="400"
-          :height="400"
+          :width="200"
+          :height="200"
           :value="biliQRCode.url"
           :qrOptions="{ typeNumber: 0, mode: 'Byte', errorCorrectionLevel: 'H' }"
           :imageOptions="{ hideBackgroundDots: true, imageSize: 0.4, margin: 0 }"
@@ -322,18 +322,12 @@ onMounted(async () => {
         <div class="text-center max-lg:mt-5">
           <h2 class="text-xl font-semibold mb-5">短信登录</h2>
           <div class="w-4/5 mx-auto">
-            <input
-              type="number"
-              class="l-input block w-full m-0 my-[10px]"
-              placeholder="手机号"
-              v-model="phone"
-            />
             <div class="l-input w-full m-0 my-[10px] flex justify-between">
               <input
                 type="number"
                 class="w-full bg-transparent transition-all duration-500 outline-none focus:outline-none"
-                placeholder="短信验证码"
-                v-model="code"
+                placeholder="手机号"
+                v-model="phone"
               />
               <button class="text-blue-500 w-2/5" @click="showGeetest" v-if="SMSTime === 60">
                 发送验证码
@@ -347,6 +341,12 @@ onMounted(async () => {
                 重新发送 {{ 0 < SMSTime && SMSTime <= 60 ? SMSTime : "" }}
               </button>
             </div>
+            <input
+              type="number"
+              class="l-input block w-full m-0 my-[10px]"
+              placeholder="短信验证码"
+              v-model.lazy="code"
+            />
 
             <div class="my-[10px] w-full" id="captcha"></div>
 
@@ -393,3 +393,12 @@ onMounted(async () => {
     </div>
   </el-dialog>
 </template>
+
+<style scoped lang="scss">
+// 删除input number的上下控制按钮
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+</style>
