@@ -59,9 +59,13 @@ const toUserInfo = () => {
         <span class="-m-1.5 p-1.5 font-bold"> SyncTV </span>
       </div>
 
-      <div class="flex lg:hidden">
-        <span class="p-2 mr-2">
+      <div class="flex lg:hidden items-center">
+        <span class="p-2">
           <DarkModeSwitcher />
+        </span>
+
+        <span class="p-2 mr-1">
+          <PersonIcon v-if="isLogin" class="cursor-pointer" @click="toUserInfo" />
         </span>
 
         <button
