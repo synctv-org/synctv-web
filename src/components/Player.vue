@@ -41,6 +41,7 @@ watchers.push(
   watch(
     () => room.danmuku,
     () => {
+      if (!art || !art.plugins.artplayerPluginDanmuku) return;
       art.plugins.artplayerPluginDanmuku.emit(room.danmuku);
     }
   )
