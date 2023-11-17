@@ -43,8 +43,8 @@ const { state: roomList, execute: reqUserRoomListApi, isLoading } = userRoomList
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
-const order = ref("name");
-const sort = ref("desc");
+const order = ref("desc");
+const sort = ref("name");
 const keyword = ref("");
 const search = ref("all");
 const status = ref("");
@@ -100,7 +100,7 @@ const getRoomList = async (showMsg = false) => {
         <div class="max-sm:mb-3 text-lg font-medium">用户房间列表（{{ __roomList.length }}）</div>
         <div class="">
           排序方式：<el-select
-            v-model="order"
+            v-model="sort"
             class="mr-2"
             placeholder="排序方式"
             @change="getRoomList(false)"
@@ -111,11 +111,11 @@ const getRoomList = async (showMsg = false) => {
           <button
             class="btn btn-dense"
             @click="
-              sort === 'desc' ? (sort = 'asc') : (sort = 'desc');
+              order === 'desc' ? (order = 'asc') : (order = 'desc');
               getRoomList();
             "
           >
-            {{ sort === "asc" ? "👆" : "👇" }}
+            {{ order === "asc" ? "👆" : "👇" }}
           </button>
         </div>
       </div>

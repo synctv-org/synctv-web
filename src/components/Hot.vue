@@ -30,21 +30,13 @@ const { state: roomList, execute: reqHotRoomList } = hotRoom();
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
-const order = ref("peopleNum");
-const sort = ref("desc");
-const search = ref("all");
-const keyword = ref("all");
 
 const getRoomList = async (showMsg = false) => {
   try {
     await reqHotRoomList({
       params: {
         page: currentPage.value,
-        max: pageSize.value,
-        sort: sort.value,
-        order: order.value,
-        search: search.value,
-        keyword: keyword.value
+        max: pageSize.value
       }
     });
 

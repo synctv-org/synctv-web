@@ -119,8 +119,6 @@ export const hotRoom = useDefineApi<
     params: {
       page: number;
       max: number;
-      sort: string;
-      order: string;
     };
   },
   {

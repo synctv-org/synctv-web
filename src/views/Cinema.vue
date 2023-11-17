@@ -150,7 +150,6 @@ const syncPlugin = sync({
 // 获取影片列表
 const currentPage = ref(1);
 const pageSize = ref(10);
-const order = ref("desc");
 const { state: movieList, isLoading: movieListLoading, execute: reqMovieListApi } = movieListApi();
 /**
  * @argument updateStatus 是否更新当前正在播放的影片（包括状态）
@@ -160,8 +159,7 @@ const getMovieList = async () => {
     await reqMovieListApi({
       params: {
         page: currentPage.value,
-        max: pageSize.value,
-        order: order.value
+        max: pageSize.value
       },
       headers: { Authorization: roomToken.value }
     });
@@ -200,8 +198,7 @@ const getMovies = async () => {
     await reqMoviesApi({
       params: {
         page: currentPage.value,
-        max: pageSize.value,
-        order: order.value
+        max: pageSize.value
       },
       headers: { Authorization: roomToken.value }
     });

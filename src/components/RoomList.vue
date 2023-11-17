@@ -39,8 +39,8 @@ const { state: myRoomList_, execute: reqMyRoomList } = myRoomList();
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
-const order = ref("name");
-const sort = ref("desc");
+const order = ref("desc");
+const sort = ref("name");
 const keyword = ref("");
 const search = ref("all");
 const status = ref("");
@@ -116,7 +116,7 @@ onMounted(() => {
       </div>
       <div class="text-base -my-2">
         排序方式：<el-select
-          v-model="order"
+          v-model="sort"
           class="m-2"
           placeholder="排序方式"
           @change="getRoomList(false)"
@@ -127,11 +127,11 @@ onMounted(() => {
         <button
           class="btn btn-dense"
           @click="
-            sort === 'desc' ? (sort = 'asc') : (sort = 'desc');
+            order === 'desc' ? (order = 'asc') : (order = 'desc');
             getRoomList();
           "
         >
-          {{ sort === "asc" ? "👆" : "👇" }}
+          {{ order === "asc" ? "👆" : "👇" }}
         </button>
       </div>
     </div>

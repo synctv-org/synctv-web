@@ -33,8 +33,8 @@ const { state: roomList, execute: reqRoomList } = roomListApi();
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
-const order = ref("name");
-const sort = ref("desc");
+const order = ref("desc");
+const sort = ref("name");
 const search = ref("all");
 const keyword = ref("");
 

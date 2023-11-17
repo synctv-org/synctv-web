@@ -17,8 +17,8 @@ const { token } = userStore();
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
-const order = ref("createdAt");
-const sort = ref("desc");
+const order = ref("desc");
+const sort = ref("createdAt");
 const keyword = ref("");
 const search = ref("all");
 const { state, execute: reqRoomListApi, isLoading: roomListLoading } = roomListApi();
@@ -138,7 +138,7 @@ onMounted(async () => {
 
       <div class="text-base max-xl:w-full">
         排序方式：<el-select
-          v-model="order"
+          v-model="sort"
           class="mr-2"
           placeholder="排序方式"
           @change="getRoomListApi()"
@@ -150,11 +150,11 @@ onMounted(async () => {
         <button
           class="btn btn-dense"
           @click="
-            sort === 'desc' ? (sort = 'asc') : (sort = 'desc');
+            order === 'desc' ? (order = 'asc') : (order = 'desc');
             getRoomListApi();
           "
         >
-          {{ sort === "asc" ? "👆" : "👇" }}
+          {{ order === "asc" ? "👆" : "👇" }}
         </button>
       </div>
     </div>

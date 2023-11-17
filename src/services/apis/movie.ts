@@ -8,8 +8,6 @@ export const movieListApi = useDefineApi<
     params: {
       page: number;
       max: number;
-      sort?: string;
-      order: string;
     };
     headers: { Authorization: string };
   },
@@ -32,8 +30,6 @@ export const moviesApi = useDefineApi<
     params: {
       page: number;
       max: number;
-      sort?: string;
-      order: string;
     };
     headers: { Authorization: string };
   },
