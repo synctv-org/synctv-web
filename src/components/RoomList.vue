@@ -148,7 +148,12 @@ onMounted(() => {
         </el-select>
         <el-input v-model="keyword" placeholder="搜索" @keyup.enter="getRoomList(false)" required>
           <template #prepend>
-            <el-select v-model="search" placeholder="Select" style="width: 90px">
+            <el-select
+              v-model="search"
+              @change="getRoomList(false)"
+              placeholder="Select"
+              style="width: 90px"
+            >
               <el-option label="综合" value="all" />
               <el-option label="名称" value="name" />
               <el-option label="ID" value="id" />

@@ -125,7 +125,12 @@ onMounted(async () => {
         required
       >
         <template #prepend>
-          <el-select v-model="search" placeholder="Select" style="width: 90px">
+          <el-select
+            v-model="search"
+            @change="getRoomListApi()"
+            placeholder="Select"
+            style="width: 90px"
+          >
             <el-option label="综合" value="all" />
             <el-option label="名称" value="name" />
             <el-option label="ID" value="roomId" />

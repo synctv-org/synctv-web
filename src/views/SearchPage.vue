@@ -68,7 +68,7 @@ const getRoomList = async (showMsg = false) => {
   <div class="text-center">
     <div class="lg:w-5/12 mx-auto">
       <div class="inline-block mb-2 l-input">
-        <select v-model="search">
+        <select v-model="search" @change="getRoomList(false)">
           <option value="all">综合</option>
           <option value="name">房间名称</option>
           <option value="creator">创建者</option>
