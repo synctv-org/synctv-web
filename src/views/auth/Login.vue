@@ -17,7 +17,7 @@ const platforms: { [key: string]: { name: string; class: string } } = {
     class: "btn-warning"
   },
   feishuSSO: {
-       name: "飞书单点登录",
+       name: "飞书SSO",
        class: "btn-default"
      }
 };
