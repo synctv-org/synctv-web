@@ -11,9 +11,11 @@ const route = useRoute();
 const roomID = useRouteParams("roomId");
 const pwd = useRouteQuery("pwd");
 
+const { isLogin } = userStore();
+
 // 是否为弹窗加载
 const isModal = computed(() => {
-  return route.name === "joinRoom" ? false : true;
+  return !(isLogin || route.name === "joinRoom");
 });
 
 const props = defineProps<{
