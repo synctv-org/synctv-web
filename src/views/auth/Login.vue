@@ -36,6 +36,9 @@ const { state, execute } = loginWithOAuth2();
 const useOAuth2 = async (platform: string) => {
   try {
     await execute({
+      data: {
+        redirect: ""
+      },
       url: "/oauth2/login/" + platform
     });
     if (state.value) window.location.href = state.value.url;

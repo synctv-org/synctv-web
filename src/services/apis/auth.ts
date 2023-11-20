@@ -45,7 +45,17 @@ export const OAuth2Platforms = useDefineApi<any, { enabled: string[] }>({
 });
 
 // 使用 Oauth2 账号登录
-export const loginWithOAuth2 = useDefineApi<any, { url: string }>({
+export const loginWithOAuth2 = useDefineApi<
+  {
+    data: {
+      redirect: string;
+    };
+    url: string;
+  },
+  {
+    url: string;
+  }
+>({
   method: "POST"
 });
 
@@ -58,7 +68,10 @@ export const oAuth2Callback = useDefineApi<
     };
     url: string;
   },
-  { token: string }
+  {
+    token: string;
+    redirect: string;
+  }
 >({
   method: "POST"
 });
