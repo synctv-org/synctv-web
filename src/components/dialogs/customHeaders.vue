@@ -24,7 +24,16 @@ const removeItem = (key: any) => {
 };
 
 const addItem = () => {
-  rArray.push({ "": "" });
+  if (rArray.length === 0 ||
+      (Object.keys(rArray[rArray.length - 1])[0].trim() !== "" &&
+          Object.values(rArray[rArray.length - 1])[0].trim() !== "")) {
+    rArray.push({ "": "" });
+  } else {
+    ElMessage({
+      type: 'error',
+      message: 'header不完整或为空'
+    });
+  }
 };
 
 const updateItemKey = (j: string | number, i: number, e: any) => {
@@ -37,6 +46,17 @@ const updateItemVal = (j: string | number, i: number, e: any) => {
 };
 
 const submit = async () => {
+  for (const item of rArray) {
+    const key = Object.keys(item)[0];
+    const value = item[key];
+    if (key.trim() === "" || value.trim() === "") {
+      ElMessage({
+        type: 'error',
+        message: 'header不完整或为空'
+      });
+      return;
+    }
+  }
   try {
     const merged = rArray.reduce((result, currentObj) => {
       return { ...result, ...currentObj };
@@ -62,7 +82,11 @@ defineExpose({
   openDialog
 });
 
-onMounted(() => {});
+onMounted(() => {
+  if (rArray.length === 0) {
+    rArray.push({ "": "" }); // 页面刷新，如果header为空，增加一行
+  }
+});
 </script>
 
 <template>
