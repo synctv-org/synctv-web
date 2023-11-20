@@ -15,7 +15,11 @@ const platforms: { [key: string]: { name: string; class: string } } = {
   google: {
     name: "Google",
     class: "btn-warning"
-  }
+  },
+  feishuSSO: {
+       name: "飞书单点登录",
+       class: "btn-default"
+     }
 };
 
 const { execute: reqOAuth2PlatformsApi, state: OAuth2Platforms_ } = OAuth2Platforms();
