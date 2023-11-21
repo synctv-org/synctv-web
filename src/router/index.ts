@@ -96,7 +96,16 @@ router.beforeEach((to: any, from: any, next) => {
     window.document.title = Base_Title + " - " + to.meta.title;
     next();
   } else {
-    next("/403");
+    if (permission === ROLE.Visitor) {
+      router.replace({
+        name: "login",
+        query: {
+          redirect: to.fullPath
+        }
+      });
+    } else {
+      next("/403");
+    }
   }
 });
 

@@ -12,7 +12,7 @@ const { getUserInfo: updateUserInfo, updateToken } = userStore();
 const code = useRouteQuery("code");
 const state = useRouteQuery("state");
 const platform = useRouteParams("platform");
-const { state: loginUserInfo, execute } = oAuth2Callback();
+const { state: loginData, execute } = oAuth2Callback();
 const isLoading = ref(true);
 const redirect = async () => {
   try {
@@ -24,8 +24,8 @@ const redirect = async () => {
       url: "/oauth2/callback/" + platform.value
     });
 
-    if (loginUserInfo.value) {
-      updateToken(loginUserInfo.value.token);
+    if (loginData.value) {
+      updateToken(loginData.value.token);
       await getUserInfo();
     }
   } catch (err: any) {
@@ -42,7 +42,7 @@ const getUserInfo = async () => {
   try {
     const state = await userInfo().execute({
       headers: {
-        Authorization: loginUserInfo.value?.token ?? ""
+        Authorization: loginData.value?.token ?? ""
       }
     });
     if (state.value) {
@@ -53,7 +53,8 @@ const getUserInfo = async () => {
         title: "登录成功",
         type: "success"
       });
-      router.push("/");
+
+      router.replace(loginData.value?.redirect || "/");
     }
   } catch (err: any) {
     console.error(err);

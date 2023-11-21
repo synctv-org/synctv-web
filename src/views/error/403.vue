@@ -13,7 +13,7 @@ import router from "@/router";
       </div>
       <p>403 禁止访问</p>
     </template>
-    <button class="btn" @click="router.push('/')">返回首页</button>
+    <button class="btn" @click="router.replace('/')">返回首页</button>
    </el-empty>
   </div>
 </template>

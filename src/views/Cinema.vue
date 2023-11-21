@@ -18,7 +18,6 @@ import {
 } from "@/services/apis/movie";
 import type { EditMovieInfo } from "@/types/Movie";
 import type { MovieInfo } from "@/proto/message";
-import { getFileExtension } from "@/utils/utils";
 import { sync } from "@/plugins/sync";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUin8Array } from "@/utils/utils";
@@ -40,28 +39,31 @@ const room = roomStore();
 
 // 获取房间信息
 const roomID = useRouteParams<string>("roomId");
-const roomToken = useLocalStorage<string>(
-  `room-${roomID.value}-token`,
-  localStorage.getItem(`room-${roomID.value}-token`) ?? ""
-);
+const roomToken = useLocalStorage<string>(`room-${roomID.value}-token`, "");
 
-if (roomToken.value === "") {
-  router.push(`/joinRoom/${roomID.value}`);
-}
+let msgList = ref<string[]>([]);
 
-// 启动websocket连接
+// 发送消息（临时
+let sendText_ = ref("");
+
+let player: Artplayer;
+
 const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
-const { status, data, send } = useWebSocket(`${wsProtocol}//${window.location.host}/api/room/ws`, {
-  protocols: [roomToken.value],
-  autoReconnect: {
-    retries: 3,
-    delay: 1000,
-    onFailed() {
-      ElMessage.error("Websocket 自动重连失败！");
-    }
-  },
-  autoClose: true
-});
+const { status, data, send, open } = useWebSocket(
+  `${wsProtocol}//${window.location.host}/api/room/ws`,
+  {
+    protocols: [roomToken.value],
+    autoReconnect: {
+      retries: 3,
+      delay: 1000,
+      onFailed() {
+        ElMessage.error("Websocket 自动重连失败！");
+      }
+    },
+    autoClose: true,
+    immediate: false
+  }
+);
 
 const SendElement = (msg: ElementMessage) => {
   if (!msg.time) {
@@ -69,6 +71,109 @@ const SendElement = (msg: ElementMessage) => {
   }
   return send(ElementMessage.encode(msg).finish());
 };
+
+let syncPlugin = sync({
+  publishStatus: SendElement,
+  sendDanmuku: (msg) => {
+    msgList.value.push(msg);
+  }
+});
+
+const sendText = () => {
+  if (sendText_.value === "")
+    return ElMessage({
+      message: "发送的消息不能为空",
+      type: "warning"
+    });
+  strLengthLimit(sendText_.value, 64);
+  SendElement(
+    ElementMessage.create({
+      type: ElementMessageType.CHAT_MESSAGE,
+      message: sendText_.value
+    })
+  );
+  sendText_.value = "";
+  if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
+  // console.log("sended:" + msg);
+};
+
+onMounted(() => {
+  if (roomToken.value === "") {
+    router.push({
+      name: "joinRoom",
+      params: {
+        roomId: roomID.value
+      }
+    });
+    return;
+  }
+
+  // 启动websocket连接
+  open();
+
+  // 监听ws信息变化
+  watchers.push(
+    watch(
+      () => data.value,
+      () => {
+        blobToUin8Array(data.value)
+          .then((array) => {
+            handleElementMessage(ElementMessage.decode(array));
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      }
+    )
+  );
+
+  getMovieList();
+});
+
+const danmukuPlugin = artplayerPluginDanmuku({
+  // 弹幕数组
+  danmuku: [],
+  speed: 4
+});
+
+const playerUrl = computed(() => {
+  if (
+    room.currentMovie.base?.rtmpSource ||
+    (room.currentMovie.base?.live && room.currentMovie.base?.proxy)
+  ) {
+    switch (room.currentMovie.base!.type) {
+      case "flv":
+        return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.flv`;
+      default:
+        return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.m3u8`;
+    }
+  } else if (room.currentMovie.base?.proxy) {
+    if (room.currentMovie.base!.vendorInfo?.bilibili) {
+      return `${window.location.origin}/api/movie/proxy/${roomID.value}/${room.currentMovie.id}?t=hevc`;
+    }
+    return `${window.location.origin}/api/movie/proxy/${roomID.value}/${room.currentMovie.id}`;
+  } else {
+    return room.currentMovie.base!.url;
+  }
+});
+
+const playerOption = computed(() => {
+  let option = {
+    url: playerUrl.value,
+    type: room.currentMovie.base?.type || "",
+    isLive: room.currentMovie.base!.live,
+    headers: room.currentMovie.base!.headers,
+    plugins: [danmukuPlugin, syncPlugin?.plugin]
+  };
+  if (option.url.startsWith(window.location.origin)) {
+    option.headers = {
+      ...option.headers,
+      Authorization: roomToken.value
+    };
+  }
+
+  return option;
+});
 
 // 更新房间密码
 const password = ref("");
@@ -134,18 +239,6 @@ const deleteRoom = async () => {
     });
   }
 };
-
-let msgList = ref<string[]>([]);
-
-// 更新消息列表
-const updateMsgList = (msg: string) => {
-  msgList.value.push(msg);
-};
-
-const syncPlugin = sync({
-  publishStatus: SendElement,
-  sendDanmuku: updateMsgList
-});
 
 // 获取影片列表
 const currentPage = ref(1);
@@ -229,6 +322,128 @@ const getMovies = async () => {
   }
 };
 
+const handleElementMessage = (msg: ElementMessage) => {
+  console.log(`-----Ws Message Start-----`);
+  console.log(msg);
+  console.log(`-----Ws Message End-----`);
+  switch (msg.type) {
+    case ElementMessageType.ERROR: {
+      console.error(msg.message);
+      ElNotification({
+        title: "错误",
+        message: msg.message,
+        type: "error"
+      });
+      break;
+    }
+
+    // 聊天消息
+    case ElementMessageType.CHAT_MESSAGE: {
+      msgList.value.push(`${msg.sender}：${msg.message}`);
+      // jsonData.message.split("：")[0] !== "PLAYER" &&
+      room.danmuku = {
+        text: msg.message, // 弹幕文本
+        //time: Date.now(), // 发送时间，单位秒
+        color: "#fff", // 弹幕局部颜色
+        border: false // 是否显示描边
+        //mode: 0, // 弹幕模式: 0表示滚动, 1静止
+      };
+
+      // 自动滚动到最底部
+      if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
+
+      if (msgList.value.length > 40)
+        return (msgList.value = [
+          "<p><b>SYSTEM：</b>已达到最大聊天记录长度，系统已自动清空...</p>"
+        ]);
+
+      break;
+    }
+
+    // 播放
+    case ElementMessageType.PLAY: {
+      syncPlugin.setAndNoPublishSeek(msg.seek!);
+      syncPlugin.setAndNoPublishRate(msg.rate!);
+      syncPlugin.setAndNoPublishPlay();
+      break;
+    }
+
+    // 暂停
+    case ElementMessageType.PAUSE: {
+      syncPlugin.setAndNoPublishPause();
+      syncPlugin.setAndNoPublishSeek(msg.seek!);
+      syncPlugin.setAndNoPublishRate(msg.rate!);
+      break;
+    }
+
+    // 视频进度发生变化
+    case ElementMessageType.CHANGE_SEEK: {
+      syncPlugin.setAndNoPublishSeek(msg.seek!);
+      syncPlugin.setAndNoPublishRate(msg.rate!);
+      break;
+    }
+
+    case ElementMessageType.TOO_FAST: {
+      ElNotification({
+        title: "播放速度过快",
+        type: "warning"
+      });
+      syncPlugin.setAndNoPublishSeek(msg.seek!);
+      syncPlugin.setAndNoPublishRate(msg.rate!);
+      break;
+    }
+
+    case ElementMessageType.TOO_SLOW: {
+      ElNotification({
+        title: "播放速度落后",
+        type: "warning"
+      });
+      syncPlugin.setAndNoPublishSeek(msg.seek!);
+      syncPlugin.setAndNoPublishRate(msg.rate!);
+      break;
+    }
+
+    case ElementMessageType.CHECK_SEEK: {
+      break;
+    }
+
+    case ElementMessageType.CHANGE_RATE: {
+      syncPlugin.setAndNoPublishSeek(msg.seek!);
+      syncPlugin.setAndNoPublishRate(msg.rate!);
+      break;
+    }
+
+    // 设置正在播放的影片
+    case ElementMessageType.CHANGE_CURRENT: {
+      room.currentMovie = msg.current!.movie!;
+      room.currentMovieStatus = msg.current!.status!;
+      syncPlugin.setAndNoPublishSeek(msg.current!.status!.seek);
+      syncPlugin.setAndNoPublishRate(msg.current!.status!.rate);
+      break;
+    }
+
+    // 播放列表更新
+    case ElementMessageType.CHANGE_MOVIES: {
+      getMovies();
+      break;
+    }
+
+    case ElementMessageType.CHANGE_PEOPLE: {
+      room.peopleNum < msg.peopleNum!
+        ? msgList.value.push(
+            `<p><b>SYSTEM：</b>欢迎新成员加入，当前共有 ${msg.peopleNum} 人在观看</p>`
+          )
+        : room.peopleNum > msg.peopleNum!
+        ? msgList.value.push(
+            `<p><b>SYSTEM：</b>有人离开了房间，当前还剩 ${msg.peopleNum} 人在观看</p>`
+          )
+        : "";
+      room.peopleNum = msg.peopleNum!;
+      break;
+    }
+  }
+};
+
 // 清空影片列表
 const { execute: reqClearMovieListApi } = clearMovieListApi();
 const clearMovieList = async (id: number) => {
@@ -281,15 +496,6 @@ const getLiveInfo = async (id: string) => {
     });
   }
 };
-
-// watchers.push(
-//   watch(
-//     () => newMovieInfo.value.live,
-//     () => {
-//       !newMovieInfo.value.live ? (newMovieInfo.value.rtmpSource = false) : void 0;
-//     }
-//   )
-// );
 
 // 当前影片信息
 let cMovieInfo = ref<EditMovieInfo>({
@@ -421,7 +627,6 @@ const changeCurrentMovie = async (id: string, showMsg = true) => {
         title: "设置成功",
         type: "success"
       });
-    resetChatAreaHeight();
   } catch (err: any) {
     console.error(err);
     showMsg &&
@@ -439,174 +644,8 @@ const playArea = ref();
 // 消息列表
 const chatArea = ref();
 
-const handleElementMessage = (msg: ElementMessage) => {
-  console.log(`-----Ws Message Start-----`);
-  console.log(msg);
-  console.log(`-----Ws Message End-----`);
-  switch (msg.type) {
-    case ElementMessageType.ERROR: {
-      console.error(msg.message);
-      ElNotification({
-        title: "错误",
-        message: msg.message,
-        type: "error"
-      });
-      break;
-    }
-
-    // 聊天消息
-    case ElementMessageType.CHAT_MESSAGE: {
-      msgList.value.push(`${msg.sender}：${msg.message}`);
-      // jsonData.message.split("：")[0] !== "PLAYER" &&
-      room.danmuku = {
-        text: msg.message, // 弹幕文本
-        //time: Date.now(), // 发送时间，单位秒
-        color: "#fff", // 弹幕局部颜色
-        border: false // 是否显示描边
-        //mode: 0, // 弹幕模式: 0表示滚动, 1静止
-      };
-
-      // 自动滚动到最底部
-      if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
-
-      if (msgList.value.length > 40)
-        return (msgList.value = [
-          "<p><b>SYSTEM：</b>已达到最大聊天记录长度，系统已自动清空...</p>"
-        ]);
-
-      break;
-    }
-
-    // 播放
-    case ElementMessageType.PLAY: {
-      syncPlugin.setAndNoPublishSeek(msg.seek!);
-      syncPlugin.setAndNoPublishRate(msg.rate!);
-      syncPlugin.setAndNoPublishPlay();
-      break;
-    }
-
-    // 暂停
-    case ElementMessageType.PAUSE: {
-      syncPlugin.setAndNoPublishPause();
-      syncPlugin.setAndNoPublishSeek(msg.seek!);
-      syncPlugin.setAndNoPublishRate(msg.rate!);
-      break;
-    }
-
-    // 视频进度发生变化
-    case ElementMessageType.CHANGE_SEEK: {
-      syncPlugin.setAndNoPublishSeek(msg.seek!);
-      syncPlugin.setAndNoPublishRate(msg.rate!);
-      break;
-    }
-
-    case ElementMessageType.TOO_FAST: {
-      ElNotification({
-        title: "播放速度过快",
-        type: "warning"
-      });
-      // TODO: 询问是否重新同步
-      syncPlugin.setAndNoPublishSeek(msg.seek!);
-      syncPlugin.setAndNoPublishRate(msg.rate!);
-      break;
-    }
-
-    case ElementMessageType.TOO_SLOW: {
-      ElNotification({
-        title: "播放速度落后",
-        type: "warning"
-      });
-      // TODO: 询问是否重新同步
-      syncPlugin.setAndNoPublishSeek(msg.seek!);
-      syncPlugin.setAndNoPublishRate(msg.rate!);
-      break;
-    }
-
-    case ElementMessageType.CHECK_SEEK: {
-      break;
-    }
-
-    case ElementMessageType.CHANGE_RATE: {
-      syncPlugin.setAndNoPublishSeek(msg.seek!);
-      syncPlugin.setAndNoPublishRate(msg.rate!);
-      break;
-    }
-
-    // 设置正在播放的影片
-    case ElementMessageType.CHANGE_CURRENT: {
-      room.currentMovie = msg.current!.movie!;
-      room.currentMovieStatus = msg.current!.status!;
-      syncPlugin.setAndNoPublishSeek(msg.current!.status!.seek);
-      syncPlugin.setAndNoPublishRate(msg.current!.status!.rate);
-      resetChatAreaHeight();
-      break;
-    }
-
-    // 播放列表更新
-    case ElementMessageType.CHANGE_MOVIES: {
-      getMovies();
-      resetChatAreaHeight();
-      break;
-    }
-
-    case ElementMessageType.CHANGE_PEOPLE: {
-      room.peopleNum < msg.peopleNum!
-        ? msgList.value.push(
-            `<p><b>SYSTEM：</b>欢迎新成员加入，当前共有 ${msg.peopleNum} 人在观看</p>`
-          )
-        : room.peopleNum > msg.peopleNum!
-        ? msgList.value.push(
-            `<p><b>SYSTEM：</b>有人离开了房间，当前还剩 ${msg.peopleNum} 人在观看</p>`
-          )
-        : "";
-      room.peopleNum = msg.peopleNum!;
-      break;
-    }
-  }
-};
-
-// 监听ws信息变化
-watchers.push(
-  watch(
-    () => data.value,
-    () => {
-      blobToUin8Array(data.value)
-        .then((array) => {
-          handleElementMessage(ElementMessage.decode(array));
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    }
-  )
-);
-
-// 发送消息（临时
-let sendText_ = ref("");
-const sendText = () => {
-  if (sendText_.value === "")
-    return ElMessage({
-      message: "发送的消息不能为空",
-      type: "warning"
-    });
-  strLengthLimit(sendText_.value, 64);
-  SendElement(
-    ElementMessage.create({
-      type: ElementMessageType.CHAT_MESSAGE,
-      message: sendText_.value
-    })
-  );
-  sendText_.value = "";
-  if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
-  // console.log("sended:" + msg);
-};
-
-let player: Artplayer;
-
 function getPlayerInstance(art: Artplayer) {
   player = art;
-  resetChatAreaHeight();
-  player.once("ready", resetChatAreaHeight);
 }
 
 // 设置聊天框高度
@@ -617,53 +656,6 @@ const resetChatAreaHeight = () => {
 
 const card = ref(null);
 useResizeObserver(card, resetChatAreaHeight);
-
-getMovieList();
-
-const danmukuPlugin = artplayerPluginDanmuku({
-  // 弹幕数组
-  danmuku: [],
-  speed: 4
-});
-
-const playerUrl = computed(() => {
-  if (
-    room.currentMovie.base?.rtmpSource ||
-    (room.currentMovie.base?.live && room.currentMovie.base?.proxy)
-  ) {
-    switch (room.currentMovie.base!.type) {
-      case "flv":
-        return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.flv`;
-      default:
-        return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.m3u8`;
-    }
-  } else if (room.currentMovie.base?.proxy) {
-    if (room.currentMovie.base!.vendorInfo?.bilibili) {
-      return `${window.location.origin}/api/movie/proxy/${roomID.value}/${room.currentMovie.id}?t=hevc`;
-    }
-    return `${window.location.origin}/api/movie/proxy/${roomID.value}/${room.currentMovie.id}`;
-  } else {
-    return room.currentMovie.base!.url;
-  }
-});
-
-const playerOption = computed(() => {
-  let option = {
-    url: playerUrl.value,
-    type: room.currentMovie.base?.type || getFileExtension(playerUrl.value),
-    isLive: room.currentMovie.base!.live,
-    headers: room.currentMovie.base!.headers,
-    plugins: [danmukuPlugin, syncPlugin.plugin]
-  };
-  if (option.url.startsWith(window.location.origin)) {
-    option.headers = {
-      ...option.headers,
-      Authorization: roomToken.value
-    };
-  }
-
-  return option;
-});
 </script>
 
 <template>

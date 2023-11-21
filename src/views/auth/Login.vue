@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import { OAuth2Platforms, loginWithOAuth2 } from "@/services/apis/auth";
+import { useRouteQuery } from "@vueuse/router";
 
 const platforms: { [key: string]: { name: string; class: string } } = {
   github: {
@@ -33,11 +34,15 @@ const getOAuth2Platforms = async () => {
 };
 
 const { state, execute } = loginWithOAuth2();
+const redirect = useRouteQuery("redirect");
+
+console.log("redirect: ", (redirect.value as string) ?? "");
+
 const useOAuth2 = async (platform: string) => {
   try {
     await execute({
       data: {
-        redirect: ""
+        redirect: (redirect.value as string) ?? ""
       },
       url: "/oauth2/login/" + platform
     });

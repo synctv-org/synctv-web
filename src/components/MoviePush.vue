@@ -235,20 +235,29 @@ const pushMovie = async () => {
   }
 };
 
+// TODO: use el-select lazy load
+// @focus="getBiliBiliVendors"
+// :loading="getBiliBiliVendorsLoading"
+const getBiliBiliVendorsLoading = ref(true);
+
 // 获取可用的bilibili解析接口
 const { state: biliVendors, execute: reqBiliBiliVendors } = biliBiliVendors();
+biliVendors.value = [""];
 const biliVendor = ref<string>("");
 const getBiliBiliVendors = async () => {
+  if (!getBiliBiliVendorsLoading.value) return;
   try {
     await reqBiliBiliVendors({
       headers: {
         Authorization: Props.token
       }
     });
+    getBiliBiliVendorsLoading.value = false;
     if (biliVendors.value) {
       biliVendors.value.push("");
     }
   } catch (err: any) {
+    getBiliBiliVendorsLoading.value = false;
     console.log(err);
     ElNotification({
       title: "获取可用接口错误",
@@ -257,10 +266,6 @@ const getBiliBiliVendors = async () => {
     });
   }
 };
-
-onMounted(async () => {
-  await getBiliBiliVendors();
-});
 </script>
 
 <template>
@@ -345,7 +350,11 @@ onMounted(async () => {
         v-if="newMovieInfo.vendorInfo?.vendor === 'bilibili'"
         class="flex flex-wrap justify-between w-full"
       >
-        <select v-model="biliVendor" class="bg-transparent p-0 text-base">
+        <select
+          v-model="biliVendor"
+          class="bg-transparent p-0 text-base"
+          @focus="getBiliBiliVendors"
+        >
           <option v-for="item in biliVendors" :value="item">
             {{ item === "" ? "默认" : item }}
           </option>

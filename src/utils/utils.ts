@@ -1,14 +1,5 @@
 import { ElMessage } from "element-plus";
 
-export const getFileExtension = (url: string) => {
-  const match = url.match(/\.([a-z0-9]+)(?:[\?#]|$)/i);
-  if (match) {
-    return match[1];
-  } else {
-    return "";
-  }
-};
-
 export const debounces = (delay: number): Function => {
   let timerId: ReturnType<typeof setTimeout> | null = null;
 
