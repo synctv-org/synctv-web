@@ -15,7 +15,7 @@ const { isLogin } = userStore();
 
 // 是否为弹窗加载
 const isModal = computed(() => {
-  return !(isLogin || route.name === "joinRoom");
+  return route.name !== "joinRoom"
 });
 
 const props = defineProps<{
