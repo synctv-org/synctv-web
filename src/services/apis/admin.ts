@@ -1,5 +1,6 @@
 import { useDefineApi } from "@/stores/useDefineApi";
 import type { RoomList } from "@/types/Room";
+import type { ROLE } from "@/types/User";
 
 // 获取房间设置
 export const roomSettings = useDefineApi<
@@ -153,6 +154,24 @@ export const userRoomListApi = useDefineApi<
 >({
   url: "/api/admin/user/rooms",
   method: "GET"
+});
+
+// 新建用户
+export const newUserApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      username: string;
+      password: string;
+      role: ROLE;
+    };
+  },
+  any
+>({
+  url: "/api/admin/user/add",
+  method: "POST"
 });
 
 // 获取所有设置

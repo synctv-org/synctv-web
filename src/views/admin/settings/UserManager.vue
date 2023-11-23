@@ -13,6 +13,7 @@ import {
 } from "@/services/apis/admin";
 import CopyButton from "@/components/CopyButton.vue";
 import userRooms from "@/components/admin/dialogs/userRooms.vue";
+import newUser from "@/components/admin/dialogs/newUser.vue";
 import { ROLE, role } from "@/types/User";
 
 const props = defineProps<{
@@ -20,6 +21,7 @@ const props = defineProps<{
 }>();
 
 const userRoomsDialog = ref<InstanceType<typeof userRooms>>();
+const newUserDialog = ref<InstanceType<typeof newUser>>();
 const getRole = (rawRole: ROLE) => role[rawRole];
 const roles = computed(() => {
   const v = Object.values(role);
@@ -199,28 +201,9 @@ onMounted(async () => {
           </template>
         </el-input>
       </div>
-
-      <div class="text-base max-xl:w-full max-xl:my-2">
-        排序方式：<el-select
-          v-model="sort"
-          class="mr-2"
-          placeholder="排序方式"
-          @change="getUserListApi()"
-          style="width: 150px"
-        >
-          <el-option label="用户名" value="username" />
-          <el-option label="注册时间" value="createdAt" />
-        </el-select>
-        <button
-          class="btn btn-dense"
-          @click="
-            order === 'desc' ? (order = 'asc') : (order = 'desc');
-            getUserListApi();
-          "
-        >
-          {{ order === "asc" ? "👆" : "👇" }}
-        </button>
-      </div>
+      <el-button class="max-xl:mt-3" type="primary" @click="newUserDialog?.openDialog">
+        添加用户
+      </el-button>
     </div>
     <div class="card-body">
       <el-table :data="state?.list" v-loading="userListLoading" style="width: 100%">
@@ -288,24 +271,49 @@ onMounted(async () => {
       </el-table>
     </div>
     <div class="card-footer flex flex-wrap justify-between overflow-hidden">
-      <el-button type="success" @click="getUserListApi()" :loading="userListLoading"
-        >更新列表</el-button
-      >
+      <el-button type="success" @click="getUserListApi()" :loading="userListLoading">
+        更新列表
+      </el-button>
 
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :pager-count="5"
-        layout="sizes, prev, pager, next, jumper"
-        :total="totalItems"
-        @size-change="getUserListApi()"
-        @current-change="getUserListApi()"
-        class="flex-wrap"
-      />
+      <div class="flex flex-wrap">
+        <div class="text-base mr-2 max-xl:my-2">
+          排序方式：<el-select
+            v-model="sort"
+            class="mr-2"
+            placeholder="排序方式"
+            @change="getUserListApi()"
+            style="width: 150px"
+          >
+            <el-option label="用户名" value="username" />
+            <el-option label="注册时间" value="createdAt" />
+          </el-select>
+          <button
+            class="btn btn-dense"
+            @click="
+              order === 'desc' ? (order = 'asc') : (order = 'desc');
+              getUserListApi();
+            "
+          >
+            {{ order === "asc" ? "👆" : "👇" }}
+          </button>
+        </div>
+
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :pager-count="5"
+          layout="sizes, prev, pager, next, jumper"
+          :total="totalItems"
+          @size-change="getUserListApi()"
+          @current-change="getUserListApi()"
+          class="flex-wrap"
+        />
+      </div>
     </div>
   </div>
 
   <userRooms ref="userRoomsDialog" />
+  <newUser ref="newUserDialog" @update-user-list="getUserListApi()"/>
 </template>
 
 <style lang="less" scoped>
