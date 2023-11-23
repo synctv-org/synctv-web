@@ -293,7 +293,7 @@ onMounted(async () => {
           :backgroundOptions="{ color: room.isDarkMode ? '#27272a' : '#ffffff' }"
           :cornersSquareOptions="{ type: 'square', color: '#f87171' }"
           :cornersDotOptions="{ type: undefined, color: '#4ade80' }"
-          myclass="mx-auto px-10 py-5 max-sm:w-52 max-md:w-56"
+          myclass="bili-qrcode"
         />
         <p
           v-else-if="biliQRCodeStatus && biliQRCodeStatus.status === 'expired'"
@@ -393,6 +393,16 @@ onMounted(async () => {
     </div>
   </el-dialog>
 </template>
+
+<style lang="less">
+.bili-qrcode {
+  @apply mx-auto px-10 py-5;
+
+  img {
+    @apply mx-auto;
+  }
+}
+</style>
 
 <style scoped lang="less">
 // 删除input number的上下控制按钮
