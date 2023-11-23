@@ -9,7 +9,8 @@ import {
   unBanUserApi,
   addAdminApi,
   delAdminApi,
-  approveUserApi
+  approveUserApi,
+  delUserApi
 } from "@/services/apis/admin";
 import CopyButton from "@/components/CopyButton.vue";
 import userRooms from "@/components/admin/dialogs/userRooms.vue";
@@ -154,6 +155,32 @@ const approve = async (id: string) => {
   }
 };
 
+// 删用户
+const delUser = async (id: string) => {
+  try {
+    await delUserApi().execute({
+      headers: {
+        Authorization: token.value
+      },
+      data: {
+        id: id
+      }
+    });
+    ElNotification({
+      title: "删除成功",
+      type: "success"
+    });
+    await getUserListApi();
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "错误",
+      type: "error",
+      message: err.response.data.error || err.message
+    });
+  }
+};
+
 onMounted(async () => {
   await getUserListApi();
 });
@@ -226,7 +253,7 @@ onMounted(async () => {
             <el-button type="primary" plain @click="getUserRoom(scope.row.id)"> 查看 </el-button>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="注册时间">
+        <el-table-column prop="createdAt" label="注册时间" width="200">
           <template #default="scope">
             {{ new Date(scope.row.createdAt).toLocaleString() }}
           </template>
@@ -251,7 +278,9 @@ onMounted(async () => {
               </el-button>
 
               <div v-else class="phone-button">
-                <el-button type="danger" @click="banUser(scope.row.id, true)"> 封禁 </el-button>
+                <el-button type="danger" plain @click="banUser(scope.row.id, true)">
+                  封禁
+                </el-button>
 
                 <el-button
                   v-if="scope.row.role < ROLE.Admin"
@@ -262,8 +291,14 @@ onMounted(async () => {
                 </el-button>
 
                 <el-button v-else type="warning" @click="setAdmin(scope.row.id, false)">
-                  取消管理身份
+                  取消管理
                 </el-button>
+
+                <el-popconfirm title="你确定要删除这个用户吗？" @confirm="delUser(scope.row.id)">
+                  <template #reference>
+                    <el-button type="danger"> 删除 </el-button>
+                  </template>
+                </el-popconfirm>
               </div>
             </div>
           </template>
@@ -313,7 +348,7 @@ onMounted(async () => {
   </div>
 
   <userRooms ref="userRoomsDialog" />
-  <newUser ref="newUserDialog" @update-user-list="getUserListApi()"/>
+  <newUser ref="newUserDialog" @update-user-list="getUserListApi()" />
 </template>
 
 <style lang="less" scoped>

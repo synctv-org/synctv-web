@@ -174,6 +174,22 @@ export const newUserApi = useDefineApi<
   method: "POST"
 });
 
+// 删除用户
+export const delUserApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/admin/user/delete",
+  method: "POST"
+});
+
 // 获取所有设置
 export const allSettingsApi = useDefineApi<
   {
