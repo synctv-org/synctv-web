@@ -35,8 +35,14 @@ const formData = reactive<FormData>({
   role: ROLE.User
 });
 const rules = reactive<FormRules<FormData>>({
-  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
-  password: [{ required: true, message: "请输入密码", trigger: "blur" }],
+  username: [
+    { required: true, message: "请输入用户名", trigger: "blur" },
+    { min: 1, max: 32, message: "长度在 1 ~ 32 之间", trigger: "blur" }
+  ],
+  password: [
+    { required: true, message: "请输入密码", trigger: "blur" },
+    { min: 1, max: 32, message: "长度在 1 ~ 32 之间", trigger: "blur" }
+  ],
   role: [{ required: true, message: "请选择用户组", trigger: "blur" }]
 });
 
@@ -55,10 +61,10 @@ const newUser = async () => {
           title: `创建成功`,
           type: "success"
         });
-        formDataRef.value?.resetFields()
-        emits('updateUserList')
+        formDataRef.value?.resetFields();
+        emits("updateUserList");
         open.value = false;
-      } 
+      }
     });
   } catch (err: any) {
     console.error(err.message);
