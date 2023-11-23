@@ -4,7 +4,8 @@ import RoomList from "@/components/RoomList.vue";
 import { userStore } from "@/stores/user";
 import { ElNotification } from "element-plus";
 import { logOutApi } from "@/services/apis/auth";
-import account from "./account/index.vue";
+import Platforms from "./platforms/index.vue";
+import Account from "./account/index.vue";
 import UserPassword from "@/components/user/dialogs/password.vue";
 import Uname from "@/components/user/dialogs/username.vue";
 import { ROLE, role } from "@/types/User";
@@ -56,7 +57,11 @@ const tabs: Tabs[] = [
   },
   {
     name: "平台绑定",
-    component: account
+    component: Platforms
+  },
+  {
+    name: "账户绑定",
+    component: Account
   }
 ];
 

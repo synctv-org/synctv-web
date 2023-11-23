@@ -65,3 +65,20 @@ export const changeUNameApi = useDefineApi<
   url: "/api/user/username",
   method: "POST"
 });
+
+// 获取可用的 OAuth2 平台
+export const oAuth2Platforms = useDefineApi<
+  {
+    headers: { Authorization: string };
+  },
+  {
+    [platform: string]: {
+      providerUserID: string;
+      createdAt: number;
+    };
+  }
+>({
+  url: "/api/user/providers",
+  method: "GET"
+});
+
