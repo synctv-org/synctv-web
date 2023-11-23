@@ -394,7 +394,7 @@ onMounted(async () => {
   </el-dialog>
 </template>
 
-<style scoped lang="scss">
+<style scoped lang="less">
 // 删除input number的上下控制按钮
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
