@@ -35,3 +35,17 @@ export const myRoomList = useDefineApi<
   url: "/api/user/rooms",
   method: "GET"
 });
+
+// 修改密码
+export const changePasswordApi = useDefineApi<
+  {
+    headers: { Authorization: string };
+    data: {
+      password: string;
+    };
+  },
+  any
+>({
+  url: "/api/user/password",
+  method: "POST"
+});

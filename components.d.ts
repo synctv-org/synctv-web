@@ -44,6 +44,7 @@ declare module 'vue' {
     Moon: typeof import('./src/components/icons/Moon.vue')['default']
     MoviePush: typeof import('./src/components/MoviePush.vue')['default']
     NewUser: typeof import('./src/components/admin/dialogs/newUser.vue')['default']
+    Password: typeof import('./src/components/user/password.vue')['default']
     Person: typeof import('./src/components/icons/Person.vue')['default']
     Play: typeof import('./src/components/icons/Play.vue')['default']
     Player: typeof import('./src/components/Player.vue')['default']

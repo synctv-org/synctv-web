@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { shallowRef, type Component, onMounted } from "vue";
+import { ref, shallowRef, type Component, onMounted } from "vue";
 import RoomList from "@/components/RoomList.vue";
 import { userStore } from "@/stores/user";
 import { ElNotification } from "element-plus";
 import { logOutApi } from "@/services/apis/auth";
 import account from "./account/index.vue";
+import UserPassword from "@/components/user/password.vue";
 import { ROLE, role } from "@/types/User";
 
 const { info, token } = userStore();
-
+const pwdDialog = ref<InstanceType<typeof UserPassword>>();
 const logout = async () => {
   localStorage.clear();
   ElNotification({
@@ -52,7 +53,7 @@ const tabs: Tabs[] = [
     component: RoomList
   },
   {
-    name: "账户绑定",
+    name: "平台绑定",
     component: account
   }
 ];
@@ -111,6 +112,7 @@ onMounted(() => {});
         <div class="card">
           <div class="card-title">操作</div>
           <div class="card-body pb-5">
+            <button class="btn btn-warning w-full mb-3" @click="pwdDialog?.openDialog">修改密码</button>
             <el-popconfirm title="确定登出？" @confirm="logout">
               <template #reference>
                 <button class="btn w-full mb-3" @click="">退出登录</button>
@@ -141,4 +143,6 @@ onMounted(() => {});
       </el-col>
     </el-row>
   </div>
+
+  <UserPassword ref="pwdDialog" />
 </template>
