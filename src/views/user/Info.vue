@@ -5,11 +5,13 @@ import { userStore } from "@/stores/user";
 import { ElNotification } from "element-plus";
 import { logOutApi } from "@/services/apis/auth";
 import account from "./account/index.vue";
-import UserPassword from "@/components/user/password.vue";
+import UserPassword from "@/components/user/dialogs/password.vue";
+import Uname from "@/components/user/dialogs/username.vue";
 import { ROLE, role } from "@/types/User";
 
 const { info, token } = userStore();
 const pwdDialog = ref<InstanceType<typeof UserPassword>>();
+const unameDialog = ref<InstanceType<typeof Uname>>();
 const logout = async () => {
   localStorage.clear();
   ElNotification({
@@ -85,7 +87,10 @@ onMounted(() => {});
               <tbody>
                 <tr>
                   <td>用户名</td>
-                  <td>{{ info?.username }}</td>
+                  <td>
+                    {{ info?.username }}
+                    <span class="ml-2 cursor-pointer" @click="unameDialog?.openDialog">✏️</span>
+                  </td>
                 </tr>
                 <tr>
                   <td>权限组</td>
@@ -145,4 +150,5 @@ onMounted(() => {});
   </div>
 
   <UserPassword ref="pwdDialog" />
+  <Uname ref="unameDialog" />
 </template>

@@ -51,3 +51,17 @@ export const changePasswordApi = useDefineApi<
   url: "/api/user/password",
   method: "POST"
 });
+
+// 修改用户名
+export const changeUNameApi = useDefineApi<
+  {
+    headers: { Authorization: string };
+    data: {
+      username: string;
+    };
+  },
+  any
+>({
+  url: "/api/user/username",
+  method: "POST"
+});
