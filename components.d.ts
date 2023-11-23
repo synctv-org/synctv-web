@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     Bilibili: typeof import('./src/components/icons/Bilibili.vue')['default']
     BilibiliParse: typeof import('./src/components/dialogs/bilibiliParse.vue')['default']
+    copy: typeof import('./src/components/user/password copy.vue')['default']
     CopyButton: typeof import('./src/components/CopyButton.vue')['default']
     CustomHeaders: typeof import('./src/components/dialogs/customHeaders.vue')['default']
     DarkModeSwitcher: typeof import('./src/components/DarkModeSwitcher.vue')['default']
@@ -44,7 +45,7 @@ declare module 'vue' {
     Moon: typeof import('./src/components/icons/Moon.vue')['default']
     MoviePush: typeof import('./src/components/MoviePush.vue')['default']
     NewUser: typeof import('./src/components/admin/dialogs/newUser.vue')['default']
-    Password: typeof import('./src/components/user/password.vue')['default']
+    Password: typeof import('./src/components/user/dialogs/password.vue')['default']
     Person: typeof import('./src/components/icons/Person.vue')['default']
     Play: typeof import('./src/components/icons/Play.vue')['default']
     Player: typeof import('./src/components/Player.vue')['default']
@@ -53,6 +54,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     Sun: typeof import('./src/components/icons/Sun.vue')['default']
     Trash: typeof import('./src/components/icons/Trash.vue')['default']
+    Username: typeof import('./src/components/user/dialogs/username.vue')['default']
     UserRooms: typeof import('./src/components/admin/dialogs/userRooms.vue')['default']
   }
   export interface ComponentCustomProperties {

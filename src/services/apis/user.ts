@@ -44,7 +44,9 @@ export const changePasswordApi = useDefineApi<
       password: string;
     };
   },
-  any
+  {
+    token: string;
+  }
 >({
   url: "/api/user/password",
   method: "POST"

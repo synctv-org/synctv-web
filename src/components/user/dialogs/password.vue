@@ -5,7 +5,7 @@ import type { FormInstance, FormRules } from "element-plus";
 import { changePasswordApi } from "@/services/apis/user";
 import { userStore } from "@/stores/user";
 
-const { token, isLogin } = userStore();
+const { token, updateToken } = userStore();
 
 interface FormData {
   password: string;
@@ -28,7 +28,7 @@ const rules = reactive<FormRules<FormData>>({
   ]
 });
 
-const { execute, isLoading } = changePasswordApi();
+const { execute, state, isLoading } = changePasswordApi();
 const changePwd = async () => {
   try {
     await formDataRef.value?.validate(async (valid, fields) => {
@@ -39,12 +39,15 @@ const changePwd = async () => {
           },
           data: formData
         });
-        ElNotification({
-          title: "修改成功",
-          type: "success"
-        });
-        localStorage.clear();
-        setTimeout(() => (window.location.href = "/"), 1000);
+
+        if (state.value) {
+          ElNotification({
+            title: "修改成功",
+            type: "success"
+          });
+          updateToken(state.value?.token);
+          open.value = false;
+        }
       }
     });
   } catch (err: any) {
@@ -69,12 +72,6 @@ const changePwd = async () => {
       <el-form ref="formDataRef" :model="formData" :rules="rules" label-width="70px" status-icon>
         <el-form-item label="新密码" prop="password">
           <el-input v-model="formData.password" type="password" show-password />
-        </el-form-item>
-        <el-form-item>
-          <template #label>
-            <b>注意：</b>
-          </template>
-          <p>密码修改后，需要重新登录</p>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="changePwd" :loading="isLoading"> 确定修改 </el-button>
