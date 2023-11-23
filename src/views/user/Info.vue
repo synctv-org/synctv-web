@@ -19,21 +19,18 @@ const logout = async () => {
 };
 
 const logoff = async () => {
-  const { execute, state } = logOutApi();
   try {
-    await execute({
+    await logOutApi().execute({
       headers: {
         Authorization: token.value
       }
     });
-    if (state.value) {
-      localStorage.clear();
-      ElNotification({
-        title: "注销成功",
-        type: "success"
-      });
-      setTimeout(() => (window.location.href = "/"), 1000);
-    }
+    localStorage.clear();
+    ElNotification({
+      title: "注销成功",
+      type: "success"
+    });
+    setTimeout(() => (window.location.href = "/"), 1000);
   } catch (err: any) {
     console.error(err);
     ElNotification({
