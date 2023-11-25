@@ -82,3 +82,19 @@ export const oAuth2Platforms = useDefineApi<
   method: "GET"
 });
 
+// 绑定 OAuth2
+export const bindOAuth2Api = useDefineApi<
+  {
+    headers: { Authorization: string };
+    data?: {
+      redirect: string;
+    };
+    url: string;
+  },
+  {
+    time: number;
+    url: string;
+  }
+>({
+  method: "POST"
+});
