@@ -2,7 +2,6 @@
 import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import { oAuth2Platforms, bindOAuth2Api } from "@/services/apis/user";
-import { useRouteQuery } from "@vueuse/router";
 import { userStore } from "@/stores/user";
 
 const { token } = userStore();
@@ -119,7 +118,7 @@ onMounted(async () => {
       <div class="app-list-item" v-for="(item, i) in unbind" :key="i" @click="bindOAuth2(item.name)">
         <el-image class="e-image" :src="'/src/assets/appIcons/' + item.name + '.webp'">
           <template #error>
-            <img src="/src/assets/appIcons/default.webp" />
+            <img src="/src/assets/appIcons/default.webp" class="w-full" />
           </template>
         </el-image>
         <div class="mb-5">
