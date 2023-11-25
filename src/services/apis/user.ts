@@ -98,3 +98,14 @@ export const bindOAuth2Api = useDefineApi<
 >({
   method: "POST"
 });
+
+// 解绑 OAuth2
+export const unbindOAuth2Api = useDefineApi<
+  {
+    headers: { Authorization: string };
+    url: string;
+  },
+  any
+>({
+  method: "POST"
+});

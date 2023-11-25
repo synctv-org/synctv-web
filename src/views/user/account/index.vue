@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
-import { oAuth2Platforms, bindOAuth2Api } from "@/services/apis/user";
+import { oAuth2Platforms, bindOAuth2Api, unbindOAuth2Api } from "@/services/apis/user";
 import { userStore } from "@/stores/user";
 
 const { token } = userStore();
@@ -19,6 +19,8 @@ const unbind = ref<ProviderType[]>([]);
 const { execute: reqOAuth2PlatformsApi, state, isLoading: pLoading } = oAuth2Platforms();
 const getProviders = async () => {
   try {
+    bind.value.splice(0, bind.value.length)
+    unbind.value.splice(0, unbind.value.length)
     await reqOAuth2PlatformsApi({
       headers: {
         Authorization: token.value
@@ -53,7 +55,7 @@ const getProviders = async () => {
 };
 
 // 绑定 OAuth2
-const bindOAuth2 = async (platform:string) => {
+const bindOAuth2 = async (platform: string) => {
   const { execute, state } = bindOAuth2Api();
   try {
     await execute({
@@ -66,6 +68,28 @@ const bindOAuth2 = async (platform:string) => {
       url: "/oauth2/bind/" + platform
     });
     if (state.value) window.location.href = state.value.url;
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "错误",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
+// 解绑 OAuth2
+const unbindOAuth2 = async (platform: string) => {
+  const { execute, state } = unbindOAuth2Api();
+  try {
+    await execute({
+      headers: {
+        Authorization: token.value
+      },
+      url: "/oauth2/unbind/" + platform
+    });
+    ElMessage.success(`平台 ${platform} 解绑成功`);
+    await getProviders();
   } catch (err: any) {
     console.error(err);
     ElNotification({
@@ -104,7 +128,11 @@ onMounted(async () => {
         </el-table-column>
         <el-table-column fixed="right" label="操作">
           <template #default="scope">
-            <el-button type="warning"> 解除绑定 </el-button>
+            <el-popconfirm title="你确定要解除绑定吗？" @confirm="unbindOAuth2(scope.row.name)">
+              <template #reference>
+                <el-button type="warning"> 解除绑定 </el-button>
+              </template>
+            </el-popconfirm>
           </template>
         </el-table-column>
       </el-table>
@@ -115,7 +143,12 @@ onMounted(async () => {
     <div
       class="card-body grid gap-5 grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
     >
-      <div class="app-list-item" v-for="(item, i) in unbind" :key="i" @click="bindOAuth2(item.name)">
+      <div
+        class="app-list-item"
+        v-for="(item, i) in unbind"
+        :key="i"
+        @click="bindOAuth2(item.name)"
+      >
         <el-image class="e-image" :src="'/src/assets/appIcons/' + item.name + '.webp'">
           <template #error>
             <img src="/src/assets/appIcons/default.webp" class="w-full" />
