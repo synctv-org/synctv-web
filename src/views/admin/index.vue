@@ -39,6 +39,12 @@ const tabs: Tabs[] = [
     showType: "room"
   },
   {
+    name: "数据库设置",
+    icon: "🗄️",
+    component: SiteSetting,
+    showType: "database"
+  },
+  {
     name: "代理设置",
     icon: "😺",
     component: SiteSetting,

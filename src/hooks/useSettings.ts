@@ -8,7 +8,7 @@ export interface settingType {
   name?: string;
 }
 
-export type settingGroupName = "all" | "room" | "proxy" | "rtmp" | "user" | "oauth2";
+export type settingGroupName = "all" | "database" | "room" | "proxy" | "rtmp" | "user" | "oauth2";
 
 export interface settingGroup {
   name?: string;
@@ -66,6 +66,16 @@ export const useSettings = () => {
   const defaultUserSettings: Map<string, settingType> = new Map([
     ["disable_user_signup", { value: false, name: "禁止用户注册" }],
     ["signup_need_review", { value: false, name: "注册需要审核" }]
+  ]);
+
+  const databaseSettingsGroup: Map<settingGroupName, settingGroup> = new Map([
+    [
+      "database",
+      {
+        name: "数据库设置",
+        value: new Map([["database_version", { value: "", name: "数据库版本" }]])
+      }
+    ]
   ]);
 
   const roomSettingsGroup: Map<settingGroupName, settingGroup> = new Map([
@@ -169,6 +179,7 @@ export const useSettings = () => {
 
   return {
     generateOAuth2SettingsMap,
+    databaseSettingsGroup,
     roomSettingsGroup,
     proxySettingsGroup,
     rtmpSettingsGroup,

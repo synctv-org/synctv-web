@@ -15,6 +15,7 @@ const { token } = userStore();
 const { updateSet } = useUpdateSettings();
 
 const {
+  databaseSettingsGroup,
   roomSettingsGroup,
   proxySettingsGroup,
   OAuth2SettingGroup,
@@ -23,6 +24,7 @@ const {
 } = useSettings();
 
 const settingsGroups = {
+  database: databaseSettingsGroup,
   room: roomSettingsGroup,
   proxy: proxySettingsGroup,
   oauth2: OAuth2SettingGroup,
@@ -30,10 +32,11 @@ const settingsGroups = {
   user: userSettingsGroup,
   all: [
     ...roomSettingsGroup,
-    ...proxySettingsGroup,
     ...rtmpSettingsGroup,
+    ...proxySettingsGroup,
     ...userSettingsGroup,
-    ...OAuth2SettingGroup
+    ...OAuth2SettingGroup,
+    ...databaseSettingsGroup,
   ]
 };
 
