@@ -25,6 +25,10 @@ export const useSettings = () => {
     ]);
   };
 
+  const defaultDatabaseSettings: Map<string, settingType> = new Map([
+    ["database_version", { value: "", name: "数据库版本" }]
+  ]);
+
   const defaultRoomSettings: Map<string, settingType> = new Map([
     ["create_room_need_review", { value: false, name: "创建房间需要审核" }],
     ["disable_create_room", { value: false, name: "禁止创建房间" }],
@@ -73,7 +77,7 @@ export const useSettings = () => {
       "database",
       {
         name: "数据库设置",
-        value: new Map([["database_version", { value: "", name: "数据库版本" }]])
+        value: defaultDatabaseSettings
       }
     ]
   ]);
@@ -185,6 +189,7 @@ export const useSettings = () => {
     rtmpSettingsGroup,
     userSettingsGroup,
     OAuth2SettingGroup,
+    defaultDatabaseSettings,
     defaultRoomSettings,
     defaultProxySettings,
     defaultRtmpSettings,
