@@ -108,6 +108,7 @@ onMounted(async () => {
                 @change="updateSet(setting[0], setting[1].value)"
                 v-model.trim.lazy="setting[1].value"
                 :placeholder="setting[1].placeholder"
+                :disabled="setting[1].disabled"
               >
                 <template #append v-if="setting[1].append">{{ setting[1].append }}</template>
               </el-input>

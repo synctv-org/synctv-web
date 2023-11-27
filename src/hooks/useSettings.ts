@@ -6,6 +6,7 @@ export interface settingType {
   placeholder?: string;
   comment?: string;
   name?: string;
+  disabled?: boolean;
 }
 
 export type settingGroupName = "all" | "database" | "room" | "proxy" | "rtmp" | "user" | "oauth2";
@@ -26,7 +27,7 @@ export const useSettings = () => {
   };
 
   const defaultDatabaseSettings: Map<string, settingType> = new Map([
-    ["database_version", { value: "", name: "数据库版本" }]
+    ["database_version", { value: "", name: "数据库版本", disabled: true }]
   ]);
 
   const defaultRoomSettings: Map<string, settingType> = new Map([
