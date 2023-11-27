@@ -316,3 +316,16 @@ export const approveRoomApi = useDefineApi<
   url: "/api/admin/room/approve",
   method: "POST"
 });
+
+// 获取 OAuth2 设置
+export const oAuth2SettingsApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+  },
+  Record<string, Record<string, any>>
+>({
+  url: "/api/admin/settings/oauth2",
+  method: "GET"
+});

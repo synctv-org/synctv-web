@@ -9,6 +9,7 @@ import { ROLE } from "@/types/User";
 import UserManager from "./settings/UserManager.vue";
 import RoomsManager from "./settings/RoomsManager.vue";
 import SiteSetting from "./settings/SiteSetting.vue";
+import OAuth2Manager from "./settings/OAuth2Manager.vue";
 
 const { info: userInfo } = userStore();
 const room = roomStore();
@@ -35,6 +36,11 @@ const tabs: Tabs[] = [
     name: "站点设置",
     icon: "🌏",
     component: SiteSetting
+  },
+  {
+    name: "OAuth2 管理",
+    icon: "🪬",
+    component: OAuth2Manager
   }
 ];
 
