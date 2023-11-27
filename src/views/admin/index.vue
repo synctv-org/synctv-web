@@ -4,12 +4,11 @@ import { userStore } from "@/stores/user";
 import { ElNotification } from "element-plus";
 import { roomStore } from "@/stores/room";
 import { useScreen } from "@/hooks/useScreen";
-import { ROLE } from "@/types/User";
+import type { settingGroupName } from "@/hooks/useSettings";
 
 import UserManager from "./settings/UserManager.vue";
 import RoomsManager from "./settings/RoomsManager.vue";
 import SiteSetting from "./settings/SiteSetting.vue";
-import OAuth2Manager from "./settings/OAuth2Manager.vue";
 
 const { info: userInfo } = userStore();
 const room = roomStore();
@@ -19,6 +18,7 @@ interface Tabs {
   name: string;
   icon: string;
   component: Component;
+  showType?: settingGroupName;
 }
 
 const tabs: Tabs[] = [
@@ -33,14 +33,40 @@ const tabs: Tabs[] = [
     component: RoomsManager
   },
   {
-    name: "站点设置",
+    name: "房间设置",
+    icon: "🏛️",
+    component: SiteSetting,
+    showType: "room"
+  },
+  {
+    name: "代理设置",
+    icon: "😺",
+    component: SiteSetting,
+    showType: "proxy"
+  },
+  {
+    name: "RTMP设置",
+    icon: "🎥",
+    component: SiteSetting,
+    showType: "rtmp"
+  },
+  {
+    name: "网站设置",
     icon: "🌏",
-    component: SiteSetting
+    component: SiteSetting,
+    showType: "user"
   },
   {
     name: "OAuth2 管理",
     icon: "🪬",
-    component: OAuth2Manager
+    component: SiteSetting,
+    showType: "oauth2"
+  },
+  {
+    name: "所有设置",
+    icon: "🔧",
+    component: SiteSetting,
+    showType: "all"
   }
 ];
 
@@ -94,7 +120,12 @@ onMounted(() => {
     </transition>
 
     <div class="w-full right-content">
-      <component :is="activeTab.component" :title="activeTab.name" />
+      <component
+        :key="activeTab.name"
+        :is="activeTab.component"
+        :title="activeTab.name"
+        :show-type="activeTab.showType"
+      />
     </div>
   </div>
 </template>

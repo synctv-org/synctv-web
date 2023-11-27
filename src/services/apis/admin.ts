@@ -329,3 +329,16 @@ export const oAuth2SettingsApi = useDefineApi<
   url: "/api/admin/settings/oauth2",
   method: "GET"
 });
+
+// 获取指定配置组
+export const assignSettingApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    url: string;
+  },
+  Record<string, Record<string, any>>
+>({
+  method: "GET"
+});
