@@ -108,7 +108,7 @@ onMounted(() => {
   <div class="container mx-auto flex gap-5">
     <transition name="slide-to-left">
       <div class="w-96 relative menu-drawer" v-show="menu">
-        <div class="card" style="height: 85vh">
+        <div class="card" style="height: 85vh; overflow-y: auto">
           <div class="card-body py-5">
             <div
               v-for="menu in tabs"
