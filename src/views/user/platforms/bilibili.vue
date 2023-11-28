@@ -249,9 +249,9 @@ onMounted(async () => {
 
 <template>
   <div class="app-list-item hover:bg-pink-100 dark:hover:bg-neutral-700" @click="openDialog()">
-    <el-image class="e-image" src="/src/assets/appIcons/bilibili.png">
+    <el-image class="e-image" src="/assets/appIcons/bilibili.png">
       <template #error>
-        <img src="/src/assets/appIcons/default.webp" class="w-full" />
+        <img src="/assets/appIcons/default.webp" class="w-full" />
       </template>
     </el-image>
     <div class="mb-5">

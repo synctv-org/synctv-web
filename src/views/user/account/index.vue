@@ -19,8 +19,8 @@ const unbind = ref<ProviderType[]>([]);
 const { execute: reqOAuth2PlatformsApi, state, isLoading: pLoading } = oAuth2Platforms();
 const getProviders = async () => {
   try {
-    bind.value.splice(0, bind.value.length)
-    unbind.value.splice(0, unbind.value.length)
+    bind.value.splice(0, bind.value.length);
+    unbind.value.splice(0, unbind.value.length);
     await reqOAuth2PlatformsApi({
       headers: {
         Authorization: token.value
@@ -149,9 +149,9 @@ onMounted(async () => {
         :key="i"
         @click="bindOAuth2(item.name)"
       >
-        <el-image class="e-image" :src="'/src/assets/appIcons/' + item.name + '.webp'">
+        <el-image class="e-image" :src="`/assets/appIcons/${item.name}.webp`">
           <template #error>
-            <img src="/src/assets/appIcons/default.webp" class="w-full" />
+            <img src="/assets/appIcons/default.webp" class="w-full" />
           </template>
         </el-image>
         <div class="mb-5">
