@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import { oAuth2Platforms, bindOAuth2Api, unbindOAuth2Api } from "@/services/apis/user";
 import { userStore } from "@/stores/user";
+import { getAppIcon } from "@/utils/utils";
 
 const { token } = userStore();
 
@@ -99,11 +100,6 @@ const unbindOAuth2 = async (platform: string) => {
     });
   }
 };
-
-const getAppIcon = (appName: string) => {
-  const u = new URL(`/src/assets/appIcons/${appName}.webp`, import.meta.url); 
-  return u.pathname;
-}
 
 onMounted(async () => {
   await getProviders();

@@ -126,6 +126,14 @@ a {
   }
 }
 
+.btn-white {
+  @apply bg-white text-black border-zinc-400 dark:border-black;
+  &:hover {
+    @apply border-white text-white bg-zinc-800 shadow-lg;
+    box-shadow: 0 0 10px #8a8a8a;
+  }
+}
+
 .el-collapse-item__header,
 .el-collapse-item__wrap {
   background: #aaa0 !important;

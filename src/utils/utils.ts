@@ -72,3 +72,8 @@ export const decodeJWT = (jwt: string) => {
     throw new Error("JWT 解析失败");
   }
 };
+
+export const getAppIcon = (appName: string) => {
+  const u = new URL(`/src/assets/appIcons/${appName}.webp`, import.meta.url);
+  return u.pathname;
+};

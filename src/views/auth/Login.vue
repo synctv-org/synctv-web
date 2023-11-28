@@ -7,6 +7,7 @@ import { useRouteQuery } from "@vueuse/router";
 import { strLengthLimit } from "@/utils/utils";
 import { userStore } from "@/stores/user";
 import router from "@/router/index";
+import { getAppIcon } from "@/utils/utils";
 
 const platforms: { [key: string]: { name: string; class: string } } = {
   github: {
@@ -19,12 +20,32 @@ const platforms: { [key: string]: { name: string; class: string } } = {
   },
   google: {
     name: "Google",
-    class: "btn-warning"
+    class: "btn-white"
   },
   feishuSSO: {
     name: "飞书SSO",
     class: "btn-default"
-  }
+  },
+  baidu: {
+    name: "百度",
+    class: "btn-white"
+  },
+  'baidu-netdisk': {
+    name: "百度网盘",
+    class: "btn-white"
+  },
+  gitee: {
+    name: "Gitee",
+    class: "btn-error"
+  },
+  gitlab: {
+    name: "GitLab",
+    class: "btn-error"
+  },
+  qq: {
+    name: "QQ",
+    class: "btn-default"
+  },
 };
 
 const formData = ref({
@@ -63,14 +84,13 @@ const login = async () => {
 
     updateToken(loginData.value.token);
     localStorage.setItem("uname", formData.value.username);
-    localStorage.setItem("password", savePwd.value ? formData.value.password : "")
-    
+    localStorage.setItem("password", savePwd.value ? formData.value.password : "");
 
     const state = await userInfo().execute({
       headers: {
         Authorization: loginData.value?.token ?? ""
       }
-    })
+    });
 
     if (state.value) {
       updateUserInfo(state.value);
@@ -80,7 +100,7 @@ const login = async () => {
         type: "success"
       });
 
-      router.replace(redirect.value as string || "/");
+      router.replace((redirect.value as string) || "/");
     }
   } catch (err: any) {
     console.error(err);
@@ -142,7 +162,13 @@ onMounted(async () => {
         required
       />
       <br />
-      <input class="l-input" type="password" v-model="formData.password" placeholder="密码" required />
+      <input
+        class="l-input"
+        type="password"
+        v-model="formData.password"
+        placeholder="密码"
+        required
+      />
       <br />
       <div class="text-sm"><b>注意：</b>所有输入框最大只可输入32个字符</div>
       <div>
@@ -156,9 +182,14 @@ onMounted(async () => {
       <h4 class="text-[18px] font-bold">使用第三方平台登录</h4>
       <button
         v-for="item in OAuth2Platforms_?.enabled"
-        :class="`btn ${platforms[item] ? platforms[item].class : ''} m-[10px]`"
+        :class="`inline-flex  items-center btn ${platforms[item] ? platforms[item].class : 'btn-black'} m-[10px] hover:px-[10px]`"
         @click="useOAuth2(item)"
       >
+        <el-image class="w-4 mr-2 rounded-lg" :src="getAppIcon(item)">
+          <template #error>
+            <img src="@/assets/appIcons/default.webp" class="w-full" />
+          </template>
+        </el-image>
         {{ platforms[item] ? platforms[item].name : item }}
       </button>
     </div>
