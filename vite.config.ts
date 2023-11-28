@@ -49,7 +49,8 @@ export default defineConfig({
       toplevel: true
     },
     cssMinify: "lightningcss",
-    reportCompressedSize: false
+    reportCompressedSize: false,
+    assetsInlineLimit: 0 // 禁止内敛为base64
   },
   base: env.VITE_BASEURL,
   css: {

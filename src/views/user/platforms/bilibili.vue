@@ -13,6 +13,7 @@ import QRCodeVue3 from "qrcode-vue3";
 import { roomStore } from "@/stores/room";
 import { userStore } from "@/stores/user";
 import { ElMessage, ElNotification } from "element-plus";
+import { getAppIcon } from "@/utils/utils";
 
 const room = roomStore();
 const { token: userToken } = userStore();
@@ -249,9 +250,9 @@ onMounted(async () => {
 
 <template>
   <div class="app-list-item hover:bg-pink-100 dark:hover:bg-neutral-700" @click="openDialog()">
-    <el-image class="e-image" src="/src/assets/appIcons/bilibili.webp">
+    <el-image class="e-image" :src="getAppIcon('bilibili')">
       <template #error>
-        <img src="/src/assets/appIcons/default.webp" class="w-full" />
+        <img :src="getAppIcon('default')" class="w-full" />
       </template>
     </el-image>
     <div class="mb-5">
