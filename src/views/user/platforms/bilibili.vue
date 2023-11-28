@@ -249,8 +249,12 @@ onMounted(async () => {
 
 <template>
   <div class="app-list-item hover:bg-pink-100 dark:hover:bg-neutral-700" @click="openDialog()">
-    <img src="/src/assets/appIcons/bilibili.png" />
-    <div class="mt-3">
+    <el-image class="e-image" src="/src/assets/appIcons/bilibili.png">
+      <template #error>
+        <img src="/src/assets/appIcons/default.webp" class="w-full" />
+      </template>
+    </el-image>
+    <div class="mb-5">
       <a href="javascript:;" class="text-inherit">哔哩哔哩</a>
     </div>
   </div>
