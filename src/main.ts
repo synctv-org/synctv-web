@@ -31,11 +31,11 @@ const { getUserInfo, token } = userStore();
 const initApp = async () => {
   try {
     token.value && (await getUserInfo());
+    app.use(createPinia());
+    app.use(router);
   } catch (err: any) {
     console.error(err);
   } finally {
-    app.use(createPinia());
-    app.use(router);
     app.mount("#app");
   }
 };
