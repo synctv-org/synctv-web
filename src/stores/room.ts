@@ -1,7 +1,8 @@
 import { ref, computed } from "vue";
 import { defineStore } from "pinia";
 import { useStorage } from "@vueuse/core";
-import type { MovieInfo, Status } from "@/proto/message";
+import type { Status } from "@/proto/message";
+import type { MovieInfo } from "@/types/Movie";
 import { userStore } from "@/stores/user";
 const { token: userToken } = userStore();
 export const roomStore = defineStore("roomStore", () => {

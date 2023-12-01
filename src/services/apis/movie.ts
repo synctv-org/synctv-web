@@ -1,7 +1,7 @@
 import { useDefineApi } from "@/stores/useDefineApi";
 import type { EditMovieInfo } from "@/types/Movie";
-import type { BaseMovieInfo, MovieInfo, Status } from "@/proto/message";
-
+import type { Status } from "@/proto/message";
+import type { BaseMovieInfo, MovieInfo } from "@/types/Movie";
 // 获取影片列表
 export const movieListApi = useDefineApi<
   {
@@ -48,10 +48,8 @@ export const currentMovieApi = useDefineApi<
     headers: { Authorization: string };
   },
   {
-    current: {
-      movie: MovieInfo;
-      status: Status;
-    };
+    movie: MovieInfo;
+    status: Status;
   }
 >({
   url: "/api/movie/current",

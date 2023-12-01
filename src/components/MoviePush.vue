@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElNotification } from "element-plus";
-import { BaseMovieInfo, VendorInfo, BilibiliVendorInfo } from "@/proto/message";
+import type { BaseMovieInfo, VendorInfo, BilibiliVendorInfo } from "@/types/Movie";
 import { strLengthLimit } from "@/utils/utils";
 import { pushMovieApi } from "@/services/apis/movie";
 import { getBiliBiliVendors as biliBiliVendors } from "@/services/apis/vendor";
@@ -18,7 +18,15 @@ const Props = defineProps<{
 }>();
 
 // 新影片信息
-let newMovieInfo = ref<BaseMovieInfo>(BaseMovieInfo.create());
+let newMovieInfo = ref<BaseMovieInfo>({
+  url: "",
+  name: "",
+  type: "",
+  proxy: false,
+  live: false,
+  rtmpSource: false,
+  headers: {}
+});
 
 enum pushType {
   MOVIE = 0,
@@ -141,36 +149,63 @@ const selectedMovieType = ref(pushType.MOVIE);
 const selectPushType = () => {
   switch (selectedMovieType.value) {
     case pushType.MOVIE:
-      newMovieInfo.value = BaseMovieInfo.create({
+      newMovieInfo.value = {
         url: newMovieInfo.value.url,
-        name: newMovieInfo.value.name
-      });
+        name: newMovieInfo.value.name,
+        type: movieTypeRecords.get(selectedMovieType.value)?.defaultType || "",
+        proxy: false,
+        live: false,
+        rtmpSource: false,
+        headers: {}
+      };
       break;
     case pushType.LIVE:
-      newMovieInfo.value = BaseMovieInfo.create({
+      newMovieInfo.value = {
         url: newMovieInfo.value.url,
         name: newMovieInfo.value.name,
-        live: true
-      });
+        type: movieTypeRecords.get(selectedMovieType.value)?.defaultType || "",
+        proxy: false,
+        live: true,
+        rtmpSource: false,
+        headers: {}
+      };
       break;
     case pushType.RTMP_SOURCE:
-      newMovieInfo.value = BaseMovieInfo.create({
+      newMovieInfo.value = {
         url: newMovieInfo.value.url,
         name: newMovieInfo.value.name,
+        type: movieTypeRecords.get(selectedMovieType.value)?.defaultType || "",
+        proxy: false,
         live: true,
-        rtmpSource: true
-      });
+        rtmpSource: true,
+        headers: {}
+      };
       break;
-    case pushType.BILIBILI:
-      newMovieInfo.value = BaseMovieInfo.create({
+    case pushType.PROXY_LIVE:
+      newMovieInfo.value = {
         url: newMovieInfo.value.url,
         name: newMovieInfo.value.name,
-        vendorInfo: VendorInfo.create({
+        type: movieTypeRecords.get(selectedMovieType.value)?.defaultType || "",
+        proxy: true,
+        live: true,
+        rtmpSource: false,
+        headers: {}
+      };
+    case pushType.BILIBILI:
+      newMovieInfo.value = {
+        url: newMovieInfo.value.url,
+        name: newMovieInfo.value.name,
+        type: movieTypeRecords.get(selectedMovieType.value)?.defaultType || "",
+        proxy: false,
+        live: false,
+        rtmpSource: false,
+        headers: {},
+        vendorInfo: {
           vendor: "bilibili",
           shared: true,
-          bilibili: BilibiliVendorInfo.create({})
-        })
-      });
+          bilibili: {}
+        }
+      };
       break;
   }
 
@@ -284,9 +319,7 @@ const getBiliBiliVendors = async () => {
       <Transition name="fade">
         <input
           type="text"
-          :placeholder="
-            newMovieInfo.vendorInfo?.vendor === 'bilibili' ? '视频Url或bv号' : '影片Url'
-          "
+          :placeholder="selectedMovieType === pushType.BILIBILI ? '视频Url或bv号' : '影片Url'"
           class="l-input-violet w-full"
           v-if="!(newMovieInfo.live && newMovieInfo.rtmpSource)"
           v-model="newMovieInfo.url"
@@ -297,7 +330,7 @@ const getBiliBiliVendors = async () => {
           type="text"
           placeholder="影片名称"
           class="l-input-slate mt-2 w-full"
-          v-if="newMovieInfo.vendorInfo?.vendor !== 'bilibili'"
+          v-if="selectedMovieType !== pushType.BILIBILI"
           v-model="newMovieInfo.name"
         />
       </Transition>
@@ -347,7 +380,7 @@ const getBiliBiliVendors = async () => {
 
     <div class="card-footer pt-3">
       <div
-        v-if="newMovieInfo.vendorInfo?.vendor === 'bilibili'"
+        v-if="selectedMovieType === pushType.BILIBILI"
         class="flex flex-wrap justify-between w-full"
       >
         <select

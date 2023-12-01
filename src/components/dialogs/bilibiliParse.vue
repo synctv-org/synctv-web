@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
-import { BaseMovieInfo, BilibiliVendorInfo, VendorInfo } from "@/proto/message";
+import type { BaseMovieInfo, BilibiliVendorInfo, VendorInfo } from "@/types/Movie";
 import { parseBiliBiliVideo } from "@/services/apis/vendor";
 import { pushMoviesApi } from "@/services/apis/movie";
 import { userStore } from "@/stores/user";
@@ -119,21 +119,22 @@ const submit = async () => {
     if (selectedItems.value.length === 0) return ElMessage.error("请选择视频");
     await reqPushMoviesApi({
       headers: { Authorization: Props.token },
-      data: selectedItems.value.map((item) =>
-        BaseMovieInfo.create({
-          name: item.name,
-          proxy: item.proxy,
-          vendorInfo: VendorInfo.create({
-            vendor: "bilibili",
-            shared: item.shared,
-            bilibili: BilibiliVendorInfo.create({
-              bvid: item.bvid,
-              cid: item.cid,
-              epid: item.epid,
-              vendorName: Props.vendor
-            })
-          })
-        })
+      data: selectedItems.value.map(
+        (item) =>
+          <BaseMovieInfo>{
+            name: item.name,
+            proxy: item.proxy,
+            vendorInfo: {
+              vendor: "bilibili",
+              shared: item.shared,
+              bilibili: {
+                bvid: item.bvid,
+                cid: item.cid,
+                epid: item.epid,
+                vendorName: Props.vendor
+              }
+            }
+          }
       )
     });
     open.value = false;

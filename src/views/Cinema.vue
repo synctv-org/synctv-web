@@ -14,10 +14,11 @@ import {
   moviesApi,
   changeCurrentMovieApi,
   clearMovieListApi,
-  liveInfoApi
+  liveInfoApi,
+  currentMovieApi
 } from "@/services/apis/movie";
 import type { EditMovieInfo } from "@/types/Movie";
-import type { MovieInfo } from "@/proto/message";
+import type { MovieInfo } from "@/types/Movie";
 import { sync } from "@/plugins/sync";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUin8Array } from "@/utils/utils";
@@ -322,6 +323,41 @@ const getMovies = async () => {
   }
 };
 
+const { state: currentMovie, execute: reqCurrentMovieApi } = currentMovieApi();
+const getCurrentMovie = async () => {
+  try {
+    await reqCurrentMovieApi({
+      headers: { Authorization: roomToken.value }
+    });
+
+    if (currentMovie.value) {
+      console.log(currentMovie.value);
+      room.currentMovie = currentMovie.value.movie;
+      room.currentMovieStatus = currentMovie.value.status;
+      syncPlugin.setAndNoPublishSeek(currentMovie.value.status.seek);
+      syncPlugin.setAndNoPublishRate(currentMovie.value.status.rate);
+    }
+  } catch (err: any) {
+    console.log(err);
+    if (err.response.status === 401) {
+      ElNotification({
+        title: "身份验证失败，请重新进入房间",
+        message: err.message,
+        type: "error"
+      });
+      roomToken.value = "";
+      setTimeout(() => {
+        window.location.href = window.location.origin;
+      }, 500);
+    }
+    ElNotification({
+      title: "获取影片列表失败",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
+};
+
 const handleElementMessage = (msg: ElementMessage) => {
   console.log(`-----Ws Message Start-----`);
   console.log(msg);
@@ -415,10 +451,7 @@ const handleElementMessage = (msg: ElementMessage) => {
 
     // 设置正在播放的影片
     case ElementMessageType.CHANGE_CURRENT: {
-      room.currentMovie = msg.current!.movie!;
-      room.currentMovieStatus = msg.current!.status!;
-      syncPlugin.setAndNoPublishSeek(msg.current!.status!.seek);
-      syncPlugin.setAndNoPublishRate(msg.current!.status!.rate);
+      getCurrentMovie();
       break;
     }
 
