@@ -1,12 +1,19 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import {ref, computed} from "vue";
 import { RouterLink } from "vue-router";
 import { userStore } from "@/stores/user";
 import DarkModeSwitcher from "@/components/DarkModeSwitcher.vue";
 import router from "@/router";
 const mobileMenu = ref(false);
 
-const { isLogin } = userStore();
+const { isLogin, info } = userStore();
+
+const limitedUsername = computed(() => {
+  if (info.value?.username && info.value?.username.length > 7) {
+    return info.value?.username.substring(0, 7) + '...'; // 超出长度截断
+  }
+  return info.value?.username || ''; // 不需要截断直接返回
+});
 
 const menuLinks = computed(() => {
   const basicLinks = [
@@ -39,9 +46,8 @@ const menuLinks = computed(() => {
       {
         name: "创建房间",
         to: "/createRoom"
-      }
+      },
     ];
-
     links = loginLinks;
   }
 
@@ -64,8 +70,12 @@ const toUserInfo = () => {
           <DarkModeSwitcher />
         </span>
 
-        <span class="p-2 mr-1">
+        <span>
           <PersonIcon v-if="isLogin" class="cursor-pointer" @click="toUserInfo" />
+        </span>
+
+        <span @click="toUserInfo" class="cursor-pointer" v-if="isLogin">
+          {{limitedUsername}}
         </span>
 
         <button
@@ -98,7 +108,10 @@ const toUserInfo = () => {
       </div>
       <div class="hidden lg:flex lg:flex-1 lg:justify-end">
         <DarkModeSwitcher />
-        <PersonIcon v-if="isLogin" class="ml-4 cursor-pointer" @click="toUserInfo" />
+        <PersonIcon class="ml-4 cursor-pointer" @click="toUserInfo" />
+      </div>
+      <div class="hidden lg:flex lg:justify-end cursor-pointer" @click="toUserInfo" v-if="isLogin">
+        {{limitedUsername}}
       </div>
     </nav>
 
@@ -140,9 +153,9 @@ const toUserInfo = () => {
                 >{{ link.name }}</RouterLink
               >
             </div>
-            <!-- <div class="py-6">
-              <a href="javascript::">关于此项目</a>
-            </div> -->
+<!--            <div class="py-6">-->
+<!--              <a href="javascript:">关于此项目</a>-->
+<!--            </div>-->
           </div>
         </div>
       </div>
