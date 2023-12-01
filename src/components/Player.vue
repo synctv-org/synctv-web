@@ -50,8 +50,7 @@ watchers.push(
 const playMpd = (player: HTMLMediaElement, url: string, art: any) => {
   import("@/utils/dash").then((dash) => {
     if (dash.isSupported()) {
-      const plugin = dash.newDashQualityPlugin();
-      plugin(art);
+      if (!art.plugins.artplayerPluginDashQuality) dash.newDashQualityPlugin()(art);
       const d = dash.newDash();
       d.initialize(player, url, false);
       art.dash = d;
@@ -148,6 +147,7 @@ const playM2ts = (player: HTMLMediaElement, url: string, art: any) => {
 const playM3u8 = (player: HTMLMediaElement, url: string, art: any) => {
   import("@/utils/hls").then((Hls) => {
     if (Hls.isSupported()) {
+      if (!art.plugins.artplayerPluginHlsQuality) Hls.newHlsQualityPlugin()(art);
       if (art.hls) art.hls.destroy();
       const hls = Hls.newHls(Props.options.headers);
       hls.loadSource(url);

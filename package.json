@@ -17,6 +17,7 @@
     "artplayer": "^5.0.9",
     "artplayer-plugin-danmuku": "^5.0.1",
     "artplayer-plugin-dash-quality": "^2.0.0",
+    "artplayer-plugin-hls-quality": "^2.0.0",
     "axios": "^1.4.0",
     "dashjs": "^4.7.2",
     "element-plus": "^2.3.8",

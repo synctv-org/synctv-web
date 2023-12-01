@@ -15,7 +15,7 @@ export function newDashQualityPlugin(): (art: Artplayer) => {
   return artplayerPluginDashQuality({
     control: true,
     setting: true,
-    getResolution: (level) => level.height + "P",
+    getResolution: (level) => (level.height ? level.height + "P" : "Auto"),
     title: "画质",
     auto: "自动"
   });

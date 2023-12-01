@@ -1,3 +1,4 @@
+import artplayerPluginHlsQuality from "artplayer-plugin-hls-quality";
 import type { HlsConfig, FragmentLoaderConstructor } from "hls.js";
 import Hls from "hls.js";
 
@@ -46,4 +47,16 @@ export function newHls(headers: Record<string, string>): Hls {
 
 export function isSupported(): boolean {
   return Hls.isSupported();
+}
+
+export function newHlsQualityPlugin(): (art: Artplayer) => {
+  name: "artplayerPluginHlsQuality";
+} {
+  return artplayerPluginHlsQuality({
+    control: true,
+    setting: true,
+    getResolution: (level) => (level.height ? level.height + "P" : "Auto"),
+    title: "画质",
+    auto: "自动"
+  });
 }
