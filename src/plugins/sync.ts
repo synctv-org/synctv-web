@@ -26,12 +26,12 @@ export const sync = (cbk: callback): resould => {
 
   let lastestSeek = 0;
 
-  const publishSeek = (currentTime: number) => {
+  const publishSeek = () => {
     if (!player || player.option.isLive) return;
     cbk["publishStatus"](
       ElementMessage.create({
         type: ElementMessageType.CHANGE_SEEK,
-        seek: currentTime,
+        seek: player.currentTime,
         rate: player.playbackRate
       })
     );
@@ -40,9 +40,9 @@ export const sync = (cbk: callback): resould => {
 
   const __publishSeekDebounce = useDebounceFn(publishSeek, debounceTime);
 
-  const publishSeekDebounce = function (currentTime: number) {
+  const publishSeekDebounce = function () {
     lastestSeek = Date.now();
-    __publishSeekDebounce(currentTime);
+    __publishSeekDebounce();
   };
 
   const setAndNoPublishSeek = (seek: number) => {
@@ -53,6 +53,7 @@ export const sync = (cbk: callback): resould => {
 
   const publishPlay = () => {
     if (!player || player.option.isLive) return;
+    console.log("视频播放,seek:", player.currentTime);
     cbk["publishStatus"](
       ElementMessage.create({
         type: ElementMessageType.PLAY,
@@ -83,6 +84,7 @@ export const sync = (cbk: callback): resould => {
 
   const publishPause = () => {
     if (!player || player.option.isLive) return;
+    console.log("视频暂停,seek:", player.currentTime);
     cbk["publishStatus"](
       ElementMessage.create({
         type: ElementMessageType.PAUSE,
@@ -162,7 +164,7 @@ export const sync = (cbk: callback): resould => {
       art.on("pause", publishPauseDebounce);
 
       // 空降
-      art.on("seek", publishSeekDebounce);
+      art.on("video:seeking", publishSeekDebounce);
 
       // 倍速
       art.on("video:ratechange", publishRate);
@@ -174,7 +176,7 @@ export const sync = (cbk: callback): resould => {
         });
         art.off("play", publishPlayDebounce);
         art.off("pause", publishPauseDebounce);
-        art.off("seek", publishSeekDebounce);
+        art.off("video:seeking", publishSeekDebounce);
         art.off("video:ratechange", publishRate);
       });
     } else {
