@@ -125,7 +125,7 @@ onMounted(() => {});
             <button class="btn btn-warning w-full mb-3" @click="pwdDialog?.openDialog">修改密码</button>
             <el-popconfirm title="确定登出？" @confirm="logout">
               <template #reference>
-                <button class="btn w-full mb-3" @click="">退出登录</button>
+                <button class="btn w-full mb-3">退出登录</button>
               </template>
             </el-popconfirm>
             <el-popconfirm title="注销后，你的所有数据将会被清除" @confirm="logoff">
