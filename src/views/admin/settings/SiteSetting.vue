@@ -2,7 +2,12 @@
 import { ref, onMounted, computed } from "vue";
 import { ElNotification } from "element-plus";
 import { userStore } from "@/stores/user";
-import { useSettings, type settingGroup,type settingGroupName } from "@/hooks/useSettings";
+import {
+  useSettings,
+  type settingGroup,
+  type settingGroupName,
+  type settingType
+} from "@/hooks/useSettings";
 import { assignSettingApi } from "@/services/apis/admin";
 import { useUpdateSettings } from "@/hooks/useUpdateSettings";
 
@@ -36,7 +41,7 @@ const settingsGroups = {
     ...proxySettingsGroup,
     ...userSettingsGroup,
     ...OAuth2SettingGroup,
-    ...databaseSettingsGroup,
+    ...databaseSettingsGroup
   ]
 };
 
@@ -49,23 +54,35 @@ const getAllSettings = async () => {
       headers: {
         Authorization: token.value
       },
-      url: `/api/admin/settings${props.showType === 'all' ? '' : '/'+props.showType}`
+      url: `/api/admin/settings${props.showType === "all" ? "" : "/" + props.showType}`
     });
     if (state.value) {
+      // 更新默认设置
       for (const group in state.value) {
-        if (!settings.value.has(group)) {
-          settings.value.set(group, { value: new Map() });
-        } else if (!settings.value.get(group)?.value) {
-          settings.value.get(group)!.value = new Map();
-        }
-
-        for (const setting in state.value[group]) {
-          if (settings.value.get(group)!.value.has(setting)) {
-            settings.value.get(group)!.value.get(setting)!.value = state.value[group][setting];
-          } else {
+        if (settings.value.has(group)) {
+          for (const setting in state.value[group]) {
             settings.value.get(group)!.value.set(setting, {
+              ...settings.value.get(group)!.value.get(setting),
               value: state.value[group][setting]
             });
+          }
+        } else {
+          console.log(
+            `Group ${group} is not found in the response, it will be added to the settings.`
+          );
+          settings.value.set(group, {
+            name: group,
+            value: new Map<string, settingType>(Object.entries(state.value[group]))
+          });
+        }
+
+        // 删除state中不存在的设置
+        for (const setting of settings.value.get(group)!.value.keys()) {
+          if (!Object.keys(state.value[group]).includes(setting)) {
+            console.log(
+              `Setting ${setting} in group ${group} is not found in the response, it will be deleted.`
+            );
+            settings.value.get(group)!.value.delete(setting);
           }
         }
       }
