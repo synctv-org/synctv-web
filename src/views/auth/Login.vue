@@ -24,7 +24,11 @@ const platforms: { [key: string]: { name: string; class: string } } = {
   },
   feishuSSO: {
     name: "飞书SSO",
-    class: "btn-default"
+    class: "btn-white"
+  },
+  xiaomi: {
+    name: "小米",
+    class: "btn-white"
   },
   baidu: {
     name: "百度",

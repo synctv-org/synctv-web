@@ -179,6 +179,20 @@ export const useSettings = () => {
         name: "QQ",
         value: generateOAuth2SettingsMap("oauth2_qq")
       }
+    ],
+    [
+      "oauth2_xiaomi",
+      {
+        name: "小米",
+        value: generateOAuth2SettingsMap("oauth2_xiaomi")
+      }
+    ],
+    [
+      "oauth2_feishuSSO",
+      {
+        name: "飞书SSO",
+        value: generateOAuth2SettingsMap("oauth2_feishuSSO")
+      }
     ]
   ]);
 
