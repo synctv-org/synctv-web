@@ -7,7 +7,9 @@ import { roomStatus, type RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
 import { userStore } from "@/stores/user";
 import { Search } from "@element-plus/icons-vue";
+import {useRouter} from "vue-router";
 
+const router = useRouter();
 const props = defineProps<{
   isMyRoom: boolean;
 }>();
@@ -24,12 +26,16 @@ const formData = ref<{
 });
 
 const openJoinRoomDialog = (item: RoomList) => {
-  if (!isLogin.value)
-    return ElNotification({
+  if (!isLogin.value){
+    ElNotification({
       title: "错误",
       message: "请先登录",
       type: "error"
-    });
+    })
+    router.push("/auth/login")
+    return
+  }
+
   formData.value.roomId = item.roomId;
   JoinRoomDialog.value = true;
 };
