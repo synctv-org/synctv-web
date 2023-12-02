@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { ElNotification, ElMessage } from "element-plus";
+import { ElNotification } from "element-plus";
 import { OAuth2Platforms, loginWithOAuth2, LoginApi } from "@/services/apis/auth";
 import { userInfo } from "@/services/apis/user";
 import { useRouteQuery } from "@vueuse/router";
@@ -22,8 +22,8 @@ const platforms: { [key: string]: { name: string; class: string } } = {
     name: "Google",
     class: "btn-white"
   },
-  feishuSSO: {
-    name: "飞书SSO",
+  Authing: {
+    name: "Authing",
     class: "btn-white"
   },
   xiaomi: {

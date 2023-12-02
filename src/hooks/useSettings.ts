@@ -1,5 +1,3 @@
-import { ref } from "vue";
-
 export interface settingType {
   value: any;
   append?: string;
@@ -188,12 +186,12 @@ export const useSettings = () => {
       }
     ],
     [
-      "oauth2_feishuSSO",
-      {
-        name: "飞书SSO",
-        value: generateOAuth2SettingsMap("oauth2_feishuSSO")
-      }
-    ]
+        "oauth2_Authing",
+            {
+              name: "Authing",
+              value: generateOAuth2SettingsMap("oauth2_Authing")
+            }
+        ],
   ]);
 
   return {
