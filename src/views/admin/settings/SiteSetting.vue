@@ -56,33 +56,42 @@ const getAllSettings = async () => {
       },
       url: `/api/admin/settings${props.showType === "all" ? "" : "/" + props.showType}`
     });
-    if (state.value) {
-      // 更新默认设置
-      for (const group in state.value) {
-        if (settings.value.has(group)) {
-          for (const setting in state.value[group]) {
-            settings.value.get(group)!.value.set(setting, {
-              ...settings.value.get(group)!.value.get(setting),
-              value: state.value[group][setting]
-            });
-          }
-        } else {
-          console.log(
-            `Group ${group} is not found in the response, it will be added to the settings.`
-          );
-          settings.value.set(group, {
-            name: group,
-            value: new Map<string, settingType>(Object.entries(state.value[group]))
+    if (!state.value) return;
+    // 更新默认设置
+    for (const group in state.value) {
+      if (settings.value.has(group)) {
+        for (const setting in state.value[group]) {
+          settings.value.get(group)!.value.set(setting, {
+            ...settings.value.get(group)!.value.get(setting),
+            value: state.value[group][setting]
           });
         }
+      } else {
+        console.log(
+          `Group ${group} is not found in the response, it will be added to the settings.`
+        );
+        settings.value.set(group, {
+          name: group,
+          value: new Map<string, settingType>(Object.entries(state.value[group]))
+        });
+      }
+    }
 
-        // 删除state中不存在的设置
-        for (const setting of settings.value.get(group)!.value.keys()) {
-          if (!Object.keys(state.value[group]).includes(setting)) {
+    // 删除state中不存在的设置组和设置
+    for (const group of settings.value.keys()) {
+      if (!state.value.hasOwnProperty(group)) {
+        console.log(
+          `Group ${group} is not found in the response, it will be deleted from the settings.`
+        );
+        settings.value.delete(group);
+      } else {
+        const groupSettings = settings.value.get(group)!.value;
+        for (const setting of groupSettings.keys()) {
+          if (!state.value[group].hasOwnProperty(setting)) {
             console.log(
               `Setting ${setting} in group ${group} is not found in the response, it will be deleted.`
             );
-            settings.value.get(group)!.value.delete(setting);
+            groupSettings.delete(setting);
           }
         }
       }
