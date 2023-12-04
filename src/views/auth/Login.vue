@@ -30,6 +30,10 @@ const platforms: { [key: string]: { name: string; class: string } } = {
     name: "小米",
     class: "btn-white"
   },
+  FeishuSSO: {
+    name: "飞书SSO",
+    class: "btn-white"
+  },
   baidu: {
     name: "百度",
     class: "btn-white"
