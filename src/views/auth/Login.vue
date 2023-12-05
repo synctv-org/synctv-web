@@ -30,7 +30,7 @@ const platforms: { [key: string]: { name: string; class: string } } = {
     name: "百度",
     class: "btn-white"
   },
-  'baidu-netdisk': {
+  "baidu-netdisk": {
     name: "百度网盘",
     class: "btn-white"
   },
@@ -45,7 +45,7 @@ const platforms: { [key: string]: { name: string; class: string } } = {
   qq: {
     name: "QQ",
     class: "btn-default"
-  },
+  }
 };
 
 const formData = ref({
@@ -182,12 +182,14 @@ onMounted(async () => {
       <h4 class="text-[18px] font-bold">使用第三方平台登录</h4>
       <button
         v-for="item in OAuth2Platforms_?.enabled"
-        :class="`inline-flex  items-center btn ${platforms[item] ? platforms[item].class : 'btn-black'} m-[10px] hover:px-[10px]`"
+        :class="`inline-flex  items-center btn ${
+          platforms[item] ? platforms[item].class : 'btn-black'
+        } m-[10px] hover:px-[10px]`"
         @click="useOAuth2(item)"
       >
         <el-image class="w-4 mr-2 rounded-lg" :src="getAppIcon(item)">
           <template #error>
-            <img src="@/assets/appIcons/default.webp" class="w-full" />
+            <img src="@/assets/appIcons/default.svg" class="w-full" />
           </template>
         </el-image>
         {{ platforms[item] ? platforms[item].name : item }}

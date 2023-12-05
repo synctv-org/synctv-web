@@ -74,5 +74,5 @@ export const decodeJWT = (jwt: string) => {
 };
 
 export const getAppIcon = (appName: string) => {
-  return new URL(`/src/assets/appIcons/${appName}.webp`, import.meta.url).href;
+  return new URL(`/src/assets/appIcons/${appName}.svg`, import.meta.url).href;
 };

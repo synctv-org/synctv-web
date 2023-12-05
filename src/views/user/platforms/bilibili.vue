@@ -252,7 +252,7 @@ onMounted(async () => {
   <div class="app-list-item hover:bg-pink-100 dark:hover:bg-neutral-700" @click="openDialog()">
     <el-image class="e-image" :src="getAppIcon('bilibili')">
       <template #error>
-        <img :src="getAppIcon('default')" class="w-full" />
+        <img src="/src/assets/appIcons/vendor.svg" class="w-full" />
       </template>
     </el-image>
     <div class="mb-5">

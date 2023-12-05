@@ -152,7 +152,7 @@ onMounted(async () => {
       >
         <el-image class="e-image" :src="getAppIcon(item.name)">
           <template #error>
-            <img :src="getAppIcon('default')" class="w-full" />
+            <img src="/src/assets/appIcons/vendor.svg" class="w-full" />
           </template>
         </el-image>
         <div class="mb-5">
