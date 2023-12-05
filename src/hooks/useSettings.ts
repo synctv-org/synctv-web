@@ -22,7 +22,9 @@ export const useSettings = () => {
       [name + "_enabled", { value: false, name: "是否启用" }],
       [name + "_client_id", { value: "", name: "Client ID" }],
       [name + "_client_secret", { value: "", name: "Client Secret" }],
-      [name + "_redirect_url", { value: "", name: "Redirect Url" }]
+      [name + "_redirect_url", { value: "", name: "Redirect Url" }],
+      [name + "_disable_user_signup", { value: false, name: "禁止用户注册" }],
+      [name + "_signup_need_review", { value: false, name: "注册需要审核", disabled: true }]
     ]);
   };
 
@@ -42,8 +44,7 @@ export const useSettings = () => {
         comment: "回收房间仅仅只是释放内存，而不是删除房间",
         name: "非活跃房间回收时间"
       }
-    ],
-    ["user_max_room_count", { value: 0, append: "个", name: "用户最大创建房间数" }]
+    ]
   ]);
 
   const defaultProxySettings: Map<string, settingType> = new Map([
@@ -70,7 +71,8 @@ export const useSettings = () => {
 
   const defaultUserSettings: Map<string, settingType> = new Map([
     ["disable_user_signup", { value: false, name: "禁止用户注册" }],
-    ["signup_need_review", { value: false, name: "注册需要审核" }]
+    ["signup_need_review", { value: false, name: "注册需要审核" }],
+    ["user_max_room_count", { value: 0, append: "个", name: "用户最大创建房间数" }]
   ]);
 
   const databaseSettingsGroup: Map<settingGroupName, settingGroup> = new Map([
