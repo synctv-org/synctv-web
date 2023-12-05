@@ -6,7 +6,7 @@ import type { RoomList } from "@/types/Room";
 import JoinRoom from "./JoinRoom.vue";
 import { roomStore } from "@/stores/room";
 import { useTimeAgo } from "@vueuse/core";
-import {useRouter} from "vue-router";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 const room = roomStore();

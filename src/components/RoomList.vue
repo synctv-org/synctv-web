@@ -8,7 +8,7 @@ import JoinRoom from "@/views/JoinRoom.vue";
 import { userStore } from "@/stores/user";
 import { Search } from "@element-plus/icons-vue";
 import { useTimeAgo } from "@vueuse/core";
-import {useRouter} from "vue-router";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 const props = defineProps<{
