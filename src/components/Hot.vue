@@ -5,9 +5,9 @@ import { hotRoom } from "@/services/apis/room";
 import type { RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
 import { roomStore } from "@/stores/room";
-import {useRouter} from "vue-router";
+import { useRouter } from "vue-router";
 
-const router = useRouter()
+const router = useRouter();
 const __roomList = ref<RoomList[]>([]);
 const room = roomStore();
 const JoinRoomDialog = ref(false);
@@ -17,14 +17,14 @@ const formData = ref({
 });
 
 const openJoinRoomDialog = (item: RoomList) => {
-  if (!room.login){
+  if (!room.login) {
     ElNotification({
       title: "错误",
       message: "请先登录",
       type: "error"
-    })
-    router.push("/auth/login")
-    return
+    });
+    router.push("/auth/login");
+    return;
   }
   formData.value.roomId = item.roomId;
   JoinRoomDialog.value = true;
@@ -50,10 +50,10 @@ const getRoomList = async (showMsg = false) => {
     }
 
     showMsg &&
-    ElNotification({
-      title: `更新列表成功`,
-      type: "success"
-    });
+      ElNotification({
+        title: `更新列表成功`,
+        type: "success"
+      });
   } catch (err: any) {
     console.error(err.message);
     ElNotification({
@@ -77,10 +77,10 @@ onMounted(() => {
     <div class="card-body">
       <el-empty v-if="__roomList.length === 0" description="无房间，去创建一个吧~" />
       <div
-          v-else
-          v-for="(item, i) in __roomList"
-          :key="i"
-          class="flex max-sm:flex-wrap justify-around m-2 rounded-lg bg-zinc-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 w-auto items-center"
+        v-else
+        v-for="(item, i) in __roomList"
+        :key="i"
+        class="flex max-sm:flex-wrap justify-around m-2 rounded-lg bg-zinc-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 w-auto items-center"
       >
         <div class="m-auto sm:ml-5 max-sm:mt-5">
           <b> {{ i + 1 }}</b>
@@ -110,15 +110,15 @@ onMounted(() => {
     <div class="card-footer justify-between flex-wrap overflow-hidden">
       <button class="btn btn-success max-sm:mb-4" @click="getRoomList(true)">更新列表</button>
       <el-pagination
-          v-if="__roomList.length > 0"
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :pager-count="5"
-          layout="sizes, prev, pager, next, jumper"
-          :total="totalItems"
-          @size-change="getRoomList(false)"
-          @current-change="getRoomList(false)"
-          class="flex-wrap"
+        v-if="__roomList.length > 0"
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :pager-count="5"
+        layout="sizes, prev, pager, next, jumper"
+        :total="totalItems"
+        @size-change="getRoomList(false)"
+        @current-change="getRoomList(false)"
+        class="flex-wrap"
       />
     </div>
   </div>
