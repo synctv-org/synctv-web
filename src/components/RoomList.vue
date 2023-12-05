@@ -33,7 +33,7 @@ const openJoinRoomDialog = (item: RoomList) => {
       message: "请先登录",
       type: "error"
     });
-    router.push("/auth/login");
+    router.currentRoute.value.fullPath;
     return;
   }
   formData.value.roomId = item.roomId;

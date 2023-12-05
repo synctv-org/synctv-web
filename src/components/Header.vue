@@ -153,9 +153,6 @@ const toUserInfo = () => {
                 >{{ link.name }}</RouterLink
               >
             </div>
-            <!--            <div class="py-6">-->
-            <!--              <a href="javascript:">关于此项目</a>-->
-            <!--            </div>-->
           </div>
         </div>
       </div>
