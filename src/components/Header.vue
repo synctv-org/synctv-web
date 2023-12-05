@@ -10,9 +10,9 @@ const { isLogin, info } = userStore();
 
 const limitedUsername = computed(() => {
   if (info.value?.username && info.value?.username.length > 7) {
-    return info.value?.username.substring(0, 7) + '...'; // 超出长度截断
+    return info.value?.username.substring(0, 7) + "..."; // 超出长度截断
   }
-  return info.value?.username || ''; // 不需要截断直接返回
+  return info.value?.username || ""; // 不需要截断直接返回
 });
 
 const menuLinks = computed(() => {
@@ -75,7 +75,7 @@ const toUserInfo = () => {
         </span>
 
         <span @click="toUserInfo" class="cursor-pointer" v-if="isLogin">
-          {{limitedUsername}}
+          {{ limitedUsername }}
         </span>
 
         <button
@@ -111,7 +111,7 @@ const toUserInfo = () => {
         <PersonIcon class="ml-4 cursor-pointer" @click="toUserInfo" />
       </div>
       <div class="hidden lg:flex lg:justify-end cursor-pointer" @click="toUserInfo" v-if="isLogin">
-        {{limitedUsername}}
+        {{ limitedUsername }}
       </div>
     </nav>
 
@@ -153,9 +153,9 @@ const toUserInfo = () => {
                 >{{ link.name }}</RouterLink
               >
             </div>
-<!--            <div class="py-6">-->
-<!--              <a href="javascript:">关于此项目</a>-->
-<!--            </div>-->
+            <!--            <div class="py-6">-->
+            <!--              <a href="javascript:">关于此项目</a>-->
+            <!--            </div>-->
           </div>
         </div>
       </div>

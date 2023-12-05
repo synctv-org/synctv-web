@@ -21,14 +21,14 @@ const formData = ref<{
 });
 
 const openJoinRoomDialog = (item: RoomList) => {
-  if (!room.login){
+  if (!room.login) {
     ElNotification({
       title: "错误",
       message: "请先登录",
       type: "error"
-    })
-    router.push("/auth/login")
-    return
+    });
+    router.push("/auth/login");
+    return;
   }
   formData.value.roomId = item.roomId;
   JoinRoomDialog.value = true;

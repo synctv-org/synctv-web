@@ -45,7 +45,7 @@ const changeUName = async () => {
         });
         open.value = false;
         formDataRef.value?.resetFields();
-        await getUserInfo()
+        await getUserInfo();
       }
     });
   } catch (err: any) {
@@ -67,7 +67,14 @@ const changeUName = async () => {
     class="rounded-lg dark:bg-zinc-800 w-2/6 max-sm:w-full"
   >
     <template #default>
-      <el-form ref="formDataRef" :model="formData" :rules="rules" @submit.prevent="changeUName" label-width="80px" status-icon>
+      <el-form
+        ref="formDataRef"
+        :model="formData"
+        :rules="rules"
+        @submit.prevent="changeUName"
+        label-width="80px"
+        status-icon
+      >
         <el-form-item label="新用户名" prop="username">
           <el-input v-model="formData.username" type="text" />
         </el-form-item>
