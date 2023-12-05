@@ -6,6 +6,7 @@ import { userStore } from "@/stores/user";
 import { roomListApi, banRoomApi, unBanRoomApi, approveRoomApi } from "@/services/apis/admin";
 import CopyButton from "@/components/CopyButton.vue";
 import { RoomStatus, roomStatus } from "@/types/Room";
+import { useTimeAgo } from "@vueuse/core";
 
 const props = defineProps<{
   title: string;
@@ -195,7 +196,7 @@ onMounted(async () => {
         </el-table-column>
         <el-table-column prop="createdAt" label="创建时间">
           <template #default="scope">
-            {{ new Date(scope.row.createdAt).toLocaleString() }}
+            {{ useTimeAgo(new Date(scope.row.createdAt)).value }}
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100">

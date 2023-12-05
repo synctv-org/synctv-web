@@ -9,6 +9,7 @@ import Account from "./account/index.vue";
 import UserPassword from "@/components/user/dialogs/password.vue";
 import Uname from "@/components/user/dialogs/username.vue";
 import { ROLE, role } from "@/types/User";
+import { useTimeAgo } from "@vueuse/core";
 
 const { info, token } = userStore();
 const pwdDialog = ref<InstanceType<typeof UserPassword>>();
@@ -106,7 +107,7 @@ onMounted(() => {});
                 <tr>
                   <td>注册时间</td>
                   <td>
-                    {{ info && new Date(info.createdAt).toLocaleString() }}
+                    {{ info && useTimeAgo(new Date(info.createdAt)).value }}
                   </td>
                 </tr>
                 <tr v-if="info!.role! >= ROLE.Admin">
@@ -122,7 +123,9 @@ onMounted(() => {});
         <div class="card">
           <div class="card-title">操作</div>
           <div class="card-body pb-5">
-            <button class="btn btn-warning w-full mb-3" @click="pwdDialog?.openDialog">修改密码</button>
+            <button class="btn btn-warning w-full mb-3" @click="pwdDialog?.openDialog">
+              修改密码
+            </button>
             <el-popconfirm title="确定登出？" @confirm="logout">
               <template #reference>
                 <button class="btn w-full mb-3" @click="">退出登录</button>

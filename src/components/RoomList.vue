@@ -7,6 +7,7 @@ import { roomStatus, type RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
 import { userStore } from "@/stores/user";
 import { Search } from "@element-plus/icons-vue";
+import { useTimeAgo } from "@vueuse/core";
 
 const props = defineProps<{
   isMyRoom: boolean;
@@ -183,7 +184,7 @@ onMounted(() => {
               }}</span>
             </div>
             <div v-if="!isMyRoom" class="truncate">创建者：{{ item.creator }}</div>
-            <div>创建时间：{{ new Date(item.createdAt).toLocaleString() }}</div>
+            <div>创建时间：{{ useTimeAgo(new Date(item.createdAt)).value }}</div>
           </div>
           <div class="flex p-2 w-full justify-between items-center">
             <el-tag v-if="!isMyRoom" disabled :type="item.needPassword ? 'danger' : 'success'">
