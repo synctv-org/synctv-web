@@ -190,17 +190,17 @@ export const useSettings = () => {
       }
     ],
     [
-      "oauth2_feishu-sso",
-      {
-        name: "飞书SSO",
-        value: generateOAuth2SettingsMap("oauth2_feishu-sso")
-      }
-    ],
-    [
       "oauth2_authing",
       {
         name: "Authing",
         value: generateOAuth2SettingsMap("oauth2_authing")
+      }
+    ],
+    [
+      "oauth2_feishu-sso",
+      {
+        name: "飞书SSO",
+        value: generateOAuth2SettingsMap("oauth2_feishu-sso")
       }
     ]
   ]);

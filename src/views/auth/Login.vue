@@ -24,15 +24,15 @@ const platforms: { [key: string]: { name: string; class: string } } = {
   },
   "feishu-sso": {
     name: "飞书SSO",
-    class: "btn-default"
-  },
-  xiaomi: {
-    name: "小米",
-    class: "btn-default"
+    class: "btn-white"
   },
   authing: {
     name: "Authing",
-    class: "btn-default"
+    class: "btn-white"
+  },
+  xiaomi: {
+    name: "小米",
+    class: "btn-white"
   },
   baidu: {
     name: "百度",
@@ -163,19 +163,19 @@ onMounted(async () => {
   <div class="room">
     <form @submit.prevent="" class="login-box">
       <input
-        class="l-input"
-        type="text"
-        v-model="formData.username"
-        placeholder="用户名"
-        required
+          class="l-input"
+          type="text"
+          v-model="formData.username"
+          placeholder="用户名"
+          required
       />
       <br />
       <input
-        class="l-input"
-        type="password"
-        v-model="formData.password"
-        placeholder="密码"
-        required
+          class="l-input"
+          type="password"
+          v-model="formData.password"
+          placeholder="密码"
+          required
       />
       <br />
       <div class="text-sm"><b>注意：</b>所有输入框最大只可输入32个字符</div>
@@ -189,11 +189,11 @@ onMounted(async () => {
     <div class="sm:w-96 w-full m-auto">
       <h4 class="text-[18px] font-bold">使用第三方平台登录</h4>
       <button
-        v-for="item in OAuth2Platforms_?.enabled"
-        :class="`inline-flex  items-center btn ${
+          v-for="item in OAuth2Platforms_?.enabled"
+          :class="`inline-flex  items-center btn ${
           platforms[item] ? platforms[item].class : 'btn-black'
         } m-[10px] hover:px-[10px]`"
-        @click="useOAuth2(item)"
+          @click="useOAuth2(item)"
       >
         <el-image class="w-4 mr-2 rounded-lg" :src="getAppIcon(item)"> </el-image>
         {{ platforms[item] ? platforms[item].name : item }}
@@ -208,7 +208,7 @@ onMounted(async () => {
   margin-top: 5vmax;
 
   .login-box {
-    @apply sm:w-96 w-full m-auto;
+  @apply sm:w-96 w-full m-auto;
 
     input {
       width: 70%;
