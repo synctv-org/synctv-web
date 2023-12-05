@@ -22,7 +22,7 @@ const platforms: { [key: string]: { name: string; class: string } } = {
     name: "Google",
     class: "btn-white"
   },
-  FeishuSSO: {
+  "feishu-sso": {
     name: "飞书SSO",
     class: "btn-default"
   },
@@ -30,7 +30,7 @@ const platforms: { [key: string]: { name: string; class: string } } = {
     name: "小米",
     class: "btn-default"
   },
-  Authing: {
+  authing: {
     name: "Authing",
     class: "btn-default"
   },
