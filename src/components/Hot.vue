@@ -5,7 +5,9 @@ import { hotRoom } from "@/services/apis/room";
 import type { RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
 import { roomStore } from "@/stores/room";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const __roomList = ref<RoomList[]>([]);
 const room = roomStore();
 const JoinRoomDialog = ref(false);
@@ -15,13 +17,20 @@ const formData = ref({
 });
 
 const openJoinRoomDialog = (item: RoomList) => {
-  if (!room.login)
-    return ElNotification({
+  if (!room.login) {
+    ElNotification({
       title: "错误",
       message: "请先登录",
       type: "error"
     });
-
+    router.replace({
+        name: "login",
+        query: {
+          redirect: router.currentRoute.value.fullPath
+        }
+      });
+    return;
+  }
   formData.value.roomId = item.roomId;
   JoinRoomDialog.value = true;
 };

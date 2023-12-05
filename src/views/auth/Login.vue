@@ -22,9 +22,17 @@ const platforms: { [key: string]: { name: string; class: string } } = {
     name: "Google",
     class: "btn-white"
   },
-  feishuSSO: {
+  "feishu-sso": {
     name: "飞书SSO",
-    class: "btn-default"
+    class: "btn-white"
+  },
+  authing: {
+    name: "Authing",
+    class: "btn-white"
+  },
+  xiaomi: {
+    name: "小米",
+    class: "btn-white"
   },
   baidu: {
     name: "百度",
