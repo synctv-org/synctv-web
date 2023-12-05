@@ -1,3 +1,5 @@
+import { ref } from "vue";
+
 export interface settingType {
     value: any;
     append?: string;
@@ -17,23 +19,23 @@ export interface settingGroup {
 export const useSettings = () => {
     const generateOAuth2SettingsMap = (name: string) => {
         return new Map([
-            [name + "_enabled", {value: false, name: "是否启用"}],
-            [name + "_client_id", {value: "", name: "Client ID"}],
-            [name + "_client_secret", {value: "", name: "Client Secret"}],
-            [name + "_redirect_url", {value: "", name: "Redirect Url"}],
-            [name + "_disable_user_signup", {value: false, name: "禁止用户注册"}],
-            [name + "_signup_need_review", {value: false, name: "注册需要审核", disabled: true}]
+            [name + "_enabled", { value: false, name: "是否启用" }],
+            [name + "_client_id", { value: "", name: "Client ID" }],
+            [name + "_client_secret", { value: "", name: "Client Secret" }],
+            [name + "_redirect_url", { value: "", name: "Redirect Url" }],
+            [name + "_disable_user_signup", { value: false, name: "禁止用户注册" }],
+            [name + "_signup_need_review", { value: false, name: "注册需要审核", disabled: true }]
         ]);
     };
 
     const defaultDatabaseSettings: Map<string, settingType> = new Map([
-        ["database_version", {value: "", name: "数据库版本", disabled: true}]
+        ["database_version", { value: "", name: "数据库版本", disabled: true }]
     ]);
 
     const defaultRoomSettings: Map<string, settingType> = new Map([
-        ["create_room_need_review", {value: false, name: "创建房间需要审核"}],
-        ["disable_create_room", {value: false, name: "禁止创建房间"}],
-        ["room_must_need_pwd", {value: false, name: "创建房间必须填写密码"}],
+        ["create_room_need_review", { value: false, name: "创建房间需要审核" }],
+        ["disable_create_room", { value: false, name: "禁止创建房间" }],
+        ["room_must_need_pwd", { value: false, name: "创建房间必须填写密码" }],
         [
             "room_ttl",
             {
@@ -46,15 +48,15 @@ export const useSettings = () => {
     ]);
 
     const defaultProxySettings: Map<string, settingType> = new Map([
-        ["allow_proxy_to_local", {value: false, name: "允许代理到本机地址"}],
-        ["live_proxy", {value: false, name: "代理直播流"}],
-        ["movie_proxy", {value: false, name: "代理普通视频"}]
+        ["allow_proxy_to_local", { value: false, name: "允许代理到本机地址" }],
+        ["live_proxy", { value: false, name: "代理直播流" }],
+        ["movie_proxy", { value: false, name: "代理普通视频" }]
     ]);
 
     const defaultRtmpSettings: Map<string, settingType> = new Map([
         [
             "custom_publish_host",
-            {value: "", placeholder: "example.com:1935", name: "自定义推流 Host"}
+            { value: "", placeholder: "example.com:1935", name: "自定义推流 Host" }
         ],
         [
             "rtmp_player",
@@ -64,13 +66,13 @@ export const useSettings = () => {
                 name: "允许使用 RTMP 播放器"
             }
         ],
-        ["ts_disguised_as_png", {value: false, name: "ts伪装成png图片"}]
+        ["ts_disguised_as_png", { value: false, name: "ts伪装成png图片" }]
     ]);
 
     const defaultUserSettings: Map<string, settingType> = new Map([
-        ["disable_user_signup", {value: false, name: "禁止用户注册"}],
-        ["signup_need_review", {value: false, name: "注册需要审核"}],
-        ["user_max_room_count", {value: 0, append: "个", name: "用户最大创建房间数"}]
+        ["disable_user_signup", { value: false, name: "禁止用户注册" }],
+        ["signup_need_review", { value: false, name: "注册需要审核" }],
+        ["user_max_room_count", { value: 0, append: "个", name: "用户最大创建房间数" }]
     ]);
 
     const databaseSettingsGroup: Map<settingGroupName, settingGroup> = new Map([
@@ -197,7 +199,7 @@ export const useSettings = () => {
         [
             "oauth2_Authing",
             {
-                name: "Authing",
+                name: "飞书SSO",
                 value: generateOAuth2SettingsMap("oauth2_Authing")
             }
         ]

@@ -46,7 +46,7 @@ const menuLinks = computed(() => {
       {
         name: "创建房间",
         to: "/createRoom"
-      },
+      }
     ];
     links = loginLinks;
   }

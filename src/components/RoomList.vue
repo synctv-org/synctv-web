@@ -8,8 +8,7 @@ import JoinRoom from "@/views/JoinRoom.vue";
 import { userStore } from "@/stores/user";
 import { Search } from "@element-plus/icons-vue";
 import { useTimeAgo } from "@vueuse/core";
-import { useRouter } from "vue-router";
-
+import {useRouter} from "vue-router";
 
 const router = useRouter();
 const props = defineProps<{
@@ -33,11 +32,10 @@ const openJoinRoomDialog = (item: RoomList) => {
       title: "错误",
       message: "请先登录",
       type: "error"
-    })
+    });
     router.push("/auth/login")
     return
   }
-
   formData.value.roomId = item.roomId;
   JoinRoomDialog.value = true;
 };
@@ -96,10 +94,10 @@ const getRoomList = async (showMsg = false) => {
     }
 
     showMsg &&
-      ElNotification({
-        title: `更新列表成功`,
-        type: "success"
-      });
+    ElNotification({
+      title: `更新列表成功`,
+      type: "success"
+    });
   } catch (err: any) {
     console.error(err.message);
     ElNotification({
@@ -128,13 +126,13 @@ onMounted(() => {
           class="m-2"
           placeholder="排序方式"
           @change="getRoomList(false)"
-        >
-          <el-option label="房间名称" value="name" />
-          <el-option label="创建时间" value="createdAt" />
-        </el-select>
+      >
+        <el-option label="房间名称" value="name" />
+        <el-option label="创建时间" value="createdAt" />
+      </el-select>
         <button
-          class="btn btn-dense"
-          @click="
+            class="btn btn-dense"
+            @click="
             order === 'desc' ? (order = 'asc') : (order = 'desc');
             getRoomList();
           "
@@ -146,10 +144,10 @@ onMounted(() => {
     <div class="card-body">
       <div class="m-auto w-96 mb-3 flex" v-if="isMyRoom">
         <el-select
-          v-model="status"
-          placeholder="状态"
-          style="width: 130px"
-          @change="getRoomList(false)"
+            v-model="status"
+            placeholder="状态"
+            style="width: 130px"
+            @change="getRoomList(false)"
         >
           <el-option label="ALL" value="" />
           <el-option v-for="r in Object.values(roomStatus)" :label="r" :value="r.toLowerCase()" />
@@ -157,10 +155,10 @@ onMounted(() => {
         <el-input v-model="keyword" placeholder="搜索" @keyup.enter="getRoomList(false)" required>
           <template #prepend>
             <el-select
-              v-model="search"
-              @change="getRoomList(false)"
-              placeholder="Select"
-              style="width: 90px"
+                v-model="search"
+                @change="getRoomList(false)"
+                placeholder="Select"
+                style="width: 90px"
             >
               <el-option label="综合" value="all" />
               <el-option label="名称" value="name" />
@@ -176,10 +174,10 @@ onMounted(() => {
       <div class="flex flex-wrap justify-center">
         <el-empty v-if="__roomList.length === 0" description="啥都没有哦~" />
         <div
-          v-else
-          v-for="item in __roomList"
-          :key="item.roomId"
-          class="flex flex-wrap m-2 rounded-lg bg-stone-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 max-w-[225px]"
+            v-else
+            v-for="item in __roomList"
+            :key="item.roomId"
+            class="flex flex-wrap m-2 rounded-lg bg-stone-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 max-w-[225px]"
         >
           <div class="overflow-hidden text-ellipsis m-auto p-2 w-full">
             <b class="block text-base font-semibold truncate"> {{ item["roomName"] }}</b>
@@ -191,7 +189,7 @@ onMounted(() => {
               }}</span>
             </div>
             <div v-if="!isMyRoom" class="truncate">创建者：{{ item.creator }}</div>
-            <div>创建时间：{{ new Date(item.createdAt).toLocaleString() }}</div>
+            <div>创建时间：{{ useTimeAgo(new Date(item.createdAt)).value }}</div>
           </div>
           <div class="flex p-2 w-full justify-between items-center">
             <el-tag v-if="!isMyRoom" disabled :type="item.needPassword ? 'danger' : 'success'">
@@ -209,15 +207,15 @@ onMounted(() => {
     <div class="card-footer justify-between flex-wrap overflow-hidden">
       <button class="btn btn-success max-sm:mb-4" @click="getRoomList(true)">更新列表</button>
       <el-pagination
-        v-if="__roomList.length != 0"
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :pager-count="5"
-        layout="sizes, prev, pager, next, jumper"
-        :total="totalItems"
-        @size-change="getRoomList(false)"
-        @current-change="getRoomList(false)"
-        class="flex-wrap"
+          v-if="__roomList.length != 0"
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :pager-count="5"
+          layout="sizes, prev, pager, next, jumper"
+          :total="totalItems"
+          @size-change="getRoomList(false)"
+          @current-change="getRoomList(false)"
+          class="flex-wrap"
       />
     </div>
   </div>

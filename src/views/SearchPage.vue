@@ -6,7 +6,9 @@ import type { RoomList } from "@/types/Room";
 import JoinRoom from "./JoinRoom.vue";
 import { roomStore } from "@/stores/room";
 import { useTimeAgo } from "@vueuse/core";
+import {useRouter} from "vue-router";
 
+const router = useRouter();
 const room = roomStore();
 const __roomList = ref<RoomList[]>([]);
 const JoinRoomDialog = ref(false);
@@ -28,7 +30,6 @@ const openJoinRoomDialog = (item: RoomList) => {
     router.push("/auth/login")
     return
   }
-
   formData.value.roomId = item.roomId;
   JoinRoomDialog.value = true;
 };
