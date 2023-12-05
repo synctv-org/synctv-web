@@ -6,6 +6,7 @@ import { roomStatus, type RoomList } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
 import { userStore } from "@/stores/user";
 import { Search } from "@element-plus/icons-vue";
+import { useTimeAgo } from "@vueuse/core";
 
 const { token, isLogin } = userStore();
 const __roomList = ref<RoomList[]>([]);
@@ -166,7 +167,7 @@ const getRoomList = async (showMsg = false) => {
                 item["peopleNum"]
               }}</span>
             </div>
-            <div>创建时间：{{ new Date(item.createdAt).toLocaleString() }}</div>
+            <div>创建时间：{{ useTimeAgo(new Date(item.createdAt)).value }}</div>
           </div>
           <div class="flex p-2 w-full justify-between items-center">
             <el-tag disabled :type="item.needPassword ? 'danger' : 'success'">

@@ -45,7 +45,7 @@ const settingsGroups = {
   ]
 };
 
-const settings = ref<Map<string, settingGroup>>(new Map(settingsGroups[props.showType]));
+const settings = ref<Map<string, settingGroup>>();
 
 const getAllSettings = async () => {
   const { state, execute } = assignSettingApi();
@@ -57,6 +57,7 @@ const getAllSettings = async () => {
       url: `/api/admin/settings${props.showType === "all" ? "" : "/" + props.showType}`
     });
     if (!state.value) return;
+    settings.value = new Map<string, settingGroup>(settingsGroups[props.showType]);
     // 更新默认设置
     for (const group in state.value) {
       if (settings.value.has(group)) {

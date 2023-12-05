@@ -4,7 +4,7 @@ import { ElNotification } from "element-plus";
 import type { BaseMovieInfo, VendorInfo, BilibiliVendorInfo } from "@/types/Movie";
 import { strLengthLimit } from "@/utils/utils";
 import { pushMovieApi } from "@/services/apis/movie";
-import { getBiliBiliVendors as biliBiliVendors } from "@/services/apis/vendor";
+import { getVendorBackends as biliBiliBackends } from "@/services/apis/vendor";
 import customHeaders from "@/components/dialogs/customHeaders.vue";
 import bilibiliParse from "@/components/dialogs/bilibiliParse.vue";
 
@@ -276,7 +276,7 @@ const pushMovie = async () => {
 const getBiliBiliVendorsLoading = ref(true);
 
 // 获取可用的bilibili解析接口
-const { state: biliVendors, execute: reqBiliBiliVendors } = biliBiliVendors();
+const { state: biliVendors, execute: reqBiliBiliVendors } = biliBiliBackends();
 biliVendors.value = [""];
 const biliVendor = ref<string>("");
 const getBiliBiliVendors = async () => {
@@ -285,7 +285,8 @@ const getBiliBiliVendors = async () => {
     await reqBiliBiliVendors({
       headers: {
         Authorization: Props.token
-      }
+      },
+      url: `/api/vendor/backends/bilibili`
     });
     getBiliBiliVendorsLoading.value = false;
     if (biliVendors.value) {

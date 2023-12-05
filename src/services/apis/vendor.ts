@@ -74,13 +74,13 @@ export const veriBiliBiliPhoneCode = useDefineApi<
 });
 
 // 获取可用的解析接口
-export const getBiliBiliVendors = useDefineApi<
+export const getVendorBackends = useDefineApi<
   {
     headers: { Authorization: string };
+    url: string;
   },
   string[]
 >({
-  url: "/api/vendor/bilibili/vendors",
   method: "GET"
 });
 
