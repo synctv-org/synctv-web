@@ -150,11 +150,7 @@ onMounted(async () => {
         :key="i"
         @click="bindOAuth2(item.name)"
       >
-        <el-image class="e-image" :src="getAppIcon(item.name)">
-          <template #error>
-            <img src="/src/assets/appIcons/vendor.svg" class="w-full" />
-          </template>
-        </el-image>
+        <el-image class="e-image" :src="getAppIcon(item.name)"> </el-image>
         <div class="mb-5">
           <a href="javascript:;" class="text-inherit capitalize truncate">{{ item.name }}</a>
         </div>

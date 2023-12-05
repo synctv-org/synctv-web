@@ -250,11 +250,7 @@ onMounted(async () => {
 
 <template>
   <div class="app-list-item hover:bg-pink-100 dark:hover:bg-neutral-700" @click="openDialog()">
-    <el-image class="e-image" :src="getAppIcon('bilibili')">
-      <template #error>
-        <img src="/src/assets/appIcons/vendor.svg" class="w-full" />
-      </template>
-    </el-image>
+    <el-image class="e-image" :src="getAppIcon('bilibili')"> </el-image>
     <div class="mb-5">
       <a href="javascript:;" class="text-inherit">哔哩哔哩</a>
     </div>

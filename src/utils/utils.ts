@@ -73,6 +73,10 @@ export const decodeJWT = (jwt: string) => {
   }
 };
 
-export const getAppIcon = (appName: string) => {
-  return new URL(`/src/assets/appIcons/${appName}.svg`, import.meta.url).href;
+export const getAppIcon = (appName: string): string => {
+  const href = new URL(`/src/assets/appIcons/${appName}.svg`, import.meta.url).href;
+  if (href.endsWith("undefined")) {
+    return getAppIcon("default");
+  }
+  return href;
 };

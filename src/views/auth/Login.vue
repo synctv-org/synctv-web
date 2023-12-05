@@ -187,11 +187,7 @@ onMounted(async () => {
         } m-[10px] hover:px-[10px]`"
         @click="useOAuth2(item)"
       >
-        <el-image class="w-4 mr-2 rounded-lg" :src="getAppIcon(item)">
-          <template #error>
-            <img src="@/assets/appIcons/default.svg" class="w-full" />
-          </template>
-        </el-image>
+        <el-image class="w-4 mr-2 rounded-lg" :src="getAppIcon(item)"> </el-image>
         {{ platforms[item] ? platforms[item].name : item }}
       </button>
     </div>
