@@ -39,8 +39,8 @@ export const useSettings = () => {
     [
       "room_ttl",
       {
-        value: 172800000000000,
-        append: "纳秒",
+        value: 48,
+        append: "小时",
         comment: "回收房间仅仅只是释放内存，而不是删除房间",
         name: "非活跃房间回收时间"
       }
