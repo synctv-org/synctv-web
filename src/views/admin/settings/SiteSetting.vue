@@ -73,8 +73,17 @@ const getAllSettings = async () => {
         );
         settings.value.set(group, {
           name: group,
-          value: new Map<string, settingType>(Object.entries(state.value[group]))
+          value: new Map<string, settingType>()
         });
+        for (const setting in state.value[group]) {
+          console.log(
+            `Setting ${setting} in group ${group} is not found in the response, it will be added.`
+          );
+          settings.value.get(group)!.value.set(setting, {
+            name: setting,
+            value: state.value[group][setting]
+          });
+        }
       }
     }
 
