@@ -13,7 +13,7 @@ import QRCodeVue3 from "qrcode-vue3";
 import { roomStore } from "@/stores/room";
 import { userStore } from "@/stores/user";
 import { ElMessage, ElNotification } from "element-plus";
-import { getAppIcon } from "@/utils/utils";
+import { getAppIcon } from "@/utils";
 
 const room = roomStore();
 const { token: userToken } = userStore();

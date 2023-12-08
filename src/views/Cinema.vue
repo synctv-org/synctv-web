@@ -17,11 +17,10 @@ import {
   liveInfoApi,
   currentMovieApi
 } from "@/services/apis/movie";
-import type { EditMovieInfo } from "@/types/Movie";
-import type { MovieInfo } from "@/types/Movie";
+import type { EditMovieInfo, MovieInfo } from "@/types/Movie";
 import { sync } from "@/plugins/sync";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
-import { strLengthLimit, blobToUin8Array } from "@/utils/utils";
+import { strLengthLimit, blobToUin8Array } from "@/utils";
 import MoviePush from "@/components/MoviePush.vue";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
 import customHeaders from "@/components/dialogs/customHeaders.vue";

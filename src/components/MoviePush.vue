@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { ElNotification } from "element-plus";
 import type { BaseMovieInfo, VendorInfo, BilibiliVendorInfo } from "@/types/Movie";
-import { strLengthLimit } from "@/utils/utils";
+import { strLengthLimit } from "@/utils";
 import { pushMovieApi } from "@/services/apis/movie";
 import { getVendorBackends as biliBiliBackends } from "@/services/apis/vendor";
 import customHeaders from "@/components/dialogs/customHeaders.vue";

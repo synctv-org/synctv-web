@@ -4,7 +4,7 @@ import Artplayer from "artplayer";
 import type { Option } from "artplayer/types/option";
 import { onMounted, onBeforeUnmount, ref, watch, computed } from "vue";
 import type { PropType, WatchStopHandle } from "vue";
-import { deepEqualObject } from "@/utils/utils";
+import { deepEqualObject } from "@/utils";
 const room = roomStore();
 
 const watchers: WatchStopHandle[] = [];

@@ -4,10 +4,9 @@ import { ElNotification, ElMessage } from "element-plus";
 import { OAuth2Platforms, loginWithOAuth2, LoginApi } from "@/services/apis/auth";
 import { userInfo } from "@/services/apis/user";
 import { useRouteQuery } from "@vueuse/router";
-import { strLengthLimit } from "@/utils/utils";
+import { strLengthLimit, getAppIcon } from "@/utils";
 import { userStore } from "@/stores/user";
 import router from "@/router/index";
-import { getAppIcon } from "@/utils/utils";
 
 const platforms: { [key: string]: { name: string; class: string } } = {
   github: {

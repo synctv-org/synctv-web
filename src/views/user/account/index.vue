@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import { oAuth2Platforms, bindOAuth2Api, unbindOAuth2Api } from "@/services/apis/user";
 import { userStore } from "@/stores/user";
-import { getAppIcon } from "@/utils/utils";
+import { getAppIcon } from "@/utils";
 import { useTimeAgo } from "@vueuse/core";
 
 const { token } = userStore();

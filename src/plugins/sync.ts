@@ -1,5 +1,5 @@
 import { roomStore } from "@/stores/room";
-import { debounces } from "@/utils/utils";
+import { debounces } from "@/utils";
 import { useDebounceFn } from "@vueuse/core";
 import { ElNotification } from "element-plus";
 import { ElementMessage, ElementMessageType } from "@/proto/message";

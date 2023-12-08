@@ -4,7 +4,7 @@ import { ElNotification } from "element-plus";
 import router from "@/router/index";
 import { useRoute } from "vue-router";
 import { joinRoomApi, checkRoomApi } from "@/services/apis/room";
-import { strLengthLimit } from "@/utils/utils";
+import { strLengthLimit } from "@/utils";
 import { useRouteParams, useRouteQuery } from "@vueuse/router";
 import { userStore } from "@/stores/user";
 const route = useRoute();
@@ -15,7 +15,7 @@ const { isLogin } = userStore();
 
 // 是否为弹窗加载
 const isModal = computed(() => {
-  return route.name !== "joinRoom"
+  return route.name !== "joinRoom";
 });
 
 const props = defineProps<{

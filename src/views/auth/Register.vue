@@ -5,7 +5,7 @@ import { roomStore } from "@/stores/room";
 import { userStore } from "@/stores/user";
 import router from "@/router/index";
 import { RegisterApi } from "@/services/apis/auth";
-import { strLengthLimit } from "@/utils/utils";
+import { strLengthLimit } from "@/utils";
 const room = roomStore();
 const { updateToken } = userStore();
 

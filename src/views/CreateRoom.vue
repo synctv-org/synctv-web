@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import router from "@/router/index";
 import { createRoomApi } from "@/services/apis/room";
-import { strLengthLimit } from "@/utils/utils";
+import { strLengthLimit } from "@/utils";
 import { userStore } from "@/stores/user";
 
 const { state: createRoomInfo, execute: reqCreateRoomApi } = createRoomApi();

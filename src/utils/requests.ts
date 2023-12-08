@@ -1,8 +1,7 @@
 import axios, { type AxiosRequestConfig } from "axios";
 import { useAsyncState } from "@vueuse/core";
-import { decodeJWT } from "@/utils/utils";
+import { decodeJWT } from "@/utils";
 import router from "@/router";
-import { useStorage } from "@vueuse/core";
 axios.interceptors.response.use(
   function (response) {
     return response;
