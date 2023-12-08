@@ -69,7 +69,14 @@ const changePwd = async () => {
     class="rounded-lg dark:bg-zinc-800 w-2/6 max-sm:w-full"
   >
     <template #default>
-      <el-form ref="formDataRef" :model="formData" :rules="rules" label-width="70px" status-icon>
+      <el-form
+        ref="formDataRef"
+        :model="formData"
+        :rules="rules"
+        @submit.prevent="changePwd"
+        label-width="80px"
+        status-icon
+      >
         <el-form-item label="新密码" prop="password">
           <el-input v-model="formData.password" type="password" show-password />
         </el-form-item>
