@@ -12,7 +12,7 @@ import { getAppIcon } from "@/utils/utils";
 const platforms: { [key: string]: { name: string; class: string } } = {
   github: {
     name: "Github",
-    class: "btn-black"
+    class: "btn-white"
   },
   microsoft: {
     name: "Microsoft",
@@ -190,7 +190,7 @@ onMounted(async () => {
       <h4 class="text-[18px] font-bold">使用第三方平台登录</h4>
       <button
         v-for="item in OAuth2Platforms_?.enabled"
-        :class="`inline-flex  items-center btn ${
+        :class="`inline-flex items-center btn ${
           platforms[item] ? platforms[item].class : 'btn-black'
         } m-[10px] hover:px-[10px]`"
         @click="useOAuth2(item)"
