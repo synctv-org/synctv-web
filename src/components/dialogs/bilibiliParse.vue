@@ -80,7 +80,7 @@ const selectItem = (item: BilibiliVideo) => {
 };
 
 const findItem = (item: BilibiliVideo) => {
-  return selectedItems.value.find((i) => (i.cid ? i.cid === item.cid : i.epid === item.epid));
+  return selectedItems.value.find((i) => i.cid === item.cid);
 };
 
 const removeItem = (item: BilibiliVideo) => {
