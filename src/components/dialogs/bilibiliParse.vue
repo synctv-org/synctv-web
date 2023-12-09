@@ -130,9 +130,9 @@ const submit = async () => {
               bilibili: {
                 bvid: item.bvid,
                 cid: item.cid,
-                epid: item.epid,
-                vendorName: Props.vendor
-              }
+                epid: item.epid
+              },
+              backend: Props.vendor
             }
           }
       )
