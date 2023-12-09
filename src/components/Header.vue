@@ -96,10 +96,12 @@ const toUserInfo = () => {
           link.name
         }}</RouterLink>
       </div>
-      <div class="hidden lg:flex lg:flex-1 lg:justify-end items-center">
+      <div class="hidden lg:flex lg:flex-1 lg:justify-end items-center gap-4">
         <DarkModeSwitcher />
-        <PersonIcon class="ml-4 mr-1 cursor-pointer" @click="toUserInfo" />
-        <span class="w-[100px] truncate overflow-hidden">{{ info?.username }}</span>
+        <div class="flex cursor-pointer items-center" @click="toUserInfo">
+          <PersonIcon />
+          <span class="max-w-[100px] ml-1 truncate overflow-hidden">{{ info?.username }}</span>
+        </div>
       </div>
     </nav>
 
