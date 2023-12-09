@@ -113,6 +113,11 @@ const allShared = () => {
   }
 };
 
+const cancel = () => {
+  selectedItems.value = [];
+  open.value = false;
+};
+
 const { execute: reqPushMoviesApi } = pushMoviesApi();
 const submit = async () => {
   try {
@@ -164,6 +169,7 @@ defineExpose({
     destroy-on-close
     :title="`解析结果 (共 ${biliVideos.length} 个视频)`"
     class="rounded-lg dark:bg-zinc-800 w-full xl:w-7/12 lg:w-3/7 md:w-8/12 sm:w-full"
+    @closed="cancel"
   >
     <h1 class="-mt-8 text-xl font-medium">{{ state?.title }}</h1>
     <p class="mt-2">UP 主 / 主演 ：{{ state?.actors }}</p>
@@ -254,7 +260,7 @@ defineExpose({
           class="flex-wrap"
         />
         <div>
-          <button class="btn mr-4" @click="open = false">取消</button>
+          <button class="btn mr-4" @click="cancel">取消</button>
           <button v-if="selectedItems.length > 0" class="btn btn-success" @click="submit()">
             添加到列表
           </button>
