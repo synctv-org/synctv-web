@@ -883,11 +883,12 @@ useResizeObserver(card, resetChatAreaHeight);
         </div>
 
         <div class="card-footer justify-between flex-wrap overflow-hidden">
-          <div v-if="selectMovies.length === 2">
-            <button class="btn mr-2" @click="swapMovie">交换位置</button>
+          <div v-if="selectMovies.length >= 2">
+            <button v-if="selectMovies.length === 2" class="btn mr-2" @click="swapMovie">
+              交换位置
+            </button>
 
             <el-popconfirm
-              v-if="selectMovies.length >= 2"
               width="220"
               confirm-button-text="是"
               cancel-button-text="否"
