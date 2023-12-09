@@ -19,6 +19,7 @@ import {
 } from "@/services/apis/movie";
 import type { EditMovieInfo, MovieInfo } from "@/types/Movie";
 import { sync } from "@/plugins/sync";
+import { subtitle } from "@/plugins/subtitle";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUin8Array } from "@/utils";
 import MoviePush from "@/components/MoviePush.vue";
@@ -163,7 +164,7 @@ const playerOption = computed(() => {
     type: room.currentMovie.base?.type || "",
     isLive: room.currentMovie.base!.live,
     headers: room.currentMovie.base!.headers,
-    plugins: [danmukuPlugin, syncPlugin?.plugin]
+    plugins: [subtitle, danmukuPlugin, syncPlugin?.plugin]
   };
   if (option.url.startsWith(window.location.origin)) {
     option.headers = {

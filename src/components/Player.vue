@@ -178,7 +178,7 @@ const playerOption = computed<Option>(() => {
     mutex: true, // 互斥，阻止多个播放器同时播放
     fullscreen: true, // 全屏按钮
     fullscreenWeb: true, // 网页全屏
-    subtitleOffset: false, // 显示字幕偏移功能
+    subtitleOffset: true, // 显示字幕偏移功能
     miniProgressBar: true, // 迷你进度条,播放器失去焦点后且正在播放时出现
     playsInline: true, // 在移动端是否使用 playsInline 模式
     lock: true, // 移动端显示锁定按钮
@@ -188,6 +188,12 @@ const playerOption = computed<Option>(() => {
     airplay: false, // 隔空播放
     ...Props.options,
     type: Props.options.type,
+    subtitle: {
+      type: room.currentMovie.base.subtitles
+        ? room.currentMovie.base.subtitles[Object.keys(room.currentMovie.base.subtitles!)[0]].type
+        : "srt",
+      encoding: "utf-8"
+    },
     customType: {
       flv: playFlv,
       m3u8: playM3u8,

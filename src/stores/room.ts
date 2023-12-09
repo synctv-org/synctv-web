@@ -28,7 +28,8 @@ export const roomStore = defineStore("roomStore", () => {
       rtmpSource: false,
       type: "",
       headers: {},
-      vendorInfo: undefined
+      subtitles: void 0,
+      vendorInfo: void 0
     },
     createdAt: Date.now(),
     creator: "SYSTEM"

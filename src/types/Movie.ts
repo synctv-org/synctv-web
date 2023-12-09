@@ -16,6 +16,12 @@ export interface BaseMovieInfo {
     [key: string]: string;
   };
   vendorInfo?: VendorInfo;
+  subtitles?: Record<
+    string,
+    {
+      [prop: string]: string;
+    }
+  >;
 }
 
 export interface VendorInfo {
