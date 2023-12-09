@@ -112,9 +112,11 @@ export const getBiliBiliAccountInfo = useDefineApi<
   },
   {
     isLogin: boolean;
-    username: string;
-    face: string;
-    isVip: boolean;
+    info: {
+      username: string;
+      face: string;
+      isVip: boolean;
+    };
   }
 >({
   url: "/api/vendor/bilibili/me",

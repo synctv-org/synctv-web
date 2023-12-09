@@ -372,10 +372,10 @@ onMounted(async () => {
     class="rounded-lg dark:bg-zinc-800 w-1/5 max-sm:w-full"
   >
     <div class="text-center">
-      <img :src="accountInfo?.face" class="rounded-full mx-auto w-1/2 mb-2" />
-      <p class="text-lg mb-1">{{ accountInfo?.username }}</p>
+      <img :src="accountInfo?.info.face" class="rounded-full mx-auto w-1/2 mb-2" />
+      <p class="text-lg mb-1">{{ accountInfo?.info.username }}</p>
       <p
-        v-if="accountInfo?.isVip"
+        v-if="accountInfo?.info.isVip"
         class="bg-pink-500 rounded-lg text-white text-sm mx-auto w-fit px-2 shadow-sm shadow-pink-400 mb-2"
       >
         大会员
