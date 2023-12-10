@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
-import type { BaseMovieInfo, BilibiliVendorInfo, VendorInfo } from "@/types/Movie";
+import type { BaseMovieInfo } from "@/types/Movie";
 import { parseBiliBiliVideo } from "@/services/apis/vendor";
 import { pushMoviesApi } from "@/services/apis/movie";
 import { userStore } from "@/stores/user";

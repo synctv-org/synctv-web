@@ -5,8 +5,8 @@ import { useRouteParams } from "@vueuse/router";
 import { roomStore } from "@/stores/room";
 import type { EditMovieInfo, MovieInfo } from "@/types/Movie";
 import { useMovieApi } from "@/hooks/useMovie";
-import customHeaders from "@/components/dialogs/customHeaders.vue";
-import customSubtitles from "@/components/dialogs/customSubtitles.vue";
+import customHeaders from "@/components/cinema/dialogs/customHeaders.vue";
+import customSubtitles from "@/components/cinema/dialogs/customSubtitles.vue";
 
 const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
 const customSubtitlesDialog = ref<InstanceType<typeof customSubtitles>>();

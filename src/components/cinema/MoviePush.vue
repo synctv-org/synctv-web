@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { ElNotification } from "element-plus";
-import type { BaseMovieInfo, VendorInfo, BilibiliVendorInfo } from "@/types/Movie";
+import type { BaseMovieInfo } from "@/types/Movie";
 import { strLengthLimit } from "@/utils";
 import { pushMovieApi } from "@/services/apis/movie";
 import { getVendorBackends as biliBiliBackends } from "@/services/apis/vendor";
-import customHeaders from "@/components/dialogs/customHeaders.vue";
-import customSubtitles from "@/components/dialogs/customSubtitles.vue";
-import bilibiliParse from "@/components/dialogs/bilibiliParse.vue";
+import customHeaders from "@/components/cinema/dialogs/customHeaders.vue";
+import customSubtitles from "@/components/cinema/dialogs/customSubtitles.vue";
+import bilibiliParse from "@/components/cinema/dialogs/bilibiliParse.vue";
 
 const Emits = defineEmits(["getMovies"]);
 

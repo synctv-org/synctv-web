@@ -7,10 +7,10 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
-    BilibiliParse: typeof import('./src/components/dialogs/bilibiliParse.vue')['default']
+    BilibiliParse: typeof import('./src/components/cinema/dialogs/bilibiliParse.vue')['default']
     CopyButton: typeof import('./src/components/CopyButton.vue')['default']
-    CustomHeaders: typeof import('./src/components/dialogs/customHeaders.vue')['default']
-    CustomSubtitles: typeof import('./src/components/dialogs/customSubtitles.vue')['default']
+    CustomHeaders: typeof import('./src/components/cinema/dialogs/customHeaders.vue')['default']
+    CustomSubtitles: typeof import('./src/components/cinema/dialogs/customSubtitles.vue')['default']
     DarkModeSwitcher: typeof import('./src/components/DarkModeSwitcher.vue')['default']
     Edit: typeof import('./src/components/icons/Edit.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
