@@ -8,14 +8,13 @@ const props = defineProps<{
 
 const rArray = reactive<{ [propName: string]: string }[]>([]);
 
-Object.keys(props.customHeader).map((key: any) => {
-  rArray.push({ [key]: props.customHeader[key] });
-});
-
 const emit = defineEmits(["updateHeaders"]);
 
 const open = ref(false);
 const openDialog = () => {
+  Object.keys(props.customHeader).map((key: any) => {
+    rArray.push({ [key]: props.customHeader[key] });
+  });
   open.value = true;
 };
 
@@ -24,14 +23,16 @@ const removeItem = (key: any) => {
 };
 
 const addItem = () => {
-  if (rArray.length === 0 ||
-      (Object.keys(rArray[rArray.length - 1])[0].trim() !== "" &&
-          Object.values(rArray[rArray.length - 1])[0].trim() !== "")) {
+  if (
+    rArray.length === 0 ||
+    (Object.keys(rArray[rArray.length - 1])[0].trim() !== "" &&
+      Object.values(rArray[rArray.length - 1])[0].trim() !== "")
+  ) {
     rArray.push({ "": "" });
   } else {
     ElMessage({
-      type: 'error',
-      message: 'header不完整或为空'
+      type: "error",
+      message: "header不完整或为空"
     });
   }
 };
@@ -51,8 +52,8 @@ const submit = async () => {
     const value = item[key];
     if (key.trim() === "" || value.trim() === "") {
       ElMessage({
-        type: 'error',
-        message: 'header不完整或为空'
+        type: "error",
+        message: "header不完整或为空"
       });
       return;
     }
