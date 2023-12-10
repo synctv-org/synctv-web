@@ -79,6 +79,10 @@ const submit = async () => {
 
 const open = ref(false);
 const openDialog = () => {
+  subtitleList.value = Object.entries(props.customSubtitles).map(([name, subtitle]) => ({
+    name,
+    ...subtitle
+  }));
   open.value = true;
 };
 
@@ -89,10 +93,6 @@ defineExpose({
 onMounted(() => {});
 
 onMounted(() => {
-  subtitleList.value = Object.entries(props.customSubtitles).map(([name, subtitle]) => ({
-    name,
-    ...subtitle
-  }));
   if (subtitleList.value.length === 0) addItem();
 });
 </script>
