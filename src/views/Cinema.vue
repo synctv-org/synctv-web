@@ -19,13 +19,13 @@ import {
 } from "@/services/apis/movie";
 import type { EditMovieInfo, MovieInfo } from "@/types/Movie";
 import { sync } from "@/plugins/sync";
-import { subtitle } from "@/plugins/subtitle";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUin8Array } from "@/utils";
 import MoviePush from "@/components/MoviePush.vue";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
 import customHeaders from "@/components/dialogs/customHeaders.vue";
 import { useRouteParams } from "@vueuse/router";
+import type { options } from "@/components/Player.vue";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
@@ -158,13 +158,14 @@ const playerUrl = computed(() => {
   }
 });
 
-const playerOption = computed(() => {
-  let option = {
+const playerOption = computed<options>(() => {
+  let option: options = {
     url: playerUrl.value,
     type: room.currentMovie.base?.type || "",
     isLive: room.currentMovie.base!.live,
     headers: room.currentMovie.base!.headers,
-    plugins: [subtitle, danmukuPlugin, syncPlugin?.plugin]
+    plugins: [danmukuPlugin, syncPlugin?.plugin],
+    subtitles: room.currentMovie.base?.subtitles
   };
   if (option.url.startsWith(window.location.origin)) {
     option.headers = {
@@ -377,13 +378,13 @@ const handleElementMessage = (msg: ElementMessage) => {
     case ElementMessageType.CHAT_MESSAGE: {
       msgList.value.push(`${msg.sender}：${msg.message}`);
       // jsonData.message.split("：")[0] !== "PLAYER" &&
-      room.danmuku = {
+      player?.plugins.artplayerPluginDanmuku.emit({
         text: msg.message, // 弹幕文本
         //time: Date.now(), // 发送时间，单位秒
         color: "#fff", // 弹幕局部颜色
         border: false // 是否显示描边
         //mode: 0, // 弹幕模式: 0表示滚动, 1静止
-      };
+      });
 
       // 自动滚动到最底部
       if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;

@@ -48,8 +48,6 @@ export const roomStore = defineStore("roomStore", () => {
   // 在线人数
   const peopleNum = ref(1);
 
-  const danmuku = ref({});
-
   return {
     isDarkMode,
     movies,
@@ -57,7 +55,6 @@ export const roomStore = defineStore("roomStore", () => {
     currentMovie,
     currentMovieStatus,
     play,
-    danmuku,
     peopleNum,
     login
   };

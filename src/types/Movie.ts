@@ -19,7 +19,8 @@ export interface BaseMovieInfo {
   subtitles?: Record<
     string,
     {
-      [prop: string]: string;
+      url: string;
+      type: string;
     }
   >;
 }
