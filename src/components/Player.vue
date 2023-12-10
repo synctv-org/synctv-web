@@ -198,8 +198,6 @@ const newPlayerOption = (html: HTMLDivElement): Option => {
   return opts;
 };
 
-console.log(Props.options);
-
 const father = ref<HTMLDivElement>();
 
 const mountPlayer = () => {
@@ -210,7 +208,6 @@ const mountPlayer = () => {
   }
   father.value!.appendChild(newDiv);
   art = new Artplayer(newPlayerOption(newDiv));
-  console.log(art);
   Emits("get-instance", art);
 };
 

@@ -32,15 +32,16 @@ const newSubtitleControl = (
     selector: Object.keys(subtitles).map((key) => {
       return {
         html: key,
-        url: subtitles[key].url
+        url: subtitles[key].url,
+        type: subtitles[key].type
       };
     }),
     onSelect(this: Artplayer, selector: any) {
-      console.log("切换字幕：", selector.url);
+      console.log("切换字幕：", selector);
       if (selector.html === "关闭") {
         this.subtitle.show = false;
       } else {
-        this.subtitle.switch(selector.url);
+        this.subtitle.switch(selector.url, { type: selector.type });
         this.subtitle.show = true;
       }
       return newSubtitleHtml("字幕").outerHTML;
