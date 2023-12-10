@@ -24,7 +24,7 @@ export const movieListApi = useDefineApi<
   method: "GET"
 });
 
-// 获取影片列表
+// 获取影片列表（无正在播放）
 export const moviesApi = useDefineApi<
   {
     params: {

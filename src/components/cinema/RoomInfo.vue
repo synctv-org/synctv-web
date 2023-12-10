@@ -12,11 +12,9 @@ const props = defineProps<{
 }>();
 
 // 获取房间信息
+const room = roomStore();
 const roomID = useRouteParams<string>("roomId");
 const roomToken = useLocalStorage<string>(`room-${roomID.value}-token`, "");
-
-// 在线人数
-const room = roomStore();
 
 // 显示房间密码
 let isShowPassword = ref(false);
