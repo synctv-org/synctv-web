@@ -21,6 +21,10 @@ const newSubtitleControl = (
     }
   >
 ): ComponentOption => {
+  subtitles["关闭"] = {
+    url: "",
+    type: ""
+  };
   return {
     name: "subtitle",
     html: newSubtitleHtml("字幕"),
@@ -31,10 +35,15 @@ const newSubtitleControl = (
         url: subtitles[key].url
       };
     }),
-    onSelect(this: Artplayer, selector: any, element: HTMLElement, event: Event): void {
+    onSelect(this: Artplayer, selector: any) {
       console.log("切换字幕：", selector.url);
-      this.subtitle.switch(selector.url);
-      console.log(element);
+      if (selector.html === "关闭") {
+        this.subtitle.show = false;
+      } else {
+        this.subtitle.switch(selector.url);
+        this.subtitle.show = true;
+      }
+      return newSubtitleHtml("字幕").outerHTML;
     }
   };
 };
