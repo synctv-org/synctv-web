@@ -21,11 +21,12 @@ import type { EditMovieInfo, MovieInfo } from "@/types/Movie";
 import { sync } from "@/plugins/sync";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUin8Array } from "@/utils";
-import MoviePush from "@/components/MoviePush.vue";
+import MoviePush from "@/components/cinema/MoviePush.vue";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
 import customHeaders from "@/components/dialogs/customHeaders.vue";
 import { useRouteParams } from "@vueuse/router";
 import type { options } from "@/components/Player.vue";
+import RoomInfo from "@/components/cinema/RoomInfo.vue";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
@@ -176,71 +177,6 @@ const playerOption = computed<options>(() => {
 
   return option;
 });
-
-// 更新房间密码
-const password = ref("");
-const { state: newToken, execute: reqUpdateRoomPasswordApi } = updateRoomPasswordApi();
-const changePassword = async () => {
-  try {
-    strLengthLimit(password, 32);
-    await reqUpdateRoomPasswordApi({
-      data: {
-        password: password.value
-      },
-      headers: { Authorization: roomToken.value }
-    });
-
-    if (newToken.value) {
-      ElNotification({
-        title: "更新成功",
-        type: "success"
-      });
-      roomToken.value = newToken.value.token;
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    }
-  } catch (err: any) {
-    console.error(err);
-    ElNotification({
-      title: "更新失败",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
-};
-
-// 显示房间密码
-let isShowPassword = ref(false);
-
-// 删除房间
-const { execute: reqDelRoomApi } = delRoomApi();
-const deleteRoom = async () => {
-  try {
-    await reqDelRoomApi({
-      data: {
-        roomId: roomID.value
-      },
-      headers: { Authorization: roomToken.value }
-    });
-
-    ElNotification({
-      title: "删除成功",
-      type: "success"
-    });
-    roomToken.value = "";
-    setTimeout(() => {
-      window.location.href = window.location.origin;
-    }, 500);
-  } catch (err: any) {
-    console.error(err);
-    ElNotification({
-      title: "删除失败",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
-};
 
 // 获取影片列表
 const currentPage = ref(1);
@@ -751,76 +687,8 @@ useResizeObserver(card, resetChatAreaHeight);
 
   <el-row :gutter="20">
     <!-- 房间信息 -->
-
     <el-col :lg="6" :md="8" :sm="9" :xs="24" class="mb-6 max-sm:mb-2">
-      <div class="card">
-        <div class="card-title">房间信息</div>
-
-        <div class="card-body">
-          <table class="table-auto i-table">
-            <tbody>
-              <tr>
-                <td width="100">连接状态</td>
-                <td>{{ status }}</td>
-              </tr>
-              <tr>
-                <td>房间ID</td>
-                <td>
-                  <div class="overflow-hidden text-ellipsis max-w-[150px]">
-                    <span class="truncate">{{ roomID }}</span>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>房间密码</td>
-                <td>
-                  <input
-                    :type="isShowPassword ? 'text' : 'password'"
-                    v-model="password"
-                    class="w-full m-0 pl-1 inline-block bg-neutral-200 border border-neutral-200 rounded-md focus:outline-none hover:bg-neutral-100 transition-all text-sm dark:bg-neutral-700 dark:border-neutral-800"
-                  />
-                  <button
-                    class="inline-block absolute -translate-x-5 opacity-50 pr-0.5"
-                    @click="isShowPassword = !isShowPassword"
-                  >
-                    {{ isShowPassword ? "●" : "◯" }}
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>在线人数</td>
-                <td>{{ room.peopleNum }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="card-footer flex-wrap justify-between">
-          <el-popconfirm
-            width="220"
-            confirm-button-text="是"
-            cancel-button-text="否"
-            title="你确定要删除这个房间吗？!"
-            @confirm="deleteRoom"
-          >
-            <template #reference>
-              <button class="btn btn-error">删除房间</button>
-            </template>
-          </el-popconfirm>
-
-          <el-popconfirm
-            width="220"
-            confirm-button-text="是"
-            cancel-button-text="否"
-            title="更新后，所有人将会被踢下线！"
-            @confirm="changePassword"
-          >
-            <template #reference>
-              <button class="btn btn-success">更新房间密码</button>
-            </template>
-          </el-popconfirm>
-        </div>
-      </div>
+      <RoomInfo :status="status" />
     </el-col>
 
     <!-- 影片列表 -->
