@@ -680,6 +680,13 @@ const chatArea = ref();
 
 function getPlayerInstance(art: Artplayer) {
   player = art;
+  player.once("ready", () => {
+    syncPlugin.setAndNoPublishSeek(room.currentMovieStatus.seek);
+    syncPlugin.setAndNoPublishRate(room.currentMovieStatus.rate);
+    room.currentMovieStatus.playing
+      ? syncPlugin.setAndNoPublishPlay()
+      : syncPlugin.setAndNoPublishPause();
+  });
 }
 
 // 设置聊天框高度

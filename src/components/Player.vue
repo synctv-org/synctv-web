@@ -202,12 +202,6 @@ console.log(Props.options);
 
 const father = ref<HTMLDivElement>();
 
-const euqalRecord = <T extends Record<string, unknown>>(a: T, b: T) => {
-  return Object.keys(a).every((key) => {
-    return a[key] === b[key];
-  });
-};
-
 const mountPlayer = () => {
   const newDiv = document.createElement("div");
   newDiv.setAttribute("class", "artplayer-app");
@@ -222,20 +216,11 @@ const mountPlayer = () => {
 
 onMounted(() => {
   mountPlayer();
-  const needDestroy = (oldOption: options, newOption: options) => {
-    return (
-      oldOption.isLive !== newOption.isLive ||
-      oldOption.type !== newOption.type ||
-      oldOption.url !== newOption.url ||
-      !euqalRecord(oldOption.headers, newOption.headers)
-    );
-  };
 
   watchers.push(
     watch(
       () => Props.options,
-      (old, current) => {
-        if (!needDestroy(old, current)) return;
+      () => {
         console.log("destroy");
         if (art) art.destroy();
         mountPlayer();

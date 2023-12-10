@@ -1,9 +1,7 @@
-import { roomStore } from "@/stores/room";
 import { debounces } from "@/utils";
 import { useDebounceFn } from "@vueuse/core";
 import { ElNotification } from "element-plus";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
-const room = roomStore();
 
 interface callback {
   publishStatus: (msg: ElementMessage) => boolean;
@@ -146,15 +144,6 @@ export const sync = (cbk: callback): resould => {
       const intervals: number[] = [];
 
       art.once("ready", () => {
-        console.log(room.currentMovieStatus.seek);
-        setAndNoPublishSeek(room.currentMovieStatus.seek);
-        console.log("seek同步成功:", art.currentTime);
-
-        setAndNoPublishRate(room.currentMovieStatus.rate);
-        console.log("rate同步成功:", art.playbackRate);
-        room.currentMovieStatus.playing ? setAndNoPublishPlay() : setAndNoPublishPause();
-        cbk["sendDanmuku"]("PLAYER：视频已就绪");
-
         intervals.push(setInterval(checkSeek, 5000));
       });
 
