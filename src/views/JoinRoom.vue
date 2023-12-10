@@ -1,17 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { ElNotification } from "element-plus";
-import router from "@/router/index";
 import { useRoute } from "vue-router";
-import { joinRoomApi, checkRoomApi } from "@/services/apis/room";
-import { strLengthLimit } from "@/utils";
 import { useRouteParams, useRouteQuery } from "@vueuse/router";
 import { userStore } from "@/stores/user";
+import { useRoomApi } from "@/hooks/userRoom";
 const route = useRoute();
 const roomID = useRouteParams("roomId");
 const pwd = useRouteQuery("pwd");
-
-const { isLogin } = userStore();
 
 // 是否为弹窗加载
 const isModal = computed(() => {
@@ -25,6 +20,8 @@ const props = defineProps<{
   };
 }>();
 
+const { token } = userStore();
+
 const formData = ref<{
   roomId: string;
   password: string;
@@ -32,84 +29,12 @@ const formData = ref<{
   roomId: (roomID.value as string) ?? "",
   password: pwd.value as string
 });
-
 if (props.item) formData.value = props.item;
 
-const { token } = userStore();
-
-const { state: joinRoomInfo, execute: reqJoinRoomApi } = joinRoomApi();
-const JoinRoom = async () => {
-  if (!formData.value?.roomId) {
-    ElNotification({
-      title: "错误",
-      message: "请填写表单完整",
-      type: "error"
-    });
-    return;
-  }
-  for (const key in formData.value) {
-    strLengthLimit(key, 32);
-  }
-  try {
-    await reqJoinRoomApi({
-      data: formData.value,
-      headers: {
-        Authorization: token.value
-      }
-    });
-    if (!joinRoomInfo.value)
-      return ElNotification({
-        title: "错误",
-        message: "服务器并未返回token",
-        type: "error"
-      });
-    localStorage.setItem(`room-${joinRoomInfo.value.roomId}-token`, joinRoomInfo.value?.token);
-    ElNotification({
-      title: "加入成功",
-      type: "success"
-    });
-
-    router.replace(`/cinema/${joinRoomInfo.value.roomId}`);
-  } catch (err: any) {
-    console.error(err);
-    ElNotification({
-      title: "错误",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
-};
-
-const { state: thisRoomInfo, execute: reqCheckRoomApi } = checkRoomApi();
-const checkRoom = async () => {
-  try {
-    await reqCheckRoomApi({
-      params: {
-        roomId: formData.value.roomId
-      }
-    });
-    if (thisRoomInfo.value) {
-      if (localStorage.uname === thisRoomInfo.value.creator) {
-        return await JoinRoom();
-      }
-      if (thisRoomInfo.value.needPassword) {
-        if (pwd.value) return await JoinRoom();
-      } else {
-        return await JoinRoom();
-      }
-    }
-  } catch (err: any) {
-    console.error(err);
-    ElNotification({
-      title: "错误",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
-};
+const { checkRoom, joinRoom } = useRoomApi(formData.value.roomId, token.value);
 
 onMounted(() => {
-  if (formData.value.roomId) checkRoom();
+  if (formData.value.roomId) checkRoom(pwd.value as string);
 });
 </script>
 
@@ -120,7 +45,7 @@ onMounted(() => {
       <br />
       <input class="l-input" type="password" v-model="formData.password" placeholder="房间密码" />
       <br />
-      <button class="btn m-[10px]" @click="JoinRoom()">加入</button>
+      <button class="btn m-[10px]" @click="joinRoom(formData)">加入</button>
       <div class="text-sm">
         <b>注意：</b>所有输入框最大只可输入32个字符
         <br />
