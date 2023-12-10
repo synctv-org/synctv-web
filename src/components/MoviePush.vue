@@ -6,11 +6,13 @@ import { strLengthLimit } from "@/utils";
 import { pushMovieApi } from "@/services/apis/movie";
 import { getVendorBackends as biliBiliBackends } from "@/services/apis/vendor";
 import customHeaders from "@/components/dialogs/customHeaders.vue";
+import customSubtitles from "@/components/dialogs/customSubtitles.vue";
 import bilibiliParse from "@/components/dialogs/bilibiliParse.vue";
 
 const Emits = defineEmits(["getMovies"]);
 
 const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
+const customSubtitlesDialog = ref<InstanceType<typeof customSubtitles>>();
 const bilibiliParseDialog = ref<InstanceType<typeof bilibiliParse>>();
 
 const Props = defineProps<{
@@ -218,6 +220,18 @@ const updateHeaders = (header: { [key: string]: string }) => {
   newMovieInfo.value.headers = header;
 };
 
+const updateSubtitles = (
+  subtitles: Record<
+    string,
+    {
+      url: string;
+      type: string;
+    }
+  >
+) => {
+  newMovieInfo.value.subtitles = subtitles;
+};
+
 const biliParse = () => {
   bilibiliParseDialog.value?.openDialog();
 };
@@ -375,6 +389,15 @@ const getBiliBiliVendors = async () => {
               <span class="text-sm min-w-fit"> 自定义 header </span>
             </div>
           </Transition>
+          <Transition name="fade">
+            <div
+              class="more-option-list cursor-pointer"
+              v-if="!newMovieInfo.live"
+              @click="customSubtitlesDialog?.openDialog()"
+            >
+              <span class="text-sm min-w-fit"> 添加字幕</span>
+            </div>
+          </Transition>
         </el-collapse-item>
       </el-collapse>
     </div>
@@ -403,8 +426,15 @@ const getBiliBiliVendors = async () => {
   <!-- 自定义Header对话框 -->
   <customHeaders
     ref="customHeadersDialog"
-    :customHeader="newMovieInfo.headers"
+    :custom-header="newMovieInfo.headers"
     @updateHeaders="updateHeaders"
+  />
+
+  <!-- 自定义字幕列表对话框 -->
+  <customSubtitles
+    ref="customSubtitlesDialog"
+    :custom-subtitles="newMovieInfo.subtitles ?? {}"
+    @updateSubtitles="updateSubtitles"
   />
 
   <!-- B站视频解析对话框 -->
