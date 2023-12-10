@@ -54,7 +54,7 @@ const submit = async () => {
         subtitle: SubtitleList
       ) => {
         acc[subtitle.name] = {
-          url: subtitle.url,
+          url: subtitle.url.replace(/</g, "&lt;").replace(/>/g, "&gt;"),
           type: subtitle.type
         };
         return acc;

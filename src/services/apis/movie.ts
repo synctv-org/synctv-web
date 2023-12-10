@@ -42,7 +42,7 @@ export const moviesApi = useDefineApi<
   method: "GET"
 });
 
-// 获取影片列表
+// 获取正在播放的影片
 export const currentMovieApi = useDefineApi<
   {
     headers: { Authorization: string };
@@ -175,9 +175,8 @@ export const liveInfoApi = useDefineApi<
     headers: { Authorization: string };
   },
   {
-    host: string;
-    port: number;
     app: string;
+    host: string;
     token: string;
   }
 >({

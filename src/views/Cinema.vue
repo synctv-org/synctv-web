@@ -2,37 +2,33 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch, defineAsyncComponent } from "vue";
 import type { WatchStopHandle } from "vue";
 import { useWebSocket, useResizeObserver, useLocalStorage } from "@vueuse/core";
+import { useRouteParams } from "@vueuse/router";
 import { roomStore } from "@/stores/room";
 import { ElNotification, ElMessage } from "element-plus";
 import router from "@/router";
-import { movieListApi, moviesApi, currentMovieApi } from "@/services/apis/movie";
+import { useMovieApi } from "@/hooks/useMovie";
 import { sync } from "@/plugins/sync";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUin8Array } from "@/utils";
-import MoviePush from "@/components/cinema/MoviePush.vue";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
-import { useRouteParams } from "@vueuse/router";
 import type { options } from "@/components/Player.vue";
 import RoomInfo from "@/components/cinema/RoomInfo.vue";
 import MovieList from "@/components/cinema/MovieList.vue";
+import MoviePush from "@/components/cinema/MoviePush.vue";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
+
+// 获取房间信息
+const room = roomStore();
+const roomID = useRouteParams<string>("roomId");
+const roomToken = useLocalStorage<string>(`room-${roomID.value}-token`, "");
 
 const watchers: WatchStopHandle[] = [];
 onBeforeUnmount(() => {
   watchers.forEach((w) => w());
 });
 
-const room = roomStore();
-
-// 获取房间信息
-const roomID = useRouteParams<string>("roomId");
-const roomToken = useLocalStorage<string>(`room-${roomID.value}-token`, "");
-
-let msgList = ref<string[]>([]);
-
-// 发送消息（临时
-let sendText_ = ref("");
+const { getMovieList, getCurrentMovie, currentMovie } = useMovieApi(roomToken.value);
 
 let player: Artplayer;
 
@@ -60,15 +56,9 @@ const sendElement = (msg: ElementMessage) => {
   return send(ElementMessage.encode(msg).finish());
 };
 
-const sendMsg = (msg: string) => {
-  msgList.value.push(msg);
-};
-
-let syncPlugin = sync({
-  publishStatus: sendElement,
-  sendDanmuku: (msg) => sendMsg(msg)
-});
-
+// 消息列表
+const msgList = ref<string[]>([]);
+const sendText_ = ref("");
 const sendText = () => {
   if (sendText_.value === "")
     return ElMessage({
@@ -84,8 +74,16 @@ const sendText = () => {
   );
   sendText_.value = "";
   if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
-  // console.log("sended:" + msg);
 };
+
+const sendMsg = (msg: string) => {
+  msgList.value.push(msg);
+};
+
+const syncPlugin = sync({
+  publishStatus: sendElement,
+  sendDanmuku: (msg) => sendMsg(msg)
+});
 
 const danmukuPlugin = artplayerPluginDanmuku({
   // 弹幕数组
@@ -132,112 +130,6 @@ const playerOption = computed<options>(() => {
 
   return option;
 });
-
-// 获取影片列表
-const currentPage = ref(1);
-const pageSize = ref(10);
-const { state: movieList, isLoading: movieListLoading, execute: reqMovieListApi } = movieListApi();
-/**
- * @argument updateStatus 是否更新当前正在播放的影片（包括状态）
- */
-const getMovieList = async () => {
-  try {
-    await reqMovieListApi({
-      params: {
-        page: currentPage.value,
-        max: pageSize.value
-      },
-      headers: { Authorization: roomToken.value }
-    });
-
-    if (movieList.value) {
-      console.log(movieList.value);
-      room.movies = movieList.value.movies;
-      room.totalMovies = movieList.value.total;
-      room.currentMovieStatus = movieList.value.current.status;
-      room.currentMovie = movieList.value.current.movie;
-    }
-  } catch (err: any) {
-    console.log(err);
-    if (err.response.status === 401) {
-      ElNotification({
-        title: "身份验证失败，请重新进入房间",
-        message: err.message,
-        type: "error"
-      });
-      roomToken.value = "";
-      setTimeout(() => {
-        window.location.href = window.location.origin;
-      }, 500);
-    }
-    ElNotification({
-      title: "获取影片列表失败",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
-};
-
-const { state: movies, execute: reqMoviesApi } = moviesApi();
-const getMovies = async () => {
-  try {
-    await reqMoviesApi({
-      params: {
-        page: currentPage.value,
-        max: pageSize.value
-      },
-      headers: { Authorization: roomToken.value }
-    });
-
-    if (movies.value) {
-      console.log(movies.value);
-      room.movies = movies.value.movies;
-      room.totalMovies = movies.value.total;
-    }
-  } catch (err: any) {
-    console.log(err);
-    ElNotification({
-      title: "获取影片列表失败",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
-};
-
-const { state: currentMovie, execute: reqCurrentMovieApi } = currentMovieApi();
-const getCurrentMovie = async () => {
-  try {
-    await reqCurrentMovieApi({
-      headers: { Authorization: roomToken.value }
-    });
-
-    if (currentMovie.value) {
-      console.log(currentMovie.value);
-      room.currentMovie = currentMovie.value.movie;
-      room.currentMovieStatus = currentMovie.value.status;
-      syncPlugin.setAndNoPublishSeek(currentMovie.value.status.seek);
-      syncPlugin.setAndNoPublishRate(currentMovie.value.status.rate);
-    }
-  } catch (err: any) {
-    console.log(err);
-    if (err.response.status === 401) {
-      ElNotification({
-        title: "身份验证失败，请重新进入房间",
-        message: err.message,
-        type: "error"
-      });
-      roomToken.value = "";
-      setTimeout(() => {
-        window.location.href = window.location.origin;
-      }, 500);
-    }
-    ElNotification({
-      title: "获取影片列表失败",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
-};
 
 const handleElementMessage = (msg: ElementMessage) => {
   console.log(`-----Ws Message Start-----`);
@@ -333,12 +225,16 @@ const handleElementMessage = (msg: ElementMessage) => {
     // 设置正在播放的影片
     case ElementMessageType.CHANGE_CURRENT: {
       getCurrentMovie();
+      if (currentMovie.value) {
+        syncPlugin.setAndNoPublishSeek(currentMovie.value.status.seek);
+        syncPlugin.setAndNoPublishRate(currentMovie.value.status.rate);
+      }
       break;
     }
 
     // 播放列表更新
     case ElementMessageType.CHANGE_MOVIES: {
-      getMovies();
+      getMovieList(false);
       break;
     }
 
@@ -361,7 +257,7 @@ const handleElementMessage = (msg: ElementMessage) => {
 const noPlayArea = ref();
 const playArea = ref();
 
-// 消息列表
+// 消息区域
 const chatArea = ref();
 
 function getPlayerInstance(art: Artplayer) {
@@ -414,7 +310,7 @@ onMounted(() => {
     )
   );
 
-  getMovieList();
+  getMovieList(true);
 });
 </script>
 
@@ -481,16 +377,12 @@ onMounted(() => {
 
     <!-- 添加影片 -->
     <el-col :lg="6" :md="14" :xs="24" class="mb-6 max-sm:mb-2">
-      <MoviePush @getMovies="getMovies()" :token="roomToken" />
+      <MoviePush @getMovies="getMovieList(false)" :token="roomToken" />
     </el-col>
   </el-row>
 </template>
 
 <style lang="less" scoped>
-.art-player {
-  // margin-bottom: 10px;
-}
-
 .chatArea {
   overflow-y: scroll;
   height: 67vh;
