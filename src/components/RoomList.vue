@@ -13,7 +13,7 @@ import { getObjValue } from "@/utils";
 const router = useRouter();
 const props = defineProps<{
   isMyRoom: boolean;
-  isHot: boolean;
+  isHot?: boolean;
   userId?: string;
 }>();
 
