@@ -58,3 +58,7 @@ export const getAppIcon = (appName: string): string => {
   const href = new URL(`/src/assets/appIcons/${appName}.svg`, import.meta.url).href;
   return href.endsWith("undefined") ? getAppIcon("default") : href;
 };
+
+export const getObjValue = <T extends object, K extends keyof T>(obj: T, key: K) => {
+  return obj[key];
+};

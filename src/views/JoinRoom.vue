@@ -2,8 +2,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useRouteParams, useRouteQuery } from "@vueuse/router";
-import { userStore } from "@/stores/user";
-import { useRoomApi } from "@/hooks/userRoom";
+import { useRoomApi } from "@/hooks/useRoom";
 const route = useRoute();
 const roomID = useRouteParams("roomId");
 const pwd = useRouteQuery("pwd");
@@ -20,8 +19,6 @@ const props = defineProps<{
   };
 }>();
 
-const { token } = userStore();
-
 const formData = ref<{
   roomId: string;
   password: string;
@@ -31,7 +28,7 @@ const formData = ref<{
 });
 if (props.item) formData.value = props.item;
 
-const { checkRoom, joinRoom } = useRoomApi(formData.value.roomId, token.value);
+const { checkRoom, joinRoom } = useRoomApi(formData.value.roomId);
 
 onMounted(() => {
   if (formData.value.roomId) checkRoom(pwd.value as string);

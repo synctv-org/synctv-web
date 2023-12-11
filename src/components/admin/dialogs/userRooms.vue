@@ -1,23 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { ElNotification } from "element-plus";
-import { userRoomListApi } from "@/services/apis/admin";
-import { roomStatus, type RoomList } from "@/types/Room";
-import JoinRoom from "@/views/JoinRoom.vue";
-import { userStore } from "@/stores/user";
+import { useRoomApi } from "@/hooks/useRoom";
+import { roomStatus } from "@/types/Room";
 import { Search } from "@element-plus/icons-vue";
 import { useTimeAgo } from "@vueuse/core";
-
-const { token, isLogin } = userStore();
-const __roomList = ref<RoomList[]>([]);
-const JoinRoomDialog = ref(false);
-const formData = ref<{
-  roomId: string;
-  password: string;
-}>({
-  roomId: "",
-  password: ""
-});
+import { getObjValue } from "@/utils";
 
 const open = ref(false);
 const userId = ref("");
@@ -27,78 +14,41 @@ const openDialog = async (id: string) => {
   await getRoomList();
 };
 
-defineExpose({ openDialog });
+const {
+  totalItems,
+  currentPage,
+  pageSize,
+  order,
+  sort,
+  keyword,
+  search,
+  status,
 
-const openJoinRoomDialog = (item: RoomList) => {
-  if (!isLogin.value)
-    return ElNotification({
-      title: "错误",
-      message: "请先登录",
-      type: "error"
-    });
-  formData.value.roomId = item.roomId;
-  JoinRoomDialog.value = true;
-};
+  joinRoom,
 
-const { state: roomList, execute: reqUserRoomListApi, isLoading } = userRoomListApi();
-const totalItems = ref(0);
-const currentPage = ref(1);
-const pageSize = ref(10);
-const order = ref("desc");
-const sort = ref("name");
-const keyword = ref("");
-const search = ref("all");
-const status = ref("");
+  getUserRoomList,
+  userRoomList,
+  userRoomListLoading
+} = useRoomApi("");
 
 const getRoomList = async (showMsg = false) => {
-  try {
-    await reqUserRoomListApi({
-      headers: {
-        Authorization: token.value
-      },
-      params: {
-        page: currentPage.value,
-        max: pageSize.value,
-        sort: sort.value,
-        order: order.value,
-        status: status.value,
-        search: search.value,
-        keyword: keyword.value,
-        id: userId.value
-      }
-    });
-
-    if (roomList.value && roomList.value.list) {
-      totalItems.value = roomList.value.total;
-      __roomList.value = roomList.value.list;
-    }
-
-    showMsg &&
-      ElNotification({
-        title: `更新列表成功`,
-        type: "success"
-      });
-  } catch (err: any) {
-    console.error(err.message);
-    ElNotification({
-      title: "错误",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
+  await getUserRoomList(showMsg, userId.value);
 };
+
+defineExpose({ openDialog });
 </script>
 
 <template>
   <el-dialog
     v-model="open"
-    :title="`用户房间列表（${__roomList.length}）`"
     :close-on-click-modal="false"
     class="rounded-lg dark:bg-zinc-800 w-3/7 max-sm:w-full"
   >
     <template #header>
       <div class="flex flex-wrap justify-between items-center -my-1 text-base mr-4">
-        <div class="max-sm:mb-3 text-lg font-medium">用户房间列表（{{ __roomList.length }}）</div>
+        <div class="max-sm:mb-3 text-lg font-medium">
+          用户房间列表（{{ userRoomList?.list?.length }}）
+        </div>
         <div class="">
           排序方式：<el-select
             v-model="sort"
@@ -151,10 +101,10 @@ const getRoomList = async (showMsg = false) => {
         </el-input>
       </div>
       <div class="flex flex-wrap justify-center">
-        <el-empty v-if="__roomList.length === 0" description="此处空空如也" />
+        <el-empty v-if="userRoomList?.list?.length === 0" description="此处空空如也" />
         <div
           v-else
-          v-for="item in __roomList"
+          v-for="item in userRoomList?.list"
           :key="item.roomId"
           class="flex flex-wrap m-2 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-all dark:bg-neutral-700 hover:dark:bg-zinc-900 max-w-[225px]"
         >
@@ -167,13 +117,14 @@ const getRoomList = async (showMsg = false) => {
                 item["peopleNum"]
               }}</span>
             </div>
+            <div>状态：{{ getObjValue(roomStatus, item.status) }}</div>
             <div>创建时间：{{ useTimeAgo(new Date(item.createdAt)).value }}</div>
           </div>
           <div class="flex p-2 w-full justify-between items-center">
             <el-tag disabled :type="item.needPassword ? 'danger' : 'success'">
               {{ item.needPassword ? "有密码" : "无密码" }}
             </el-tag>
-            <button class="btn btn-dense" @click="openJoinRoomDialog(item)">
+            <button class="btn btn-dense" @click="joinRoom({ roomId: item.roomId, password: '' })">
               加入房间
               <PlayIcon class="inline-block" width="18px" />
             </button>
@@ -183,13 +134,11 @@ const getRoomList = async (showMsg = false) => {
     </template>
     <template #footer>
       <div class="flex flex-wrap justify-between overflow-hidden">
-        <el-button type="success" @click="getRoomList(true)" :loading="isLoading"
+        <el-button type="success" @click="getRoomList(true)" :loading="userRoomListLoading"
           >更新列表</el-button
         >
-
-        <!-- <button class="btn btn-success max-sm:mb-4" @click="getRoomList(true)">更新列表</button> -->
         <el-pagination
-          v-if="__roomList.length != 0"
+          v-if="userRoomList?.list?.length != 0"
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
           :pager-count="5"
@@ -201,14 +150,5 @@ const getRoomList = async (showMsg = false) => {
         />
       </div>
     </template>
-  </el-dialog>
-
-  <el-dialog v-model="JoinRoomDialog" class="rounded-lg dark:bg-zinc-800 w-[443px] max-sm:w-[90%]">
-    <template #header>
-      <div class="overflow-hidden text-ellipsis">
-        <span class="truncate">加入房间</span>
-      </div>
-    </template>
-    <JoinRoom :item="formData" />
   </el-dialog>
 </template>

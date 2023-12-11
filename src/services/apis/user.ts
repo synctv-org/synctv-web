@@ -14,7 +14,7 @@ export const userInfo = useDefineApi<
 });
 
 // 我创建的房间，列表
-export const myRoomList = useDefineApi<
+export const myRoomListApi = useDefineApi<
   {
     params: {
       page: number;
