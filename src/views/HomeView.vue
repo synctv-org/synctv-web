@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Hot from "@/components/Hot.vue";
+import RoomList from "@/components/RoomList.vue";
 </script>
 
 <template>
@@ -7,7 +7,7 @@ import Hot from "@/components/Hot.vue";
     <h1 class="text-3xl">首页</h1>
     <br />
     <div class="xl:w-6/12 lg:w-7/12 md:w-9/12 mx-auto">
-      <Hot />
+      <RoomList :is-my-room="false" :is-hot="true" />
     </div>
     <br />
     <p>

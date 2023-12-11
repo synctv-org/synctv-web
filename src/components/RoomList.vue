@@ -13,6 +13,7 @@ import { getObjValue } from "@/utils";
 const router = useRouter();
 const props = defineProps<{
   isMyRoom: boolean;
+  isHot: boolean;
   userId?: string;
 }>();
 
@@ -41,6 +42,9 @@ const {
   getMyRoomList,
   myRoomList,
 
+  getHotRoomList,
+  hotRoomList,
+
   joinRoom
 } = useRoomApi(formData.value.roomId);
 
@@ -48,6 +52,9 @@ const getRoomList = async (showMsg = false) => {
   if (props.isMyRoom) {
     await getMyRoomList(showMsg);
     if (myRoomList.value) thisRoomList.value = myRoomList.value.list!;
+  } else if (props.isHot) {
+    await getHotRoomList(showMsg);
+    if (hotRoomList.value) thisRoomList.value = hotRoomList.value.list!;
   } else {
     await getRoomList_();
     if (roomList.value) thisRoomList.value = roomList.value.list!;
@@ -88,9 +95,9 @@ onMounted(() => {
   <div class="card mx-auto">
     <div class="card-title flex flex-wrap justify-between items-center">
       <div class="max-sm:mb-3">
-        {{ isMyRoom ? "我创建的" : "房间列表" }}（{{ thisRoomList.length }}）
+        {{ isMyRoom ? "我创建的" : isHot ? "热度榜" : "房间列表" }}（{{ thisRoomList.length }}）
       </div>
-      <div class="text-base -my-2">
+      <div class="text-base -my-2" v-if="!isHot">
         排序方式：<el-select
           v-model="sort"
           class="m-2"
@@ -111,7 +118,7 @@ onMounted(() => {
         </button>
       </div>
     </div>
-    <div class="card-body text-center">
+    <div class="card-body" :class="{ 'text-center': !isHot }">
       <div class="m-auto w-96 mb-3 flex" v-if="isMyRoom">
         <el-select
           v-model="status"
@@ -141,8 +148,38 @@ onMounted(() => {
         </el-input>
       </div>
 
-      <div class="flex flex-wrap justify-center">
+      <div :class="isHot ? '' : 'flex flex-wrap justify-center'">
         <el-empty v-if="thisRoomList.length === 0" description="啥都没有哦~" />
+        <div
+          v-else-if="isHot"
+          v-for="(item, i) in thisRoomList"
+          :key="i"
+          class="flex max-sm:flex-wrap justify-around m-2 rounded-lg bg-zinc-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 w-auto items-center"
+        >
+          <div class="m-auto sm:ml-5 max-sm:mt-5">
+            <b> {{ i + 1 }}</b>
+          </div>
+          <div class="overflow-hidden text-ellipsis p-2 w-full">
+            <b class="block text-base font-semibold truncate"> {{ item["roomName"] }}</b>
+          </div>
+          <div class="overflow-hidden text-ellipsis p-2 text-sm w-full">
+            在线人数：<span :class="item.peopleNum > 0 ? 'text-green-500' : 'text-red-500'">{{
+              item["peopleNum"]
+            }}</span>
+
+            <div>创建者：{{ item.creator }}</div>
+          </div>
+          <div class="flex p-2 w-full justify-between items-center">
+            <el-tag disabled :type="item.needPassword ? 'danger' : 'success'">
+              {{ item.needPassword ? "有密码" : "无密码" }}
+            </el-tag>
+            <button class="btn btn-dense md:ml-2" @click="joinThisRoom(item)">
+              加入房间
+              <PlayIcon class="inline-block" width="18px" />
+            </button>
+          </div>
+        </div>
+
         <div
           v-else
           v-for="item in thisRoomList"

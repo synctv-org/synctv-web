@@ -4,11 +4,11 @@ import { userStore } from "@/stores/user";
 import router from "@/router";
 import { myRoomListApi } from "@/services/apis/user";
 import { userRoomListApi } from "@/services/apis/admin";
-import { joinRoomApi, checkRoomApi, roomListApi } from "@/services/apis/room";
+import { joinRoomApi, checkRoomApi, roomListApi, hotRoom } from "@/services/apis/room";
 import { strLengthLimit } from "@/utils";
 
 // 获取用户信息
-const { isLogin, info, token } = userStore();
+const { info, token } = userStore();
 
 export const useRoomApi = (roomId: string) => {
   // 检查房间状态
@@ -113,7 +113,7 @@ export const useRoomApi = (roomId: string) => {
 
       showMsg &&
         ElNotification({
-          title: `更新列表成功`,
+          title: "更新列表成功",
           type: "success"
         });
     } catch (err: any) {
@@ -151,7 +151,7 @@ export const useRoomApi = (roomId: string) => {
 
       showMsg &&
         ElNotification({
-          title: `更新列表成功`,
+          title: "更新列表成功",
           type: "success"
         });
     } catch (err: any) {
@@ -194,7 +194,7 @@ export const useRoomApi = (roomId: string) => {
 
       showMsg &&
         ElNotification({
-          title: `更新列表成功`,
+          title: "更新列表成功",
           type: "success"
         });
     } catch (err: any) {
@@ -207,6 +207,35 @@ export const useRoomApi = (roomId: string) => {
     }
   };
 
+  // 热度榜
+  const { state: hotRoomList, execute: reqHotRoomList } = hotRoom();
+  const getHotRoomList = async (showMsg = false) => {
+    try {
+      await reqHotRoomList({
+        params: {
+          page: currentPage.value,
+          max: pageSize.value
+        }
+      });
+
+      if (hotRoomList.value) {
+        totalItems.value = hotRoomList.value.total;
+      }
+
+      showMsg &&
+        ElNotification({
+          title: "更新列表成功",
+          type: "success"
+        });
+    } catch (err: any) {
+      console.error(err.message);
+      ElNotification({
+        title: "错误",
+        message: err.response.data.error || err.message,
+        type: "error"
+      });
+    }
+  };
   return {
     checkRoom,
     thisRoomInfo,
@@ -230,6 +259,9 @@ export const useRoomApi = (roomId: string) => {
 
     getUserRoomList,
     userRoomList,
-    userRoomListLoading
+    userRoomListLoading,
+
+    getHotRoomList,
+    hotRoomList
   };
 };
