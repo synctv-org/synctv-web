@@ -5,7 +5,6 @@ import router from "@/router";
 import { myRoomListApi } from "@/services/apis/user";
 import { userRoomListApi } from "@/services/apis/admin";
 import { joinRoomApi, checkRoomApi, roomListApi } from "@/services/apis/room";
-import type { RoomStatus } from "@/types/Room";
 import { strLengthLimit } from "@/utils";
 
 // 获取用户信息

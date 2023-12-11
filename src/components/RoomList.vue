@@ -16,9 +16,8 @@ const props = defineProps<{
   userId?: string;
 }>();
 
-const { token, isLogin } = userStore();
+const { isLogin, info } = userStore();
 const thisRoomList = ref<RoomList[]>([]);
-const JoinRoomDialog = ref(false);
 const formData = ref<{
   roomId: string;
   password: string;
@@ -27,7 +26,36 @@ const formData = ref<{
   password: ""
 });
 
-const openJoinRoomDialog = (item: RoomList) => {
+const {
+  totalItems,
+  currentPage,
+  pageSize,
+  order,
+  sort,
+  keyword,
+  search,
+  status,
+  getRoomList: getRoomList_,
+  roomList,
+
+  getMyRoomList,
+  myRoomList,
+
+  joinRoom
+} = useRoomApi(formData.value.roomId);
+
+const getRoomList = async (showMsg = false) => {
+  if (props.isMyRoom) {
+    await getMyRoomList(showMsg);
+    if (myRoomList.value) thisRoomList.value = myRoomList.value.list!;
+  } else {
+    await getRoomList_();
+    if (roomList.value) thisRoomList.value = roomList.value.list!;
+  }
+};
+
+const JoinRoomDialog = ref(false);
+const joinThisRoom = async (item: RoomList) => {
   if (!isLogin.value) {
     ElNotification({
       title: "错误",
@@ -43,32 +71,11 @@ const openJoinRoomDialog = (item: RoomList) => {
     return;
   }
   formData.value.roomId = item.roomId;
-  JoinRoomDialog.value = true;
-};
 
-const {
-  totalItems,
-  currentPage,
-  pageSize,
-  order,
-  sort,
-  keyword,
-  search,
-  status,
-  getRoomList: getRoomList_,
-  roomList,
-
-  getMyRoomList,
-  myRoomList
-} = useRoomApi(formData.value.roomId);
-
-const getRoomList = async (showMsg = false) => {
-  if (props.isMyRoom) {
-    await getMyRoomList(showMsg);
-    if (myRoomList.value) thisRoomList.value = myRoomList.value.list!;
+  if (info.value?.username === item.creator || !item.needPassword) {
+    await joinRoom(formData.value);
   } else {
-    await getRoomList_();
-    if (roomList.value) thisRoomList.value = roomList.value.list!;
+    JoinRoomDialog.value = true;
   }
 };
 
@@ -159,7 +166,7 @@ onMounted(() => {
             <el-tag v-if="!isMyRoom" disabled :type="item.needPassword ? 'danger' : 'success'">
               {{ item.needPassword ? "有密码" : "无密码" }}
             </el-tag>
-            <button class="btn btn-dense" @click="openJoinRoomDialog(item)">
+            <button class="btn btn-dense" @click="joinThisRoom(item)">
               加入房间
               <PlayIcon class="inline-block" width="18px" />
             </button>
