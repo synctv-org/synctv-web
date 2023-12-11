@@ -302,7 +302,6 @@ onMounted(() => {
       }
     )
   );
-
   getMovieList(true);
 });
 </script>
@@ -312,7 +311,7 @@ onMounted(() => {
     <el-col :md="18" class="mb-6 max-sm:my-2">
       <div class="card" ref="card">
         <div
-          class="card-title flex flex-wrap justify-between max-sm:text-sm"
+          class="card-title flex flex-wrap justify-between max-sm:text-sm max-sm:pb-4"
           v-if="playerOption.url"
         >
           {{ room.currentMovie.base!.name }}
@@ -323,7 +322,7 @@ onMounted(() => {
             >👁‍🗨 {{ room.peopleNum }}
           </small>
         </div>
-        <div class="card-body max-sm:p-0" ref="playArea" v-if="playerOption.url">
+        <div class="card-body max-sm:p-0 pb-4" ref="playArea" v-if="playerOption.url">
           <div class="art-player">
             <Player @get-instance="getPlayerInstance" :options="playerOption"></Player>
           </div>
