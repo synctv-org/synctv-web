@@ -96,16 +96,9 @@ const playerUrl = computed(() => {
     room.currentMovie.base?.rtmpSource ||
     (room.currentMovie.base?.live && room.currentMovie.base?.proxy)
   ) {
-    switch (room.currentMovie.base!.type) {
-      case "flv":
-        return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.flv`;
-      default:
-        return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.m3u8`;
-    }
+    const fileType = room.currentMovie.base!.type === "flv" ? "flv" : "m3u8";
+    return `${window.location.origin}/api/movie/live/${room.currentMovie.id}.${fileType}`;
   } else if (room.currentMovie.base?.proxy) {
-    if (room.currentMovie.base!.vendorInfo?.bilibili) {
-      return `${window.location.origin}/api/movie/proxy/${roomID.value}/${room.currentMovie.id}?t=hevc`;
-    }
     return `${window.location.origin}/api/movie/proxy/${roomID.value}/${room.currentMovie.id}`;
   } else {
     return room.currentMovie.base!.url;
