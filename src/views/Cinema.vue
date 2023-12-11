@@ -380,10 +380,4 @@ onMounted(() => {
   overflow-y: scroll;
   height: 67vh;
 }
-
-.i-table {
-  td {
-    padding: 2px 0 2px;
-  }
-}
 </style>

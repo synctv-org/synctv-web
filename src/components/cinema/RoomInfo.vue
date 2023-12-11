@@ -6,6 +6,7 @@ import { useRouteParams } from "@vueuse/router";
 import { updateRoomPasswordApi, delRoomApi } from "@/services/apis/room";
 import { roomStore } from "@/stores/room";
 import { strLengthLimit } from "@/utils";
+import CopyButton from "../CopyButton.vue";
 
 const props = defineProps<{
   status: string;
@@ -96,8 +97,9 @@ const deleteRoom = async () => {
           <tr>
             <td>房间ID</td>
             <td>
-              <div class="overflow-hidden text-ellipsis max-w-[150px]">
+              <div class="overflow-hidden flex text-ellipsis max-w-[150px]">
                 <span class="truncate">{{ roomID }}</span>
+                <CopyButton class="border-0" size="small" :value="roomID" />
               </div>
             </td>
           </tr>
@@ -152,3 +154,11 @@ const deleteRoom = async () => {
     </div>
   </div>
 </template>
+
+<style lang="less" scoped>
+.i-table {
+  td {
+    padding: 2px 0 2px;
+  }
+}
+</style>
