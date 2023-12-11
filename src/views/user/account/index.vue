@@ -143,7 +143,7 @@ onMounted(async () => {
   <div class="card" v-if="unbind.length > 0">
     <div class="card-title">你还可以<span class="text-red-500">绑定</span>以下账号</div>
     <div
-      class="card-body grid gap-5 grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+      class="card-body pb-4 grid gap-5 grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
     >
       <div
         class="app-list-item"

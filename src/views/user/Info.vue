@@ -141,7 +141,7 @@ onMounted(() => {});
       </el-col>
       <el-col :lg="17" :md="15" class="mb-6 max-sm:my-2">
         <div class="card mb-6 max-sm:mb-1">
-          <div class="card-title tabs">
+          <div class="card-title tabs pb-4">
             <span
               v-for="tab in tabs"
               :key="tab.name"

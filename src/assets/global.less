@@ -86,10 +86,6 @@ a {
 .btn-dense {
   padding: 4px 8px;
   @apply text-sm;
-
-  &:hover {
-    padding: 5px 9px;
-  }
 }
 
 .btn-success {
@@ -195,7 +191,7 @@ a {
 
 // App List Item
 .app-list-item {
-  @apply bg-slate-50 rounded-2xl text-center transition-all duration-300 cursor-pointer shadow-neutral-200/50 dark:bg-neutral-800 dark:hover:bg-neutral-700  dark:shadow-neutral-700/50;
+  @apply bg-slate-50 rounded-xl text-center transition-all duration-300 cursor-pointer shadow-neutral-200/50 dark:bg-neutral-800 dark:hover:bg-neutral-700  dark:shadow-neutral-700/50;
 
   &:hover {
     @apply bg-neutral-100  shadow-lg -translate-y-1;
@@ -206,8 +202,7 @@ a {
   }
 
   img {
-    border-radius: 2rem;
-    @apply mx-auto p-5 sm:max-w-sm;
+    @apply mx-auto p-5 pb-2 sm:max-w-sm;
   }
 }
 
