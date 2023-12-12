@@ -110,7 +110,7 @@ onMounted(async () => {
 <template>
   <div class="card mb-5">
     <div class="card-title">第三方账号绑定</div>
-    <div class="card-body">
+    <div class="card-body pb-4">
       <p class="-mt-2 mb-2">
         使用以下任一方式都可以登录到您的 SyncTV 帐号，避免由于某个帐号失效导致无法登录
       </p>

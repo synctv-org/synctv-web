@@ -62,7 +62,7 @@ const changeUName = async () => {
 <template>
   <el-dialog
     v-model="open"
-    title="修改密码"
+    title="修改用户名"
     :close-on-click-modal="false"
     class="rounded-lg dark:bg-zinc-800 w-2/6 max-sm:w-full"
   >
