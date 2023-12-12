@@ -79,11 +79,9 @@ const joinThisRoom = async (item: RoomList) => {
   }
   formData.value.roomId = item.roomId;
 
-  if (info.value?.username === item.creator || !item.needPassword) {
-    await joinRoom(formData.value);
-  } else {
-    JoinRoomDialog.value = true;
-  }
+  info.value?.username === item.creator || !item.needPassword
+    ? await joinRoom(formData.value)
+    : (JoinRoomDialog.value = true);
 };
 
 onMounted(() => {

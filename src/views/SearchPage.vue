@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onUnmounted } from "vue";
 import { ElNotification } from "element-plus";
-import { roomListApi } from "@/services/apis/room";
 import type { RoomList } from "@/types/Room";
 import JoinRoom from "./JoinRoom.vue";
-import { roomStore } from "@/stores/room";
+import { userStore } from "@/stores/user";
 import { useTimeAgo } from "@vueuse/core";
 import { useRouter } from "vue-router";
+import { useRoomApi } from "@/hooks/useRoom";
 
 const router = useRouter();
-const room = roomStore();
-const __roomList = ref<RoomList[]>([]);
-const JoinRoomDialog = ref(false);
+const { isLogin, info } = userStore();
 const formData = ref<{
   roomId: string;
   password: string;
@@ -20,59 +18,36 @@ const formData = ref<{
   password: ""
 });
 
-const openJoinRoomDialog = (item: RoomList) => {
-  if (!room.login) {
+const { totalItems, currentPage, pageSize, keyword, search, getRoomList, roomList, joinRoom } =
+  useRoomApi(formData.value.roomId);
+
+const JoinRoomDialog = ref(false);
+const openJoinRoomDialog = async (item: RoomList) => {
+  if (!isLogin.value) {
     ElNotification({
       title: "错误",
       message: "请先登录",
       type: "error"
     });
     router.replace({
-        name: "login",
-        query: {
-          redirect: router.currentRoute.value.fullPath
-        }
-      });
+      name: "login",
+      query: {
+        redirect: router.currentRoute.value.fullPath
+      }
+    });
     return;
   }
   formData.value.roomId = item.roomId;
-  JoinRoomDialog.value = true;
+
+  info.value?.username === item.creator || !item.needPassword
+    ? await joinRoom(formData.value)
+    : (JoinRoomDialog.value = true);
 };
 
-const { state: roomList, execute: reqRoomList } = roomListApi();
-const totalItems = ref(0);
-const currentPage = ref(1);
-const pageSize = ref(10);
-const order = ref("desc");
-const sort = ref("name");
-const search = ref("all");
-const keyword = ref("");
-
-const getRoomList = async (showMsg = false) => {
-  try {
-    await reqRoomList({
-      params: {
-        page: currentPage.value,
-        max: pageSize.value,
-        sort: sort.value,
-        order: order.value,
-        search: search.value,
-        keyword: keyword.value
-      }
-    });
-    if (roomList.value && roomList.value.list) {
-      totalItems.value = roomList.value.total;
-      __roomList.value = roomList.value.list;
-    }
-  } catch (err: any) {
-    console.error(err.message);
-    ElNotification({
-      title: "错误",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
-};
+onUnmounted(() => {
+  search.value = "all";
+  keyword.value = "";
+});
 </script>
 <template>
   <div class="text-center">
@@ -93,17 +68,14 @@ const getRoomList = async (showMsg = false) => {
         />
       </div>
     </div>
-    <el-empty v-if="__roomList.length === 0" description="查无此房间" />
+    <el-empty v-if="roomList?.list?.length === 0" description="查无此房间" />
     <div v-else class="lg:w-9/12 mx-auto flex flex-wrap justify-center mb-5">
       <div
-        v-for="item in __roomList"
+        v-for="item in roomList?.list"
         :key="item.roomId"
         class="flex flex-wrap m-2 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 max-w-[225px] max-sm:max-w-full justify-center relative"
       >
         <div class="overflow-hidden text-ellipsis m-auto sm:p-2 w-full max-sm:mt-2">
-          <!-- <el-tag disabled type="warning" class="text-sm absolute left-2" title="RoomID">
-            {{ item["roomId"] }}
-          </el-tag> -->
           <b class="text-base font-semibold truncate"> {{ item["roomName"] }}</b>
         </div>
         <div class="overflow-hidden text-ellipsis text-sm p-2">
@@ -128,7 +100,7 @@ const getRoomList = async (showMsg = false) => {
     </div>
     <div class="mx-auto flex flex-wrap justify-center">
       <el-pagination
-        v-if="__roomList.length >= 10"
+        v-if="roomList?.list && roomList?.list?.length >= 10"
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         :pager-count="5"

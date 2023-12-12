@@ -102,8 +102,8 @@ export const useRoomApi = (roomId: string) => {
           max: pageSize.value,
           sort: sort.value,
           order: order.value,
-          search: "all",
-          keyword: ""
+          search: search.value,
+          keyword: keyword.value
         }
       });
 
