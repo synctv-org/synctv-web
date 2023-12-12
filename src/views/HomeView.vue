@@ -7,7 +7,9 @@ import RoomList from "@/components/RoomList.vue";
     <h1 class="text-3xl">首页</h1>
     <br />
     <div class="xl:w-6/12 lg:w-7/12 md:w-9/12 mx-auto">
-      <RoomList :is-my-room="false" :is-hot="true" />
+      <RoomList :is-my-room="false" :is-hot="true">
+        <template #title>热度榜</template>
+      </RoomList>
     </div>
     <br />
     <p>

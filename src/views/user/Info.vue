@@ -152,7 +152,9 @@ onMounted(() => {});
             >
           </div>
         </div>
-        <component :is="activeTab.component" :is-my-room="true" />
+        <component :is="activeTab.component" :is-my-room="true">
+          <template #title> 我创建的 </template>
+        </component>
       </el-col>
     </el-row>
   </div>

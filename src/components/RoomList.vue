@@ -94,9 +94,7 @@ onMounted(() => {
 <template>
   <div class="card mx-auto">
     <div class="card-title flex flex-wrap justify-between items-center">
-      <div class="max-sm:mb-3">
-        {{ isMyRoom ? "我创建的" : isHot ? "热度榜" : "房间列表" }}（{{ thisRoomList.length }}）
-      </div>
+      <div class="max-sm:mb-3"><slot name="title"></slot>（{{ thisRoomList.length }}）</div>
       <div class="text-base -my-2" v-if="!isHot">
         排序方式：<el-select
           v-model="sort"
