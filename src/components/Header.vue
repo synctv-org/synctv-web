@@ -5,6 +5,7 @@ import { userStore } from "@/stores/user";
 import DarkModeSwitcher from "@/components/DarkModeSwitcher.vue";
 import router from "@/router";
 import SyncTVLogo from "@/assets/appIcons/synctv-nobg.svg";
+import { ROLE } from "@/types/User";
 const mobileMenu = ref(false);
 
 const { isLogin, info } = userStore();
@@ -42,6 +43,12 @@ const menuLinks = computed(() => {
         to: "/createRoom"
       }
     ];
+    if (info.value?.role! >= ROLE.Admin) {
+      loginLinks.push({
+        name: "管理后台",
+        to: "/admin"
+      });
+    }
     links = loginLinks;
   }
 
