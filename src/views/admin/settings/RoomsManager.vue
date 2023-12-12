@@ -22,6 +22,7 @@ const order = ref("desc");
 const sort = ref("createdAt");
 const keyword = ref("");
 const search = ref("all");
+const status = ref("");
 const { state, execute: reqRoomListApi, isLoading: roomListLoading } = roomListApi();
 const getRoomListApi = async () => {
   try {
@@ -35,7 +36,8 @@ const getRoomListApi = async () => {
         sort: sort.value,
         order: order.value,
         search: search.value,
-        keyword: keyword.value
+        keyword: keyword.value,
+        status: status.value
       }
     });
     if (state.value) {
@@ -117,30 +119,40 @@ onMounted(async () => {
       <div>
         {{ props.title }}
       </div>
-
-      <el-input
-        class="w-fit max-lg:w-full max-xl:my-2"
-        v-model="keyword"
-        placeholder="搜索"
-        @keyup.enter="getRoomListApi()"
-        required
-      >
-        <template #prepend>
-          <el-select
-            v-model="search"
-            @change="getRoomListApi()"
-            placeholder="Select"
-            style="width: 90px"
-          >
-            <el-option label="综合" value="all" />
-            <el-option label="名称" value="name" />
-            <el-option label="ID" value="roomId" />
-          </el-select>
-        </template>
-        <template #append>
-          <el-button :icon="Search" @click="getRoomListApi()" />
-        </template>
-      </el-input>
+      <div>
+        <el-select
+          v-model="status"
+          placeholder="状态"
+          style="width: 100px"
+          @change="getRoomListApi()"
+        >
+          <el-option label="ALL" value="" />
+          <el-option v-for="r in Object.values(roomStatus)" :label="r" :value="r.toLowerCase()" />
+        </el-select>
+        <el-input
+          class="w-fit max-lg:w-full max-xl:my-2"
+          v-model="keyword"
+          placeholder="搜索"
+          @keyup.enter="getRoomListApi()"
+          required
+        >
+          <template #prepend>
+            <el-select
+              v-model="search"
+              @change="getRoomListApi()"
+              placeholder="Select"
+              style="width: 90px"
+            >
+              <el-option label="综合" value="all" />
+              <el-option label="名称" value="name" />
+              <el-option label="ID" value="roomId" />
+            </el-select>
+          </template>
+          <template #append>
+            <el-button :icon="Search" @click="getRoomListApi()" />
+          </template>
+        </el-input>
+      </div>
 
       <div class="text-base max-xl:w-full">
         排序方式：<el-select

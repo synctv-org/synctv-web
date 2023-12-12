@@ -258,6 +258,9 @@ export const roomListApi = useDefineApi<
       max: number;
       sort: string;
       order: string;
+      search: string;
+      keyword: string;
+      status: string;
     };
   },
   {
