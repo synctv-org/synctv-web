@@ -4,6 +4,7 @@ import { RouterLink } from "vue-router";
 import { userStore } from "@/stores/user";
 import DarkModeSwitcher from "@/components/DarkModeSwitcher.vue";
 import router from "@/router";
+import SyncTVLogo from "@/assets/appIcons/synctv-nobg.svg";
 const mobileMenu = ref(false);
 
 const { isLogin, info } = userStore();
@@ -55,6 +56,7 @@ const toUserInfo = () => {
   <header class="bg-gray-50 h-16 dark:bg-zinc-900 dark:text-zinc-100">
     <nav class="flex mx-auto max-w-7xl items-center justify-between lg:px-8 p-4 lg:p-5 px-6">
       <div class="flex lg:flex-1">
+        <img class="mr-2 w-6 h-6 bg-slate-500 rounded-md" :src="SyncTVLogo" />
         <span class="-m-1.5 p-1.5 font-bold"> SyncTV </span>
       </div>
 
