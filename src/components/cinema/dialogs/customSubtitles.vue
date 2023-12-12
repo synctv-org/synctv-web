@@ -83,17 +83,12 @@ const openDialog = () => {
     name,
     ...subtitle
   }));
+  if (subtitleList.value.length === 0) addItem();
   open.value = true;
 };
 
 defineExpose({
   openDialog
-});
-
-onMounted(() => {});
-
-onMounted(() => {
-  if (subtitleList.value.length === 0) addItem();
 });
 </script>
 
@@ -104,29 +99,27 @@ onMounted(() => {
     class="rounded-lg dark:bg-zinc-800 w-3/7 max-sm:w-full"
   >
     <div class="grid grid-cols-7 gap-4 mb-2 text-center">
-      <div class="col-span-2">名称</div>
-      <div class="col-span-2">URL</div>
-      <div class="col-span-2">类型</div>
-      <div>操作</div>
+      <div class="col-span-1">名称</div>
+      <div class="col-span-4">URL</div>
+      <div class="col-span-1">类型</div>
+      <div class="col-span-1 text-center">操作</div>
     </div>
     <div v-for="(item, i) in subtitleList" :key="i" class="grid grid-cols-7 gap-4 mb-2">
-      <div class="col-span-2">
-        <input type="text" class="l-input py-1 m-0 px-2 w-full" v-model="item.name" />
+      <div class="col-span-1">
+        <el-input type="text" class="w-full" v-model="item.name" />
       </div>
-      <div class="col-span-2">
-        <input type="text" class="l-input py-1 m-0 px-2 w-full" v-model="item.url" />
+      <div class="col-span-4">
+        <el-input type="text" class="w-full" v-model="item.url" />
       </div>
-      <div class="col-span-2">
-        <input
-          type="text"
-          class="l-input py-1 m-0 px-2 w-full"
-          v-model="item.type"
-          placeholder="仅支持 vtt, srt, ass"
-        />
+      <div class="col-span-1">
+        <el-select class="w-full" v-model="item.type" placeholder="请选择">
+          <el-option label="srt" value="srt" />
+          <el-option label="ass" value="ass" />
+          <el-option label="vtt" value="vtt" />
+        </el-select>
       </div>
-      <div class="text-center">
-        <button v-if="isLastItem(item)" class="btn btn-dense mr-2" @click="addItem()">添加</button>
-
+      <div class="text-center col-span-1 flex justify-around">
+        <button v-if="isLastItem(item)" class="btn btn-dense" @click="addItem()">添加</button>
         <button class="btn btn-dense btn-error" @click="removeItem(item)">移除</button>
       </div>
     </div>
