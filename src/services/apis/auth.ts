@@ -39,7 +39,7 @@ export const logOutApi = useDefineApi<{ headers: { Authorization: string } }, an
 });
 
 // 获取可用的oauth2平台
-export const OAuth2Platforms = useDefineApi<any, { enabled: string[] }>({
+export const OAuth2Platforms = useDefineApi<any, { enabled: string[] | null }>({
   url: "/oauth2/enabled",
   method: "GET"
 });
