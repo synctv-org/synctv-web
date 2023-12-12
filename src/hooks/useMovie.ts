@@ -3,6 +3,7 @@ import { ElNotification } from "element-plus";
 import { roomStore } from "@/stores/room";
 import {
   movieListApi,
+  moviesApi,
   currentMovieApi,
   editMovieInfoApi,
   delMovieApi,
@@ -18,7 +19,7 @@ import { strLengthLimit } from "@/utils";
 const room = roomStore();
 
 export const useMovieApi = (roomToken: string) => {
-  // 获取影片列表
+  // 获取影片列表和正在播放的影片
   const currentPage = ref(1);
   const pageSize = ref(10);
   const {
@@ -29,7 +30,7 @@ export const useMovieApi = (roomToken: string) => {
   /**
    * @argument updateStatus 是否更新当前正在播放的影片（包括状态）
    */
-  const getMovieList = async (updateStatus: boolean) => {
+  const getMovieListAndCurrent = async (updateStatus: boolean) => {
     try {
       await reqMovieListApi({
         params: {
@@ -46,6 +47,32 @@ export const useMovieApi = (roomToken: string) => {
           room.currentMovieStatus = movieList.value.current.status;
           room.currentMovie = movieList.value.current.movie;
         }
+      }
+    } catch (err: any) {
+      console.log(err);
+      ElNotification({
+        title: "获取影片列表失败",
+        message: err.response.data.error || err.message,
+        type: "error"
+      });
+    }
+  };
+
+  // 获取影片列表
+  const { state: movies, isLoading: moviesLoading, execute: reqMoviesApi } = moviesApi();
+  const getMovies = async () => {
+    try {
+      await reqMoviesApi({
+        params: {
+          page: currentPage.value,
+          max: pageSize.value
+        },
+        headers: { Authorization: roomToken }
+      });
+
+      if (movies.value) {
+        room.movies = movies.value.movies;
+        room.totalMovies = movies.value.total;
       }
     } catch (err: any) {
       console.log(err);
@@ -98,7 +125,7 @@ export const useMovieApi = (roomToken: string) => {
         type: "success"
       });
       selectMovies.value = [];
-      getMovieList(false);
+      getMovies();
     } catch (err: any) {
       console.error(err);
       ElNotification({
@@ -272,9 +299,13 @@ export const useMovieApi = (roomToken: string) => {
   return {
     currentPage,
     pageSize,
-    getMovieList,
+    getMovieListAndCurrent,
     movieListLoading,
     movieList,
+
+    getMovies,
+    movies,
+    moviesLoading,
 
     getCurrentMovie,
     currentMovie,

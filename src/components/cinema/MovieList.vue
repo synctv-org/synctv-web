@@ -20,8 +20,8 @@ const emits = defineEmits(["send-msg"]);
 const {
   currentPage,
   pageSize,
-  getMovieList,
-  movieListLoading,
+  getMovies,
+  moviesLoading,
   selectMovies,
   swapMovie,
   changeCurrentMovie,
@@ -73,7 +73,7 @@ const confirmClear = async () => {
     <div class="card-title">影片列表（{{ room.totalMovies }}）</div>
 
     <div class="card-body">
-      <el-skeleton v-if="movieListLoading" :rows="1" animated />
+      <el-skeleton v-if="moviesLoading" :rows="1" animated />
       <div
         v-else
         v-for="item in room.movies"
@@ -161,8 +161,8 @@ const confirmClear = async () => {
         :pager-count="5"
         layout="sizes, prev, pager, next, jumper"
         :total="room.totalMovies"
-        @size-change="getMovieList(false)"
-        @current-change="getMovieList(false)"
+        @size-change="getMovies()"
+        @current-change="getMovies()"
       />
 
       <div></div>
@@ -178,7 +178,7 @@ const confirmClear = async () => {
             <button class="btn btn-error mr-2">清空列表</button>
           </template>
         </el-popconfirm>
-        <button class="btn btn-success" @click="getMovieList(false)">更新列表</button>
+        <button class="btn btn-success" @click="getMovies()">更新列表</button>
       </div>
     </div>
   </div>

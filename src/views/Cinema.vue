@@ -28,7 +28,9 @@ onBeforeUnmount(() => {
   watchers.forEach((w) => w());
 });
 
-const { getMovieList, getCurrentMovie, currentMovie } = useMovieApi(roomToken.value);
+const { getMovieListAndCurrent, getMovies, getCurrentMovie, currentMovie } = useMovieApi(
+  roomToken.value
+);
 
 let player: Artplayer;
 
@@ -227,7 +229,7 @@ const handleElementMessage = (msg: ElementMessage) => {
 
     // 播放列表更新
     case ElementMessageType.CHANGE_MOVIES: {
-      getMovieList(false);
+      getMovies();
       break;
     }
 
@@ -302,7 +304,7 @@ onMounted(() => {
       }
     )
   );
-  getMovieList(true);
+  getMovieListAndCurrent(true);
 });
 </script>
 
@@ -369,7 +371,7 @@ onMounted(() => {
 
     <!-- 添加影片 -->
     <el-col :lg="6" :md="14" :xs="24" class="mb-6 max-sm:mb-2">
-      <MoviePush @getMovies="getMovieList(false)" :token="roomToken" />
+      <MoviePush @getMovies="getMovies()" :token="roomToken" />
     </el-col>
   </el-row>
 </template>

@@ -2,7 +2,7 @@ import { useDefineApi } from "@/stores/useDefineApi";
 import type { EditMovieInfo } from "@/types/Movie";
 import type { Status } from "@/proto/message";
 import type { BaseMovieInfo, MovieInfo } from "@/types/Movie";
-// 获取影片列表
+// 获取影片列表，包括正在播放
 export const movieListApi = useDefineApi<
   {
     params: {
