@@ -13,8 +13,8 @@ import RoomList from "@/components/RoomList.vue";
     </div>
     <br />
     <p>
-      &copy; Copyright 2023 <a href="https://github.com/synctv-org" target="_blank">SyncTV</a> all
-      right reserved
+      &copy; Copyright {{ new Date().getFullYear() }}
+      <a href="https://github.com/synctv-org" target="_blank">SyncTV</a> all right reserved
     </p>
   </div>
 </template>

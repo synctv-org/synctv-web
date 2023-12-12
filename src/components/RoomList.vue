@@ -13,7 +13,7 @@ import { getObjValue } from "@/utils";
 const router = useRouter();
 const props = defineProps<{
   isMyRoom: boolean;
-  isHot?: boolean;
+  isHot: boolean;
   userId?: string;
 }>();
 
@@ -54,7 +54,7 @@ const getRoomList = async (showMsg = false) => {
     if (myRoomList.value) thisRoomList.value = myRoomList.value.list!;
   } else if (props.isHot) {
     await getHotRoomList(showMsg);
-    if (hotRoomList.value) thisRoomList.value = hotRoomList.value.list!;
+    if (hotRoomList.value) if (hotRoomList.value.list) thisRoomList.value = hotRoomList.value.list;
   } else {
     await getRoomList_();
     if (roomList.value) thisRoomList.value = roomList.value.list!;
@@ -144,10 +144,10 @@ onMounted(() => {
         </el-input>
       </div>
 
-      <div :class="isHot ? '' : 'flex flex-wrap justify-center'">
+      <div v-else :class="isHot ? '' : 'flex flex-wrap justify-center'">
         <el-empty v-if="thisRoomList.length === 0" description="啥都没有哦~" />
         <div
-          v-else-if="isHot"
+          v-if="isHot"
           v-for="(item, i) in thisRoomList"
           :key="i"
           class="flex max-sm:flex-wrap justify-around m-2 rounded-lg bg-zinc-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800 w-auto items-center"
@@ -196,7 +196,7 @@ onMounted(() => {
             <div>创建时间：{{ useTimeAgo(new Date(item.createdAt)).value }}</div>
           </div>
           <div class="flex mt-2 my-3 w-full justify-around items-center">
-            <el-tag v-if="!isMyRoom" disabled :type="item.needPassword ? 'danger' : 'success'">
+            <el-tag disabled :type="item.needPassword ? 'danger' : 'success'">
               {{ item.needPassword ? "有密码" : "无密码" }}
             </el-tag>
             <button class="btn btn-dense" @click="joinThisRoom(item)">
