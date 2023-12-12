@@ -81,10 +81,10 @@ onMounted(() => {});
 <template>
   <div class="md:w-9/12 mx-auto">
     <el-row :gutter="20">
-      <el-col :lg="7" :md="9" class="mb-6 max-sm:my-2">
+      <el-col :lg="7" :md="9" class="mb-5 max-sm:my-2">
         <div class="card mb-5">
           <div class="card-title">个人信息</div>
-          <div class="card-body">
+          <div class="card-body pb-4">
             <table>
               <tbody></tbody>
               <colgroup>
@@ -139,8 +139,8 @@ onMounted(() => {});
           </div>
         </div>
       </el-col>
-      <el-col :lg="17" :md="15" class="mb-6 max-sm:my-2">
-        <div class="card mb-6 max-sm:mb-1">
+      <el-col :lg="17" :md="15" class="mb-5 max-sm:my-2">
+        <div class="card mb-5 max-sm:mb-1">
           <div class="card-title tabs pb-4">
             <span
               v-for="tab in tabs"

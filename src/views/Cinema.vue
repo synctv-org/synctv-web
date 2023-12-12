@@ -310,7 +310,7 @@ onMounted(() => {
 
 <template>
   <el-row :gutter="20">
-    <el-col :md="18" class="mb-6 max-sm:my-2">
+    <el-col :md="18" class="mb-5 max-sm:my-2">
       <div class="card" ref="card">
         <div
           class="card-title flex flex-wrap justify-between max-sm:text-sm max-sm:pb-4"
@@ -334,7 +334,7 @@ onMounted(() => {
         </div>
       </div>
     </el-col>
-    <el-col :md="6" class="mb-6 max-sm:mb-2">
+    <el-col :md="6" class="mb-5 max-sm:mb-2">
       <div class="card h-full">
         <div class="card-title">在线聊天</div>
         <div class="card-body mb-2">
@@ -360,17 +360,17 @@ onMounted(() => {
 
   <el-row :gutter="20">
     <!-- 房间信息 -->
-    <el-col :lg="6" :md="8" :sm="9" :xs="24" class="mb-6 max-sm:mb-2">
+    <el-col :lg="6" :md="8" :sm="9" :xs="24" class="mb-5 max-sm:mb-2">
       <RoomInfo :status="status" />
     </el-col>
 
     <!-- 影片列表 -->
-    <el-col :lg="12" :md="16" :sm="15" :xs="24" class="mb-6 max-sm:mb-2">
+    <el-col :lg="12" :md="16" :sm="15" :xs="24" class="mb-5 max-sm:mb-2">
       <MovieList @send-msg="sendMsg" />
     </el-col>
 
     <!-- 添加影片 -->
-    <el-col :lg="6" :md="14" :xs="24" class="mb-6 max-sm:mb-2">
+    <el-col :lg="6" :md="14" :xs="24" class="mb-5 max-sm:mb-2">
       <MoviePush @getMovies="getMovies()" :token="roomToken" />
     </el-col>
   </el-row>
