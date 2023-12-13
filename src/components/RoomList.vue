@@ -144,7 +144,7 @@ onMounted(() => {
         </el-input>
       </div>
 
-      <div v-else :class="isHot ? '' : 'flex flex-wrap justify-center'">
+      <div :class="isHot ? '' : 'flex flex-wrap justify-center'">
         <el-empty v-if="thisRoomList.length === 0" description="啥都没有哦~" />
         <div
           v-if="isHot"
