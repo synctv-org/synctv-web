@@ -20,7 +20,7 @@ const Props = defineProps<{
 }>();
 
 // 新影片信息
-let newMovieInfo = ref<BaseMovieInfo>({
+const newMovieInfo = ref<BaseMovieInfo>({
   url: "",
   name: "",
   type: "",
@@ -331,7 +331,11 @@ const getBiliBiliVendors = async () => {
       </select>
     </div>
     <div class="card-body flex justify-around flex-wrap">
-      <Transition name="fade">
+      <TransitionGroup
+        enter-active-class="animate__animated animate__zoomIn"
+        leave-active-class="animate__animated animate__zoomOut"
+        mode="out-in"
+      >
         <input
           type="text"
           :placeholder="selectedMovieType === pushType.BILIBILI ? '视频Url或bv号' : '影片Url'"
@@ -339,8 +343,6 @@ const getBiliBiliVendors = async () => {
           v-if="!(newMovieInfo.live && newMovieInfo.rtmpSource)"
           v-model="newMovieInfo.url"
         />
-      </Transition>
-      <Transition name="fade">
         <input
           type="text"
           placeholder="影片名称"
@@ -348,7 +350,7 @@ const getBiliBiliVendors = async () => {
           v-if="selectedMovieType !== pushType.BILIBILI"
           v-model="newMovieInfo.name"
         />
-      </Transition>
+      </TransitionGroup>
     </div>
     <div class="mx-5" v-if="!newMovieInfo.vendorInfo?.vendor">
       <el-collapse @change="" class="bg-transparent" style="background: #aaa0 !important">

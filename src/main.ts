@@ -3,6 +3,7 @@ import "./assets/global.less";
 import "./assets/animation.less";
 import "element-plus/dist/index.css";
 import "element-plus/theme-chalk/dark/css-vars.css";
+import "animate.css";
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 
