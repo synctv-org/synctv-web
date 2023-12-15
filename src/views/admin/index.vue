@@ -9,6 +9,7 @@ import type { settingGroupName } from "@/hooks/useSettings";
 import UserManager from "./settings/UserManager.vue";
 import RoomsManager from "./settings/RoomsManager.vue";
 import SiteSetting from "./settings/SiteSetting.vue";
+import VendorManager from "./settings/VendorManager.vue";
 
 const { info: userInfo } = userStore();
 const room = roomStore();
@@ -31,6 +32,11 @@ const tabs: Tabs[] = [
     name: "房间管理",
     icon: "🏡",
     component: RoomsManager
+  },
+  {
+    name: "视频解析管理",
+    icon: "🎞️",
+    component: VendorManager
   },
   {
     name: "房间设置",

@@ -1,6 +1,7 @@
 import { useDefineApi } from "@/stores/useDefineApi";
 import type { RoomList } from "@/types/Room";
 import type { ROLE } from "@/types/User";
+import type { Vendors, Response as VendorResponse } from "@/types/Vendor";
 
 // 获取房间设置
 export const roomSettings = useDefineApi<
@@ -344,4 +345,60 @@ export const assignSettingApi = useDefineApi<
   Record<string, Record<string, any>>
 >({
   method: "GET"
+});
+
+// 视频解析管理相关 Vendor后端
+// 查
+export const getVendorsListApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+  },
+  VendorResponse
+>({
+  url: "/api/admin/vendors",
+  method: "GET"
+});
+// 增
+export const addVendorApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: Vendors;
+  },
+  null
+>({
+  url: "/api/admin/vendors",
+  method: "POST"
+});
+// 改
+export const editVendorApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: Vendors;
+  },
+  null
+>({
+  url: "/api/admin/vendors",
+  method: "PUT"
+});
+
+// 删除
+export const deleteVendorApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      endpoints: string[];
+    };
+  },
+  null
+>({
+  url: "/api/admin/vendors",
+  method: "DELETE"
 });
