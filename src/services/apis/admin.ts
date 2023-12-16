@@ -356,16 +356,14 @@ export const getVendorsListApi = useDefineApi<
     };
   },
   {
-    info: {
-      backend: Backend;
-      usedBy: {
-        bilibili: boolean;
-        bilibiliBackendName: string;
-        alist: boolean;
-        alistBackendName: string;
-        emby: boolean;
-        embyBackendName: string;
-      };
+    backend: Backend;
+    usedBy: {
+      bilibili: boolean;
+      bilibiliBackendName: string;
+      alist: boolean;
+      alistBackendName: string;
+      emby: boolean;
+      embyBackendName: string;
     };
     status: number;
   }[]

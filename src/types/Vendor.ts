@@ -14,7 +14,6 @@ export interface Backend {
 interface Consul {
   serverName?: string;
   token?: string;
-  tokenFile?: string;
   pathPrefix?: string;
   namespace?: string;
   partition?: string;

@@ -9,47 +9,68 @@ import {
   deleteVendorApi
 } from "@/services/apis/admin";
 
-import type { Vendors } from "@/types/Vendor";
+import type { Backend } from "@/types/Vendor";
 
 const { token } = userStore();
 
-const fetch = async (apiMethod: typeof addVendorApi, data: Vendors) => {
-  const { execute, state } = apiMethod();
-  try {
-    await execute({
-      headers: {
-        Authorization: token.value
-      },
-      data
-    });
-    return state;
-  } catch (err: any) {
-    ElNotification({
-      title: "错误",
-      message: err.response ? err.response.data.error : err.message,
-      type: "error"
-    });
-  }
+const errorCatch = (err: any) => {
+  ElNotification({
+    title: "错误",
+    message: err.response ? err.response.data.error : err.message,
+    type: "error"
+  });
 };
 
 export const useVendorApi = () => {
-  const addVendor = async (config: Vendors) => {
-    const res = await fetch(addVendorApi, config);
-    return res;
+  const addVendor = async (config: Backend) => {
+    const { execute, state } = addVendorApi();
+    try {
+      await execute({
+        headers: {
+          Authorization: token.value
+        },
+        data: config
+      });
+    } catch (err) {
+      errorCatch(err);
+    }
+    return state;
   };
 
-  const editVendor = async (config: Vendors) => {
-    const res = await fetch(editVendorApi, config);
-    return res;
+  const editVendor = async (config: Backend) => {
+    const { execute, state } = editVendorApi();
+    try {
+      await execute({
+        headers: {
+          Authorization: token.value
+        },
+        data: config
+      });
+    } catch (err) {
+      errorCatch(err);
+    }
+    return state;
   };
 
-  const deleteVendor = async (config: Vendors) => {
-    const res = await fetch(deleteVendorApi, config);
-    return res;
+  const deleteVendor = async (endpoints: string[]) => {
+    const { execute, state } = deleteVendorApi();
+    try {
+      await execute({
+        headers: {
+          Authorization: token.value
+        },
+        data: {
+          endpoints: []
+        }
+      });
+    } catch (err) {
+      errorCatch(err);
+    }
+    return state;
   };
 
+  const { execute, state: vendorsListState } = getVendorsListApi();
   const getVendorsList = async () => {
-    const { execute, state } = getVendorsListApi();
     try {
       await execute({
         headers: {
@@ -57,19 +78,16 @@ export const useVendorApi = () => {
         }
       });
     } catch (err: any) {
-      ElNotification({
-        title: "错误",
-        message: err.response ? err.response.data.error : err.message,
-        type: "error"
-      });
+      errorCatch(err);
     }
-    return state;
+    return vendorsListState;
   };
 
   return {
     addVendor,
     editVendor,
     deleteVendor,
-    getVendorsList
+    getVendorsList,
+    vendorsListState
   };
 };
