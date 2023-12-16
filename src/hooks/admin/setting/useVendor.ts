@@ -60,7 +60,7 @@ export const useVendorApi = () => {
           Authorization: token.value
         },
         data: {
-          endpoints: []
+          endpoints
         }
       });
     } catch (err) {

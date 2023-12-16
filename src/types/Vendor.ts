@@ -9,6 +9,14 @@ export interface Backend {
     consul?: Consul;
     etcd?: Etcd;
   };
+  usedBy?: {
+    bilibili?: boolean;
+    bilibiliBackendName?: string;
+    alist?: boolean;
+    alistBackendName?: string;
+    emby?: boolean;
+    embyBackendName?: string;
+  };
 }
 
 interface Consul {
