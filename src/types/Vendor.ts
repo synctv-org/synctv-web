@@ -1,10 +1,4 @@
-export interface Base {
-  backend: {
-    endpoint: string;
-  };
-}
-
-interface Backend extends Base {
+export interface Backend {
   backend: {
     endpoint: string;
     comment?: string;
@@ -31,21 +25,3 @@ interface Etcd {
   username?: string;
   password?: string;
 }
-
-export type Vendors = Base | Backend | null;
-
-export interface Response {
-  info: {
-    backend: Backend;
-    usedBy: {
-      bilibili: boolean;
-      bilibiliBackendName: string;
-      alist: boolean;
-      alistBackendName: string;
-      emby: boolean;
-      embyBackendName: string;
-    };
-  };
-  status: number;
-}
-[];

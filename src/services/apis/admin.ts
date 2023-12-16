@@ -1,7 +1,7 @@
 import { useDefineApi } from "@/stores/useDefineApi";
 import type { RoomList } from "@/types/Room";
 import type { ROLE } from "@/types/User";
-import type { Vendors, Response as VendorResponse } from "@/types/Vendor";
+import type { Backend } from "@/types/Vendor";
 
 // 获取房间设置
 export const roomSettings = useDefineApi<
@@ -355,7 +355,20 @@ export const getVendorsListApi = useDefineApi<
       Authorization: string;
     };
   },
-  VendorResponse
+  {
+    info: {
+      backend: Backend;
+      usedBy: {
+        bilibili: boolean;
+        bilibiliBackendName: string;
+        alist: boolean;
+        alistBackendName: string;
+        emby: boolean;
+        embyBackendName: string;
+      };
+    };
+    status: number;
+  }[]
 >({
   url: "/api/admin/vendors",
   method: "GET"
@@ -366,7 +379,7 @@ export const addVendorApi = useDefineApi<
     headers: {
       Authorization: string;
     };
-    data: Vendors;
+    data: Backend;
   },
   null
 >({
@@ -379,7 +392,7 @@ export const editVendorApi = useDefineApi<
     headers: {
       Authorization: string;
     };
-    data: Vendors;
+    data: Backend;
   },
   null
 >({
