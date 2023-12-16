@@ -14,11 +14,13 @@ export default defineConfig({
     host: true,
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:8088",
+        target: env.VITE_SERVER_TARGET || "http://127.0.0.1:8088",
+        changeOrigin: true,
         ws: true
       },
       "/oauth2": {
-        target: "http://127.0.0.1:8088",
+        target: env.VITE_SERVER_TARGE || "http://127.0.0.1:8088",
+        changeOrigin: true,
         ws: false
       }
     }
