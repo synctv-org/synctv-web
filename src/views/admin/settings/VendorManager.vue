@@ -317,21 +317,3 @@ onMounted(() => {
     </template>
   </el-dialog>
 </template>
-
-<style scoped lang="less">
-@media screen and (max-width: 500px) {
-  .el-dialog /deep/ .el-dialog__wrapper {
-    width: 300px !important;
-    .el-dialog__body {
-      padding: 10px 20px !important;
-      .el-form-item__label {
-        width: 68px !important;
-      }
-      .el-select,
-      .el-input {
-        width: 180px !important;
-      }
-    }
-  }
-}
-</style>
