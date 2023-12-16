@@ -231,7 +231,11 @@ onMounted(() => {
     <div class="card-footer flex flex-wrap justify-between overflow-hidden"></div>
   </div>
 
-  <el-dialog class="el-dialog" v-model="dialog.visible" title="配置解析器">
+  <el-dialog
+    class="el-dialog rounded-lg dark:bg-zinc-800 w-2/6 max-sm:w-full"
+    v-model="dialog.visible"
+    title="配置解析器"
+  >
     <el-form :model="dialog.data" :rules="dialog.rules" label-width="120px">
       <el-form-item label="节点" prop="endpoint">
         <el-input :disabled="dialog.dialog !== 'new'" v-model="dialog.data.backend.endpoint" />
@@ -315,9 +319,19 @@ onMounted(() => {
 </template>
 
 <style scoped lang="less">
-@media screen and (min-width: 220px) and (max-width: 600px) {
-  .el-dialog {
-    width: 90% !important;
+@media screen and (max-width: 500px) {
+  .el-dialog /deep/ .el-dialog__wrapper {
+    width: 300px !important;
+    .el-dialog__body {
+      padding: 10px 20px !important;
+      .el-form-item__label {
+        width: 68px !important;
+      }
+      .el-select,
+      .el-input {
+        width: 180px !important;
+      }
+    }
   }
 }
 </style>
