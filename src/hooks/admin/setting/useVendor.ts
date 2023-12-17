@@ -1,7 +1,6 @@
+import { ref } from "vue";
 import { ElNotification } from "element-plus";
-
 import { userStore } from "@/stores/user";
-
 import {
   getVendorsListApi,
   addVendorApi,
@@ -69,13 +68,21 @@ export const useVendorApi = () => {
     return state;
   };
 
-  const { execute, state: vendorsListState } = getVendorsListApi();
+  const currentPage = ref(1);
+  const pageSize = ref(10);
+  const {
+    execute,
+    state: vendorsListState,
+    isLoading: getVendorsListLoading
+  } = getVendorsListApi();
   const getVendorsList = async () => {
     try {
       await execute({
         headers: {
           Authorization: token.value
-        }
+        },
+        page: currentPage.value,
+        max: pageSize.value
       });
     } catch (err: any) {
       errorCatch(err);
@@ -88,6 +95,9 @@ export const useVendorApi = () => {
     editVendor,
     deleteVendor,
     getVendorsList,
-    vendorsListState
+    vendorsListState,
+    getVendorsListLoading,
+    currentPage,
+    pageSize
   };
 };

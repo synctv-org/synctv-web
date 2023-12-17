@@ -2,16 +2,25 @@
 import { onMounted, ref, reactive } from "vue";
 import { useVendorApi } from "@/hooks/admin/setting/useVendor";
 import { getAppIcon } from "@/utils/index";
-
+import type { FormInstance } from "element-plus";
 import type { Backend } from "@/types/Vendor";
 
 const props = defineProps<{
   title: string;
 }>();
 
-const { vendorsListState, getVendorsList, addVendor, deleteVendor, editVendor } = useVendorApi();
+const {
+  vendorsListState,
+  getVendorsList,
+  getVendorsListLoading,
+  addVendor,
+  deleteVendor,
+  editVendor,
+  currentPage,
+  pageSize
+} = useVendorApi();
 
-const data = ref(vendorsListState);
+const formRef = ref<FormInstance>();
 
 const dialog = reactive<{
   visible: boolean;
@@ -167,16 +176,12 @@ onMounted(() => {
         <el-button class="max-xl:mt-3" type="primary" @click="dialog.openDialog('new')">
           添加解析器
         </el-button>
-
-        <el-button class="max-xl:mt-3" type="success" @click="getVendorsList()">
-          刷新列表
-        </el-button>
       </div>
     </div>
     <div class="card-body">
       <el-table
         :stripe="true"
-        :data="data"
+        :data="vendorsListState?.list"
         @selection-change="handleSelectionChange($event)"
         style="width: 100%"
         table-layout="fixed"
@@ -228,7 +233,22 @@ onMounted(() => {
         </el-table-column>
       </el-table>
     </div>
-    <div class="card-footer flex flex-wrap justify-between overflow-hidden"></div>
+    <div class="card-footer flex flex-wrap justify-between overflow-hidden">
+      <el-button type="success" @click="getVendorsList()" :loading="getVendorsListLoading"
+        >更新列表</el-button
+      >
+      <el-pagination
+        v-if="vendorsListState?.list?.length != 0"
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :pager-count="10"
+        layout="sizes, prev, pager, next, jumper"
+        :total="vendorsListState?.total"
+        @size-change="getVendorsList()"
+        @current-change="getVendorsList()"
+        class="flex-wrap"
+      />
+    </div>
   </div>
 
   <el-dialog
@@ -236,7 +256,7 @@ onMounted(() => {
     v-model="dialog.visible"
     title="配置解析器"
   >
-    <el-form :model="dialog.data" :rules="dialog.rules" label-width="120px">
+    <el-form ref="formRef" :model="dialog.data" :rules="dialog.rules" label-width="120px">
       <el-form-item label="节点" prop="endpoint">
         <el-input :disabled="dialog.dialog !== 'new'" v-model="dialog.data.backend.endpoint" />
       </el-form-item>

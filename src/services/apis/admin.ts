@@ -354,23 +354,29 @@ export const getVendorsListApi = useDefineApi<
     headers: {
       Authorization: string;
     };
+    page: number;
+    max: number;
   },
   {
-    backend: Backend;
-    usedBy: {
-      bilibili: boolean;
-      bilibiliBackendName: string;
-      alist: boolean;
-      alistBackendName: string;
-      emby: boolean;
-      embyBackendName: string;
-    };
-    status: number;
-  }[]
+    list: {
+      backend: Backend;
+      usedBy: {
+        bilibili: boolean;
+        bilibiliBackendName: string;
+        alist: boolean;
+        alistBackendName: string;
+        emby: boolean;
+        embyBackendName: string;
+      };
+      status: number;
+    }[];
+    total: number;
+  }
 >({
   url: "/api/admin/vendors",
   method: "GET"
 });
+
 // 增
 export const addVendorApi = useDefineApi<
   {
@@ -384,6 +390,7 @@ export const addVendorApi = useDefineApi<
   url: "/api/admin/vendors",
   method: "POST"
 });
+
 // 改
 export const editVendorApi = useDefineApi<
   {
