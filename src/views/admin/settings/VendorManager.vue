@@ -66,13 +66,13 @@ const dialog = reactive<{
     }
   },
   selections: [],
-  delete: (e: { info: { backend: { endpoint: string } } }[] | string) => {
+  delete: async (e: { info: { backend: { endpoint: string } } }[] | string) => {
     if (Array.isArray(e)) {
-      deleteVendor(e.map((item) => item.info.backend.endpoint));
+      await deleteVendor(e.map((item) => item.info.backend.endpoint));
     } else {
-      deleteVendor([e]);
+      await deleteVendor([e]);
     }
-    getVendorsList();
+    await getVendorsList();
   },
   openDialog: (type: "new" | "edit", data?: Backend) => {
     dialog.dialog = type;
@@ -89,11 +89,11 @@ const dialog = reactive<{
     dialog.data.backend.etcd = JSON.parse(JSON.stringify(dialog.defaultData.backend.etcd));
   },
   submit: async () => {
-    await formRef.value?.validate((valid, fields) => {
+    await formRef.value?.validate(async (valid, fields) => {
       if (valid) {
-        dialog.dialog === "new" ? addVendor(dialog.data) : editVendor(dialog.data);
+        dialog.dialog === "new" ? await addVendor(dialog.data) : await editVendor(dialog.data);
         dialog.closeDialog();
-        getVendorsList(true);
+        await getVendorsList(true);
       }
     });
   },
@@ -158,8 +158,8 @@ const statusList = {
   }
 };
 
-onMounted(() => {
-  getVendorsList();
+onMounted(async () => {
+  await getVendorsList();
 });
 </script>
 
