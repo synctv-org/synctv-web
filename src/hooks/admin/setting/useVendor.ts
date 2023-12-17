@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import { ElNotification } from "element-plus";
+import { ElNotification, ElMessage } from "element-plus";
 import { userStore } from "@/stores/user";
 import {
   getVendorsListApi,
@@ -51,7 +51,7 @@ export const useVendorApi = () => {
     return state;
   };
 
-  const deleteVendor = async (endpoints: string[]) => {
+  const deleteVendor = async (endpoints: string[], showMsg = false) => {
     const { execute, state } = deleteVendorApi();
     try {
       await execute({
@@ -62,6 +62,7 @@ export const useVendorApi = () => {
           endpoints
         }
       });
+      showMsg && ElMessage.success("删除成功");
     } catch (err) {
       errorCatch(err);
     }
@@ -85,11 +86,7 @@ export const useVendorApi = () => {
         max: pageSize.value
       });
       if (vendorsListState.value) {
-        showMsg &&
-          ElNotification({
-            title: "更新成功",
-            type: "success"
-          });
+        showMsg && ElMessage.success("更新成功");
       }
     } catch (err: any) {
       errorCatch(err);
