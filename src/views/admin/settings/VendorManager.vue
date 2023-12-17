@@ -77,29 +77,30 @@ const dialog = reactive<{
   openDialog: (type: "new" | "edit", data?: Backend) => {
     dialog.dialog = type;
     dialog.data = data ? data : JSON.parse(JSON.stringify(dialog.defaultData));
+    formRef.value?.resetFields();
     dialog.visible = true;
   },
   closeDialog: () => {
     dialog.visible = false;
     dialog.data = JSON.parse(JSON.stringify(dialog.defaultData));
-    getVendorsList();
   },
   change: () => {
     dialog.data.backend.consul = JSON.parse(JSON.stringify(dialog.defaultData.backend.consul));
     dialog.data.backend.etcd = JSON.parse(JSON.stringify(dialog.defaultData.backend.etcd));
   },
-  submit: () => {
-    if (dialog.dialog === "new") {
-      addVendor(dialog.data);
-      dialog.closeDialog();
-    }
-    if (dialog.dialog === "edit") {
-      editVendor(dialog.data);
-      dialog.closeDialog();
-    }
+  submit: async () => {
+    await formRef.value?.validate((valid, fields) => {
+      if (valid) {
+        dialog.dialog === "new" ? addVendor(dialog.data) : editVendor(dialog.data);
+        dialog.closeDialog();
+        getVendorsList(true);
+      }
+    });
   },
   rules: {
-    endpoint: [{ required: true, message: "请输入后端地址" }]
+    backend: {
+      endpoint: [{ required: true, message: "请输入后端地址", trigger: "blur" }]
+    }
   },
   defaultData: {
     backend: {
@@ -218,7 +219,7 @@ onMounted(() => {
 
         <el-table-column prop="info.backend.endpoint" label="操作">
           <template #default="scope">
-            <el-button type="primary" link @click="dialog.openDialog('edit', scope.row.info)"
+            <el-button type="primary" @click="dialog.openDialog('edit', scope.row.info)"
               >编辑</el-button
             >
             <el-popconfirm
@@ -226,7 +227,7 @@ onMounted(() => {
               @confirm="dialog.delete(scope.row.info.backend.endpoint)"
             >
               <template #reference>
-                <el-button type="danger" link>删除</el-button>
+                <el-button type="danger">删除</el-button>
               </template>
             </el-popconfirm>
           </template>
@@ -234,7 +235,7 @@ onMounted(() => {
       </el-table>
     </div>
     <div class="card-footer flex flex-wrap justify-between overflow-hidden">
-      <el-button type="success" @click="getVendorsList()" :loading="getVendorsListLoading"
+      <el-button type="success" @click="getVendorsList(true)" :loading="getVendorsListLoading"
         >更新列表</el-button
       >
       <el-pagination
@@ -257,7 +258,7 @@ onMounted(() => {
     title="配置解析器"
   >
     <el-form ref="formRef" :model="dialog.data" :rules="dialog.rules" label-width="120px">
-      <el-form-item label="节点" prop="endpoint">
+      <el-form-item label="节点" prop="backend.endpoint">
         <el-input :disabled="dialog.dialog !== 'new'" v-model="dialog.data.backend.endpoint" />
       </el-form-item>
       <el-form-item label="备注">
@@ -330,10 +331,8 @@ onMounted(() => {
     </el-form>
 
     <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="dialog.closeDialog()">取消</el-button>
-        <el-button type="primary" @click="dialog.submit()"> 提交 </el-button>
-      </span>
+      <el-button @click="dialog.closeDialog()">取消</el-button>
+      <el-button type="primary" @click="dialog.submit()"> 提交 </el-button>
     </template>
   </el-dialog>
 </template>

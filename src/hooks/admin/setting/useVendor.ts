@@ -75,7 +75,7 @@ export const useVendorApi = () => {
     state: vendorsListState,
     isLoading: getVendorsListLoading
   } = getVendorsListApi();
-  const getVendorsList = async () => {
+  const getVendorsList = async (showMsg = false) => {
     try {
       await execute({
         headers: {
@@ -84,10 +84,16 @@ export const useVendorApi = () => {
         page: currentPage.value,
         max: pageSize.value
       });
+      if (vendorsListState.value) {
+        showMsg &&
+          ElNotification({
+            title: "更新成功",
+            type: "success"
+          });
+      }
     } catch (err: any) {
       errorCatch(err);
     }
-    return vendorsListState;
   };
 
   return {
