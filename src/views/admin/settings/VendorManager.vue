@@ -1,166 +1,16 @@
 <script setup lang="ts">
-import { onMounted, ref, reactive } from "vue";
-import { useVendorApi } from "@/hooks/admin/setting/useVendor";
+import { onMounted } from "vue";
+import { useVendorApi, dialog, statusList } from "@/hooks/admin/setting/useVendor";
 import { getAppIcon } from "@/utils/index";
-import type { FormInstance } from "element-plus";
-import type { Backend } from "@/types/Vendor";
+
+import Dialog from "@/components/admin/dialogs/editVendor.vue";
 
 const props = defineProps<{
   title: string;
 }>();
 
-const {
-  vendorsListState,
-  getVendorsList,
-  getVendorsListLoading,
-  addVendor,
-  deleteVendor,
-  editVendor,
-  currentPage,
-  pageSize
-} = useVendorApi();
-
-const formRef = ref<FormInstance>();
-
-const dialog = reactive<{
-  visible: boolean;
-  dialog: string;
-  mode: "consul" | "etcd" | "none";
-  data: Backend;
-  openDialog: (type: "new" | "edit", data?: Backend) => void;
-  closeDialog: () => void;
-  change: () => void;
-  submit: () => void;
-  delete: (e: { info: { backend: { endpoint: string } } }[] | string) => void;
-  rules: any;
-  defaultData: Backend;
-  selections: { info: { backend: { endpoint: string } } }[];
-}>({
-  visible: false,
-  mode: "none",
-  dialog: "",
-  data: {
-    backend: {
-      endpoint: "",
-      comment: "",
-      tls: false,
-      jwtSecret: "",
-      customCA: "",
-      timeOut: "",
-      consul: {
-        serverName: "",
-        token: "",
-        pathPrefix: "",
-        namespace: "",
-        partition: ""
-      },
-      etcd: { serverName: "", username: "", password: "" }
-    },
-    usedBy: {
-      bilibili: false,
-      bilibiliBackendName: "",
-      alist: false,
-      alistBackendName: "",
-      emby: false,
-      embyBackendName: ""
-    }
-  },
-  selections: [],
-  delete: async (e: { info: { backend: { endpoint: string } } }[] | string) => {
-    if (Array.isArray(e)) {
-      await deleteVendor(
-        e.map((item) => item.info.backend.endpoint),
-        true
-      );
-    } else {
-      await deleteVendor([e], true);
-    }
-    await getVendorsList();
-  },
-  openDialog: (type: "new" | "edit", data?: Backend) => {
-    dialog.dialog = type;
-    dialog.data = data ? data : JSON.parse(JSON.stringify(dialog.defaultData));
-    formRef.value?.resetFields();
-    dialog.visible = true;
-  },
-  closeDialog: () => {
-    dialog.visible = false;
-    dialog.data = JSON.parse(JSON.stringify(dialog.defaultData));
-  },
-  change: () => {
-    dialog.data.backend.consul = JSON.parse(JSON.stringify(dialog.defaultData.backend.consul));
-    dialog.data.backend.etcd = JSON.parse(JSON.stringify(dialog.defaultData.backend.etcd));
-  },
-  submit: async () => {
-    await formRef.value?.validate(async (valid, fields) => {
-      if (valid) {
-        const isAddMode = dialog.dialog === "new";
-        isAddMode ? await addVendor(dialog.data) : await editVendor(dialog.data);
-        dialog.closeDialog();
-        await getVendorsList(!isAddMode);
-      }
-    });
-  },
-  rules: {
-    backend: {
-      endpoint: [{ required: true, message: "请输入后端地址", trigger: "blur" }]
-    }
-  },
-  defaultData: {
-    backend: {
-      endpoint: "",
-      comment: "",
-      tls: false,
-      jwtSecret: "",
-      customCA: "",
-      timeOut: "",
-      consul: {
-        serverName: "",
-        token: "",
-        pathPrefix: "",
-        namespace: "",
-        partition: ""
-      },
-      etcd: { serverName: "", username: "", password: "" }
-    },
-    usedBy: {
-      bilibili: false,
-      bilibiliBackendName: "",
-      alist: false,
-      alistBackendName: "",
-      emby: false,
-      embyBackendName: ""
-    }
-  }
-});
-
-const handleSelectionChange = (e: { info: { backend: { endpoint: string } } }[]) => {
-  // console.log(e[0].info.backend.endpoint);
-  dialog.selections = e;
-};
-
-const statusList = {
-  0: {
-    type: "",
-    name: "空闲"
-  },
-  1: {
-    type: "warning",
-    name: "连接中"
-  },
-  2: {
-    type: "success",
-    name: "就绪"
-  },
-  3: {
-    type: "danger",
-    name: "瞬时故障"
-  },
-  4: {
-    type: "info",
-    name: "关闭"
-  }
-};
+const { vendorsListState, getVendorsList, getVendorsListLoading, currentPage, pageSize } =
+  useVendorApi();
 
 onMounted(async () => {
   await getVendorsList();
@@ -193,7 +43,7 @@ onMounted(async () => {
       <el-table
         :stripe="true"
         :data="vendorsListState?.list"
-        @selection-change="handleSelectionChange($event)"
+        @selection-change="dialog.handleSelectionChange($event)"
         style="width: 100%"
         table-layout="fixed"
       >
@@ -245,7 +95,7 @@ onMounted(async () => {
       </el-table>
     </div>
     <div class="card-footer flex flex-wrap justify-between overflow-hidden">
-      <el-button type="success" @click="getVendorsList(true)" :loading="getVendorsListLoading"
+      <el-button type="success" @click="getVendorsList()" :loading="getVendorsListLoading"
         >更新列表</el-button
       >
       <el-pagination
@@ -261,88 +111,5 @@ onMounted(async () => {
       />
     </div>
   </div>
-
-  <el-dialog
-    class="el-dialog rounded-lg dark:bg-zinc-800 w-2/6 max-sm:w-full"
-    v-model="dialog.visible"
-    title="配置解析器"
-  >
-    <el-form ref="formRef" :model="dialog.data" :rules="dialog.rules" label-width="120px">
-      <el-form-item label="节点" prop="backend.endpoint">
-        <el-input :disabled="dialog.dialog !== 'new'" v-model="dialog.data.backend.endpoint" />
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input v-model="dialog.data.backend.comment" />
-      </el-form-item>
-      <el-form-item label="TLS">
-        <el-switch v-model="dialog.data.backend.tls" />
-      </el-form-item>
-      <el-form-item label="JWT密钥">
-        <el-input v-model="dialog.data.backend.jwtSecret" />
-      </el-form-item>
-      <el-form-item label="超时时间">
-        <el-input v-model="dialog.data.backend.timeOut" />
-      </el-form-item>
-      <el-form-item label="服务发现" :change="dialog.change()">
-        <el-select v-model="dialog.mode" class="m-2" placeholder="Select">
-          <el-option value="none" label="none" />
-          <el-option value="consul" label="consul" />
-          <el-option value="etcd" label="etcd" />
-        </el-select>
-      </el-form-item>
-      <div v-if="dialog.mode === 'consul'">
-        <el-form-item label="服务名">
-          <el-input v-model="dialog.data.backend.consul!.serverName" />
-        </el-form-item>
-        <el-form-item label="token">
-          <el-input v-model="dialog.data.backend.consul!.token" />
-        </el-form-item>
-        <el-form-item label="Consul的路径前缀">
-          <el-input v-model="dialog.data.backend.consul!.pathPrefix" />
-        </el-form-item>
-        <el-form-item label="命名空间">
-          <el-input v-model="dialog.data.backend.consul!.namespace" />
-        </el-form-item>
-        <el-form-item label="分区">
-          <el-input v-model="dialog.data.backend.consul!.partition" />
-        </el-form-item>
-      </div>
-      <div v-if="dialog.mode === 'etcd'">
-        <el-form-item label="服务名">
-          <el-input v-model="dialog.data.backend.etcd!.serverName" />
-        </el-form-item>
-        <el-form-item label="用户名">
-          <el-input v-model="dialog.data.backend.etcd!.username" />
-        </el-form-item>
-        <el-form-item label="密码">
-          <el-input v-model="dialog.data.backend.etcd!.password" />
-        </el-form-item>
-      </div>
-      <el-form-item label="应用到Bilibili">
-        <el-switch v-model="dialog.data.usedBy!.bilibili" />
-      </el-form-item>
-      <el-form-item label="Bilibili服务名称">
-        <el-input v-model="dialog.data.usedBy!.bilibiliBackendName" />
-      </el-form-item>
-
-      <el-form-item label="应用到Alist">
-        <el-switch v-model="dialog.data.usedBy!.alist" />
-      </el-form-item>
-      <el-form-item label="Alist服务名称">
-        <el-input v-model="dialog.data.usedBy!.alistBackendName" />
-      </el-form-item>
-
-      <el-form-item label="应用到Emby">
-        <el-switch v-model="dialog.data.usedBy!.emby" />
-      </el-form-item>
-      <el-form-item label="Emby服务名称">
-        <el-input v-model="dialog.data.usedBy!.embyBackendName" />
-      </el-form-item>
-    </el-form>
-
-    <template #footer>
-      <el-button @click="dialog.closeDialog()">取消</el-button>
-      <el-button type="primary" @click="dialog.submit()"> 提交 </el-button>
-    </template>
-  </el-dialog>
+  <Dialog />
 </template>
