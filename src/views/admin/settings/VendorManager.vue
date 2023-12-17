@@ -68,9 +68,12 @@ const dialog = reactive<{
   selections: [],
   delete: async (e: { info: { backend: { endpoint: string } } }[] | string) => {
     if (Array.isArray(e)) {
-      await deleteVendor(e.map((item) => item.info.backend.endpoint));
+      await deleteVendor(
+        e.map((item) => item.info.backend.endpoint),
+        true
+      );
     } else {
-      await deleteVendor([e]);
+      await deleteVendor([e], true);
     }
     await getVendorsList();
   },
@@ -91,9 +94,10 @@ const dialog = reactive<{
   submit: async () => {
     await formRef.value?.validate(async (valid, fields) => {
       if (valid) {
-        dialog.dialog === "new" ? await addVendor(dialog.data) : await editVendor(dialog.data);
+        const isAddMode = dialog.dialog === "new";
+        isAddMode ? await addVendor(dialog.data) : await editVendor(dialog.data);
         dialog.closeDialog();
-        await getVendorsList(true);
+        await getVendorsList(!isAddMode);
       }
     });
   },
@@ -170,9 +174,15 @@ onMounted(async () => {
         {{ props.title }}
       </div>
       <div>
-        <el-button class="max-xl:mt-3" type="warning" @click="dialog.delete(dialog.selections)">
-          批量删除
-        </el-button>
+        <el-popconfirm
+          v-if="dialog.selections.length >= 2"
+          title="你确定要删除吗？"
+          @confirm="dialog.delete(dialog.selections)"
+        >
+          <template #reference>
+            <el-button class="max-xl:mt-3" type="warning"> 批量删除 </el-button>
+          </template>
+        </el-popconfirm>
 
         <el-button class="max-xl:mt-3" type="primary" @click="dialog.openDialog('new')">
           添加解析器
