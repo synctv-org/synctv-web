@@ -1,11 +1,12 @@
-import { ref, reactive } from "vue";
+import { ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import { userStore } from "@/stores/user";
 import {
   getVendorsListApi,
   addVendorApi,
   editVendorApi,
-  deleteVendorApi
+  deleteVendorApi,
+  reconnectVendorApi
 } from "@/services/apis/admin";
 import type { Backend } from "@/types/Vendor";
 
@@ -99,6 +100,35 @@ export const useVendorApi = () => {
     return state;
   };
 
+  const reconnectVendor = async (endpoints: string[], showMsg = false) => {
+    const { execute } = reconnectVendorApi();
+    try {
+      showMsg && ElMessage.info("正在尝试重新连接");
+      await execute({
+        headers: {
+          Authorization: token.value
+        },
+        data: {
+          endpoints
+        }
+      });
+    } catch (err) {
+      errorCatch(err);
+    }
+  };
+
+  const batchReconnect = async (e: { info: { backend: { endpoint: string } } }[] | string) => {
+    if (Array.isArray(e)) {
+      await reconnectVendor(
+        e.map((item) => item.info.backend.endpoint),
+        true
+      );
+    } else {
+      await reconnectVendor([e], true);
+    }
+    await getVendorsList();
+  };
+
   const batchDelete = async (e: { info: { backend: { endpoint: string } } }[] | string) => {
     if (Array.isArray(e)) {
       await deleteVendor(
@@ -141,6 +171,8 @@ export const useVendorApi = () => {
     editVendor,
     deleteVendor,
     getVendorsList,
+    reconnectVendor,
+    batchReconnect,
     vendorsListState,
     getVendorsListLoading,
     currentPage,

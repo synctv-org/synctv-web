@@ -420,3 +420,19 @@ export const deleteVendorApi = useDefineApi<
   url: "/api/admin/vendors",
   method: "DELETE"
 });
+
+// 重连
+export const reconnectVendorApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      endpoints: string[];
+    };
+  },
+  null
+>({
+  url: "/api/admin/vendors/reconnect",
+  method: "POST"
+});

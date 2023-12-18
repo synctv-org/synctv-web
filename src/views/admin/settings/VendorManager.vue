@@ -3,6 +3,7 @@ import { ref, onMounted } from "vue";
 import { useVendorApi, statusList } from "@/hooks/admin/setting/useVendor";
 import { getAppIcon } from "@/utils/index";
 import VendorEditor from "@/components/admin/dialogs/editVendor.vue";
+import { RefreshRight } from "@element-plus/icons-vue";
 
 const props = defineProps<{
   title: string;
@@ -16,7 +17,8 @@ const {
   currentPage,
   pageSize,
   selections,
-  batchDelete
+  batchDelete,
+  batchReconnect
 } = useVendorApi();
 
 const handleSelectionChange = (e: { info: { backend: { endpoint: string } } }[]) => {
@@ -44,6 +46,15 @@ onMounted(async () => {
             <el-button class="max-xl:mt-3" type="warning" @click=""> 批量删除 </el-button>
           </template>
         </el-popconfirm>
+
+        <el-button
+          v-if="selections.length >= 2"
+          class="max-xl:mt-3"
+          type="primary"
+          @click="batchReconnect(selections)"
+        >
+          批量重连
+        </el-button>
 
         <el-button
           class="max-xl:mt-3"
@@ -89,6 +100,16 @@ onMounted(async () => {
               statusList[scope.row.status as 0 | 1 | 2 | 3 | 4].name
             }}</el-tag>
             <el-tag v-else type="info">无效状态</el-tag>
+            <el-tooltip v-if="scope.row.status > 0">
+              <template #content>重新连接</template>
+              <el-button
+                class="ml-2"
+                :icon="RefreshRight"
+                size="small"
+                circle
+                @click="batchReconnect(scope.row.info.backend.endpoint)"
+              />
+            </el-tooltip>
           </template>
         </el-table-column>
 
