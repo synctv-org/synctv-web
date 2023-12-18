@@ -11,7 +11,12 @@ onBeforeUnmount(() => {
   watchers.forEach((watcher) => watcher());
 });
 
+// TODO: artplayer v5.1.x
+// Artplayer.USE_RAF = true;
+
 Artplayer.DBCLICK_FULLSCREEN = false;
+Artplayer.SEEK_STEP = 5;
+Artplayer.PLAYBACK_RATE = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4, 5];
 
 let art: Artplayer;
 
@@ -201,6 +206,7 @@ const newPlayerOption = (html: HTMLDivElement): Option => {
 const father = ref<HTMLDivElement>();
 
 const mountPlayer = () => {
+  if (art) art.destroy();
   const newDiv = document.createElement("div");
   newDiv.setAttribute("class", "artplayer-app");
   while (father.value!.firstChild) {
@@ -209,6 +215,31 @@ const mountPlayer = () => {
   father.value!.appendChild(newDiv);
   art = new Artplayer(newPlayerOption(newDiv));
   Emits("get-instance", art);
+  addKeyEvnet(art);
+};
+
+// 左右键快进快退
+const addKeyEvnet = (art: Artplayer) => {
+  const event = (e: KeyboardEvent) => {
+    if (document.activeElement !== document.body && document.activeElement) return;
+    if (e.key === "ArrowLeft") {
+      art.seek = art.currentTime - Artplayer.SEEK_STEP;
+    } else if (e.key === "ArrowRight") {
+      art.seek = art.currentTime + Artplayer.SEEK_STEP;
+    }
+  };
+  art.once("ready", () => {
+    window.addEventListener("keydown", event);
+    art.once("destroy", () => {
+      window.removeEventListener("keydown", event);
+    });
+    art.on("blur", () => {
+      window.addEventListener("keydown", event);
+    });
+    art.on("focus", () => {
+      window.removeEventListener("keydown", event);
+    });
+  });
 };
 
 onMounted(() => {
@@ -219,7 +250,6 @@ onMounted(() => {
       () => Props.options,
       () => {
         console.log("destroy");
-        if (art) art.destroy();
         mountPlayer();
       }
     )
