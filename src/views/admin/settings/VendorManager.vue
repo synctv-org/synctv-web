@@ -99,7 +99,7 @@ onMounted(async () => {
             >
             <el-popconfirm
               title="你确定要删除吗？"
-              @confirm="delete scope.row.info.backend.endpoint"
+              @confirm="batchDelete(scope.row.info.backend.endpoint)"
             >
               <template #reference>
                 <el-button type="danger">删除</el-button>
