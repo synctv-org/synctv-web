@@ -1,16 +1,27 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { useVendorApi, dialog, statusList } from "@/hooks/admin/setting/useVendor";
+import { ref, onMounted } from "vue";
+import { useVendorApi, statusList } from "@/hooks/admin/setting/useVendor";
 import { getAppIcon } from "@/utils/index";
-
-import Dialog from "@/components/admin/dialogs/editVendor.vue";
+import VendorEditor from "@/components/admin/dialogs/editVendor.vue";
 
 const props = defineProps<{
   title: string;
 }>();
+const vendorEditorDialog = ref<InstanceType<typeof VendorEditor>>();
 
-const { vendorsListState, getVendorsList, getVendorsListLoading, currentPage, pageSize } =
-  useVendorApi();
+const {
+  vendorsListState,
+  getVendorsList,
+  getVendorsListLoading,
+  currentPage,
+  pageSize,
+  selections,
+  batchDelete
+} = useVendorApi();
+
+const handleSelectionChange = (e: { info: { backend: { endpoint: string } } }[]) => {
+  selections.value = e;
+};
 
 onMounted(async () => {
   await getVendorsList();
@@ -25,16 +36,20 @@ onMounted(async () => {
       </div>
       <div>
         <el-popconfirm
-          v-if="dialog.selections.length >= 2"
+          v-if="selections.length >= 2"
           title="你确定要删除吗？"
-          @confirm="dialog.delete(dialog.selections)"
+          @confirm="batchDelete(selections)"
         >
           <template #reference>
-            <el-button class="max-xl:mt-3" type="warning"> 批量删除 </el-button>
+            <el-button class="max-xl:mt-3" type="warning" @click=""> 批量删除 </el-button>
           </template>
         </el-popconfirm>
 
-        <el-button class="max-xl:mt-3" type="primary" @click="dialog.openDialog('new')">
+        <el-button
+          class="max-xl:mt-3"
+          type="primary"
+          @click="vendorEditorDialog?.openDialog(false)"
+        >
           添加解析器
         </el-button>
       </div>
@@ -43,7 +58,7 @@ onMounted(async () => {
       <el-table
         :stripe="true"
         :data="vendorsListState?.list"
-        @selection-change="dialog.handleSelectionChange($event)"
+        @selection-change="handleSelectionChange($event)"
         style="width: 100%"
         table-layout="fixed"
       >
@@ -79,12 +94,12 @@ onMounted(async () => {
 
         <el-table-column prop="info.backend.endpoint" label="操作">
           <template #default="scope">
-            <el-button type="primary" @click="dialog.openDialog('edit', scope.row.info)"
+            <el-button type="primary" @click="vendorEditorDialog?.openDialog(true, scope.row.info)"
               >编辑</el-button
             >
             <el-popconfirm
               title="你确定要删除吗？"
-              @confirm="dialog.delete(scope.row.info.backend.endpoint)"
+              @confirm="delete scope.row.info.backend.endpoint"
             >
               <template #reference>
                 <el-button type="danger">删除</el-button>
@@ -111,5 +126,5 @@ onMounted(async () => {
       />
     </div>
   </div>
-  <Dialog />
+  <VendorEditor ref="vendorEditorDialog" @update-vendor-list="getVendorsList(true)" />
 </template>
