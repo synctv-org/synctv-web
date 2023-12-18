@@ -131,11 +131,11 @@ const submit = async () => {
             proxy: item.proxy,
             vendorInfo: {
               vendor: "bilibili",
-              shared: item.shared,
               bilibili: {
                 bvid: item.bvid,
                 cid: item.cid,
-                epid: item.epid
+                epid: item.epid,
+                shared: item.shared
               },
               backend: Props.vendor
             }

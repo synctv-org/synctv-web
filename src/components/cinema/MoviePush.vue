@@ -204,8 +204,9 @@ const selectPushType = () => {
         headers: {},
         vendorInfo: {
           vendor: "bilibili",
-          shared: true,
-          bilibili: {}
+          bilibili: {
+            shared: false
+          }
         }
       };
       break;

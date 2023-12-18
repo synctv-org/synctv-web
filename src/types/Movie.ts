@@ -27,7 +27,6 @@ export interface BaseMovieInfo {
 
 export interface VendorInfo {
   vendor: string;
-  shared: boolean;
   bilibili?: BilibiliVendorInfo;
   backend?: string;
 }
@@ -37,6 +36,7 @@ export interface BilibiliVendorInfo {
   cid?: number;
   epid?: number;
   quality?: number;
+  shared: boolean;
 }
 
 export interface EditMovieInfo extends BaseMovieInfo {
