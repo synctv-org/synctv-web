@@ -96,6 +96,11 @@ const confirmClear = async () => {
               class="inline leading-3 w-4"
               src="/src/assets/appIcons/alist.svg"
             />
+            <img
+              v-else-if="item.base?.vendorInfo?.vendor === 'emby'"
+              class="inline leading-3 w-4"
+              src="/src/assets/appIcons/emby.svg"
+            />
             {{ item.base!.name }}
             <button
               v-if="item.base!.rtmpSource"
