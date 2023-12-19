@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import Artplayer from "artplayer";
 import type { Option } from "artplayer/types/option";
-import { onMounted, onBeforeUnmount, ref, watch, computed } from "vue";
+import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import type { PropType, WatchStopHandle } from "vue";
-import { newSubtitle } from "@/plugins/subtitle";
 
 const watchers: WatchStopHandle[] = [];
 
@@ -16,7 +15,7 @@ onBeforeUnmount(() => {
 
 Artplayer.DBCLICK_FULLSCREEN = false;
 Artplayer.SEEK_STEP = 5;
-Artplayer.PLAYBACK_RATE = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4, 5];
+Artplayer.PLAYBACK_RATE = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4, 5].reverse();
 
 let art: Artplayer;
 
@@ -24,9 +23,8 @@ export interface options {
   url: string;
   isLive: boolean;
   type?: string;
-  headers: { [key: string]: string };
+  headers: Record<string, string>;
   plugins: ((art: Artplayer) => unknown)[];
-  subtitles?: { [key: string]: { type: string; url: string } };
 }
 
 const Props = defineProps({
@@ -45,7 +43,7 @@ const playMpd = (player: HTMLMediaElement, url: string, art: any) => {
       const d = dash.newDash();
       d.initialize(player, url, false);
       art.dash = d;
-      art.on("destroy", () => d.destroy());
+      art.on("destroy", d.destroy);
     } else {
       art.notice.show = "Unsupported playback format: mpd";
     }
@@ -181,6 +179,10 @@ const newPlayerOption = (html: HTMLDivElement): Option => {
     airplay: false, // 隔空播放
     type: Props.options.type,
     plugins: Props.options.plugins,
+    subtitle: {
+      encoding: "utf-8",
+      escape: true
+    },
     customType: {
       flv: playFlv,
       m3u8: playM3u8,
@@ -189,24 +191,20 @@ const newPlayerOption = (html: HTMLDivElement): Option => {
       ts: playMpegts,
       m2ts: playM2ts,
       m2t: playM2ts,
-      mts: playM2ts
+      mts: playM2ts,
+      mpegts: playMpegts
     }
   };
-  if (Props.options.subtitles) {
-    opts.subtitle = {
-      type: Props.options.subtitles[Object.keys(Props.options.subtitles)[0]].type,
-      encoding: "utf-8",
-      escape: true
-    };
-    opts.plugins!.push(newSubtitle(Props.options.subtitles));
-  }
   return opts;
 };
 
 const father = ref<HTMLDivElement>();
 
 const mountPlayer = () => {
-  if (art) art.destroy();
+  if (art) {
+    console.log("player destroy");
+    art.destroy();
+  }
   const newDiv = document.createElement("div");
   newDiv.setAttribute("class", "artplayer-app");
   while (father.value!.firstChild) {
@@ -228,9 +226,9 @@ const addKeyEvnet = (art: Artplayer) => {
       art.seek = art.currentTime + Artplayer.SEEK_STEP;
     }
   };
-  art.once("ready", () => {
+  art.on("ready", () => {
     window.addEventListener("keydown", event);
-    art.once("destroy", () => {
+    art.on("destroy", () => {
       window.removeEventListener("keydown", event);
     });
     art.on("blur", () => {
@@ -249,7 +247,6 @@ onMounted(() => {
     watch(
       () => Props.options,
       () => {
-        console.log("destroy");
         mountPlayer();
       }
     )

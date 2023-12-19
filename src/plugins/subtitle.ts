@@ -25,9 +25,10 @@ const newSubtitleControl = (
     url: "",
     type: ""
   };
+  const subtitleHTML = newSubtitleHtml("字幕");
   return {
     name: "subtitle",
-    html: newSubtitleHtml("字幕"),
+    html: subtitleHTML,
     position: "right",
     selector: Object.keys(subtitles).map((key) => {
       return {
@@ -44,7 +45,7 @@ const newSubtitleControl = (
         this.subtitle.switch(selector.url, { type: selector.type });
         this.subtitle.show = true;
       }
-      return newSubtitleHtml("字幕").outerHTML;
+      return subtitleHTML.outerHTML;
     }
   };
 };
@@ -60,14 +61,12 @@ export const newSubtitle = (
 ): ((art: Artplayer) => unknown) => {
   return (art: Artplayer) => {
     if (!subtitles) return;
-    art.once("ready", () => {
-      if (art.controls["subtitle"]) {
-        art.controls.remove("subtitle");
-      }
-      art.controls.add(newSubtitleControl(subtitles));
-      return {
-        name: "subtitles"
-      };
-    });
+    if (art.controls.subtitle) {
+      art.controls.remove("subtitle");
+    }
+    art.controls.add(newSubtitleControl(subtitles));
+    return {
+      name: "subtitles"
+    };
   };
 };
