@@ -5,6 +5,13 @@ export interface MovieInfo {
   creator: string;
 }
 
+export interface Subtitles {
+  [key: string]: {
+    url: string;
+    type: string;
+  };
+}
+
 export interface BaseMovieInfo {
   url: string;
   name: string;
@@ -16,13 +23,7 @@ export interface BaseMovieInfo {
     [key: string]: string;
   };
   vendorInfo?: VendorInfo;
-  subtitles?: Record<
-    string,
-    {
-      url: string;
-      type: string;
-    }
-  >;
+  subtitles?: Subtitles;
 }
 
 export interface VendorInfo {

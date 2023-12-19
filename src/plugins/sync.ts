@@ -3,8 +3,10 @@ import { useDebounceFn } from "@vueuse/core";
 import { ElNotification } from "element-plus";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
 import type Artplayer from "artplayer";
+import type { Status } from "@/proto/message";
 
 interface resould {
+  name: string;
   setAndNoPublishSeek: (seek: number) => void;
   setAndNoPublishPlay: () => void;
   setAndNoPublishPause: () => void;
@@ -13,13 +15,47 @@ interface resould {
 
 const debounceTime = 500;
 
-export const sync = (art: Artplayer, publishStatus: (msg: ElementMessage) => boolean): resould => {
+const play = (art: Artplayer) => {
+  art.play().catch(() => {
+    art.muted = true;
+    art
+      .play()
+      .then(() => {
+        ElNotification({
+          title: "温馨提示",
+          type: "info",
+          message: "由于浏览器限制，播放器已静音，请手动开启声音"
+        });
+      })
+      .catch((e) => {
+        ElNotification({
+          title: "播放失败",
+          type: "error",
+          message: e
+        });
+      });
+  });
+};
+
+export const newSyncPlugin = (
+  publishStatus: (msg: ElementMessage) => boolean,
+  initStatus: Status
+): ((art: Artplayer) => resould) => {
+  return (art: Artplayer) => {
+    return sync(art, publishStatus, initStatus);
+  };
+};
+
+export const sync = (
+  art: Artplayer,
+  publishStatus: (msg: ElementMessage) => boolean,
+  initStatus: Status
+): resould => {
   const playingStatusDebounce = debounces(debounceTime);
 
   let lastestSeek = 0;
 
   const publishSeek = () => {
-    if (art.option.isLive) return;
     publishStatus(
       ElementMessage.create({
         type: ElementMessageType.CHANGE_SEEK,
@@ -44,7 +80,6 @@ export const sync = (art: Artplayer, publishStatus: (msg: ElementMessage) => boo
   };
 
   const publishPlay = () => {
-    if (art.option.isLive) return;
     console.log("视频播放,seek:", art.currentTime);
     publishStatus(
       ElementMessage.create({
@@ -85,7 +120,6 @@ export const sync = (art: Artplayer, publishStatus: (msg: ElementMessage) => boo
   };
 
   const publishPause = () => {
-    if (art.option.isLive) return;
     console.log("视频暂停,seek:", art.currentTime);
     publishStatus(
       ElementMessage.create({
@@ -108,7 +142,6 @@ export const sync = (art: Artplayer, publishStatus: (msg: ElementMessage) => boo
   };
 
   const publishRate = () => {
-    if (art.option.isLive) return;
     publishStatus(
       ElementMessage.create({
         type: ElementMessageType.CHANGE_RATE,
@@ -141,35 +174,47 @@ export const sync = (art: Artplayer, publishStatus: (msg: ElementMessage) => boo
       );
   };
 
-  lastestSeek = Date.now();
   if (!art.option.isLive) {
-    const intervals: number[] = [];
+    art.once("ready", () => {
+      art.currentTime = initStatus.seek;
+      art.playbackRate = initStatus.rate;
+      if (initStatus.playing) {
+        play(art);
+      }
 
-    intervals.push(setInterval(checkSeek, 10000));
+      const intervals: number[] = [];
 
-    art.on("play", publishPlayDebounce);
+      intervals.push(setInterval(checkSeek, 10000));
 
-    // 视频暂停
-    art.on("pause", publishPauseDebounce);
+      art.on("play", publishPlayDebounce);
 
-    // 空降
-    art.on("video:seeking", publishSeekDebounce);
+      // 视频暂停
+      art.on("pause", publishPauseDebounce);
 
-    // 倍速
-    art.on("video:ratechange", publishRate);
+      // 空降
+      art.on("seek", publishSeekDebounce);
 
-    art.on("destroy", () => {
-      intervals.forEach((interval) => {
-        clearInterval(interval);
+      // 倍速
+      art.on("video:ratechange", publishRate);
+
+      art.on("destroy", () => {
+        intervals.forEach((interval) => {
+          clearInterval(interval);
+        });
+        art.off("play", publishPlayDebounce);
+        art.off("pause", publishPauseDebounce);
+        art.off("seek", publishSeekDebounce);
+        art.off("video:ratechange", publishRate);
       });
-      art.off("play", publishPlayDebounce);
-      art.off("pause", publishPauseDebounce);
-      art.off("video:seeking", publishSeekDebounce);
-      art.off("video:ratechange", publishRate);
+    });
+  } else {
+    art.once("ready", () => {
+      play(art);
     });
   }
 
   return {
+    name: "sync",
     setAndNoPublishSeek,
     setAndNoPublishPlay,
     setAndNoPublishPause,

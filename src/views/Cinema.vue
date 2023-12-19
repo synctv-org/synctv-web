@@ -9,11 +9,12 @@ import router from "@/router";
 import { useMovieApi } from "@/hooks/useMovie";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUin8Array } from "@/utils";
-import { ElementMessage, ElementMessageType } from "@/proto/message";
+import { ElementMessage, ElementMessageType, type Status } from "@/proto/message";
 import type { options } from "@/components/Player.vue";
 import RoomInfo from "@/components/cinema/RoomInfo.vue";
 import MovieList from "@/components/cinema/MovieList.vue";
 import MoviePush from "@/components/cinema/MoviePush.vue";
+import type { Subtitles } from "@/types/Movie";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
@@ -102,7 +103,8 @@ const playerOption = computed<options>(() => {
       artplayerPluginDanmuku({
         danmuku: [],
         speed: 4
-      })
+      }),
+      newLazyInitSyncPlugin(room.currentMovieStatus)
     ]
   };
   if (option.url.startsWith(window.location.origin) || option.url.startsWith("/")) {
@@ -111,93 +113,69 @@ const playerOption = computed<options>(() => {
       Authorization: roomToken.value
     };
   }
+  if (room.currentMovie.base!.subtitles) {
+    option.plugins.push(newLazyInitSubtitlePlugin(room.currentMovie.base!.subtitles));
+  }
 
   return option;
 });
 
-const play = (art: Artplayer) => {
-  art.play().catch(() => {
-    art.muted = true;
-    art
-      .play()
-      .then(() => {
-        ElNotification({
-          title: "温馨提示",
-          type: "info",
-          message: "由于浏览器限制，播放器已静音，请手动开启声音"
+const newLazyInitSyncPlugin = (initStatus: Status) => {
+  return (art: Artplayer): void => {
+    import("@/plugins/sync")
+      .then((sync) => {
+        console.log("开启进度同步");
+        art.plugins.add(sync.newSyncPlugin(sendElement, initStatus));
+        const cancelSync = watch(
+          () => room.currentMovieStatus,
+          (newVal) => {
+            newVal.playing
+              ? art.plugins.sync.setAndNoPublishPlay()
+              : art.plugins.sync.setAndNoPublishPause();
+            art.plugins.sync.setAndNoPublishSeek(newVal.seek);
+            art.plugins.sync.setAndNoPublishRate(newVal.rate);
+          },
+          {
+            deep: true
+          }
+        );
+
+        art.on("destroy", () => {
+          console.log("关闭进度同步");
+          cancelSync();
         });
       })
       .catch((e) => {
         ElNotification({
-          title: "播放失败",
+          title: "进度同步失败",
           type: "error",
-          message: e
+          message: `进度同步插件加载失败，同步功能将不可用：${e}`
         });
+        console.error(`进度同步插件加载失败，同步功能将不可用：${e}`);
       });
-  });
+  };
 };
 
-const lazyInitSync = (art: Artplayer) => {
-  import("@/plugins/sync")
-    .then((sync) => {
-      console.log("开启进度同步");
-      const syncPlugin = sync.sync(art, sendElement);
-
-      const cancelSync = watch(
-        () => room.currentMovieStatus,
-        (newVal) => {
-          newVal.playing ? syncPlugin.setAndNoPublishPlay() : syncPlugin.setAndNoPublishPause();
-          syncPlugin.setAndNoPublishSeek(newVal.seek);
-          syncPlugin.setAndNoPublishRate(newVal.rate);
-        },
-        {
-          deep: true
-        }
-      );
-
-      art.on("destroy", () => {
-        console.log("关闭进度同步");
-        cancelSync();
-      });
-    })
-    .catch((e) => {
-      ElNotification({
-        title: "进度同步失败",
-        type: "error",
-        message: `进度同步插件加载失败，同步功能将不可用：${e}`
-      });
-      console.error(`进度同步插件加载失败，同步功能将不可用：${e}`);
-    });
-};
-
-const initPlayer = (art: Artplayer) => {
-  if (room.currentMovie.base?.subtitles) {
-    const subtitle = room.currentMovie.base?.subtitles;
-    art.once("ready", () => {
-      import("@/plugins/subtitle").then((subtitlePlugin) => {
+const newLazyInitSubtitlePlugin = (subtitle: Subtitles) => {
+  return (art: Artplayer): void => {
+    import("@/plugins/subtitle")
+      .then((subtitlePlugin) => {
+        console.log("开启字幕");
         art.plugins.add(subtitlePlugin.newSubtitle(subtitle));
+      })
+      .catch((e) => {
+        ElNotification({
+          title: "字幕加载失败",
+          type: "error",
+          message: `字幕插件加载失败，字幕功能将不可用：${e}`
+        });
+        console.error(`字幕插件加载失败，字幕功能将不可用：${e}`);
       });
-    });
-  }
-
-  art.once("ready", () => {
-    lazyInitSync(art);
-
-    if (!art.option.isLive) {
-      art.currentTime = room.currentMovieStatus.seek;
-      art.playbackRate = room.currentMovieStatus.rate;
-      if (room.currentMovieStatus.playing) {
-        play(art);
-      }
-    } else {
-      play(art);
-    }
-  });
+  };
 };
 
 const getPlayerInstance = (art: Artplayer) => {
   player = art;
-  initPlayer(art);
 };
 
 const handleElementMessage = (msg: ElementMessage) => {
