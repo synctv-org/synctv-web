@@ -70,7 +70,9 @@ const title = computed(() => (isEditMode.value ? "配置解析器" : "新增解�
 const openDialog = async (isEdit: boolean, backendData?: Backend) => {
   formRef.value?.resetFields();
   isEditMode.value = isEdit;
-  if (backendData) data.value = JSON.parse(JSON.stringify(backendData));
+  backendData
+    ? (data.value = JSON.parse(JSON.stringify(backendData)))
+    : (data.value = _.cloneDeep(defaultData));
   open.value = true;
 };
 
