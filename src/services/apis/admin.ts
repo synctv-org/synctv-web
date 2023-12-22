@@ -387,7 +387,7 @@ export const addVendorApi = useDefineApi<
   },
   null
 >({
-  url: "/api/admin/vendors",
+  url: "/api/admin/vendors/add",
   method: "POST"
 });
 
@@ -401,8 +401,8 @@ export const editVendorApi = useDefineApi<
   },
   null
 >({
-  url: "/api/admin/vendors",
-  method: "PUT"
+  url: "/api/admin/vendors/update",
+  method: "POST"
 });
 
 // 删除
@@ -417,8 +417,8 @@ export const deleteVendorApi = useDefineApi<
   },
   null
 >({
-  url: "/api/admin/vendors",
-  method: "DELETE"
+  url: "/api/admin/vendors/delete",
+  method: "POST"
 });
 
 // 重连
