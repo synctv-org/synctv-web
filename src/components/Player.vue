@@ -3,6 +3,7 @@ import Artplayer from "artplayer";
 import type { Option } from "artplayer/types/option";
 import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import type { PropType, WatchStopHandle } from "vue";
+import { artPlay } from "@/utils";
 
 const watchers: WatchStopHandle[] = [];
 
@@ -214,14 +215,21 @@ const mountPlayer = () => {
   addKeyEvnet(art);
 };
 
-// 左右键快进快退
+// 全局快捷键
 const addKeyEvnet = (art: Artplayer) => {
   const event = (e: KeyboardEvent) => {
     if (document.activeElement !== document.body && document.activeElement) return;
-    if (e.key === "ArrowLeft") {
-      art.seek = art.currentTime - Artplayer.SEEK_STEP;
-    } else if (e.key === "ArrowRight") {
-      art.seek = art.currentTime + Artplayer.SEEK_STEP;
+    switch (e.key) {
+      case "ArrowLeft":
+        art.seek = art.currentTime - Artplayer.SEEK_STEP;
+        break;
+      case "ArrowRight":
+        art.seek = art.currentTime + Artplayer.SEEK_STEP;
+        break;
+      case " ":
+        art.playing ? art.pause() : artPlay(art);
+        e.preventDefault();
+        break;
     }
   };
   art.on("ready", () => {

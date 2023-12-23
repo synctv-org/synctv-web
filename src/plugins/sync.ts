@@ -1,7 +1,6 @@
-import { debounces } from "@/utils";
+import { debounces, artPlay } from "@/utils";
 import { useDebounceFn } from "@vueuse/core";
 import { watch, type WatchStopHandle } from "vue";
-import { ElNotification } from "element-plus";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
 import type Artplayer from "artplayer";
 import type { Status } from "@/proto/message";
@@ -15,28 +14,6 @@ interface resould {
 }
 
 const debounceTime = 500;
-
-const play = (art: Artplayer) => {
-  art.play().catch(() => {
-    art.muted = true;
-    art
-      .play()
-      .then(() => {
-        ElNotification({
-          title: "温馨提示",
-          type: "info",
-          message: "由于浏览器限制，播放器已静音，请手动开启声音"
-        });
-      })
-      .catch((e) => {
-        ElNotification({
-          title: "播放失败",
-          type: "error",
-          message: e
-        });
-      });
-  });
-};
 
 export const newSyncPlugin = (
   publishStatus: (msg: ElementMessage) => boolean,
@@ -90,7 +67,7 @@ export const newSyncPlugin = (
       art.once("play", () => {
         art.on("play", publishPlayDebounce);
       });
-      play(art);
+      artPlay(art);
     };
 
     const publishPause = () => {
@@ -154,7 +131,7 @@ export const newSyncPlugin = (
         art.currentTime = dynamicStatus.seek;
         art.playbackRate = dynamicStatus.rate;
         if (dynamicStatus.playing) {
-          play(art);
+          artPlay(art);
         }
 
         const intervals: number[] = [];
@@ -199,7 +176,7 @@ export const newSyncPlugin = (
       });
     } else {
       art.once("ready", () => {
-        play(art);
+        artPlay(art);
       });
     }
 

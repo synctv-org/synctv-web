@@ -1,4 +1,4 @@
-import { ElMessage } from "element-plus";
+import { ElMessage, ElNotification } from "element-plus";
 
 export const debounces = (delay: number): Function => {
   let timerId: ReturnType<typeof setTimeout> | null = null;
@@ -61,4 +61,26 @@ export const getAppIcon = (appName: string): string => {
 
 export const getObjValue = <T extends object, K extends keyof T>(obj: T, key: K) => {
   return obj[key];
+};
+
+export const artPlay = (art: Artplayer) => {
+  art.play().catch(() => {
+    art.muted = true;
+    art
+      .play()
+      .then(() => {
+        ElNotification({
+          title: "温馨提示",
+          type: "info",
+          message: "由于浏览器限制，播放器已静音，请手动开启声音"
+        });
+      })
+      .catch((e) => {
+        ElNotification({
+          title: "播放失败",
+          type: "error",
+          message: e
+        });
+      });
+  });
 };
