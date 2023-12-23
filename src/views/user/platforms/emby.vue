@@ -25,9 +25,6 @@ const getAccountInfo = async () => {
         Authorization: userToken.value
       }
     });
-    if (accountInfo.value) {
-      console.log(accountInfo.value);
-    }
   } catch (err: any) {
     console.error(err);
     ElMessage.error(err.response.data.error || err.message);
