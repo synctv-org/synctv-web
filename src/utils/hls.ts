@@ -10,10 +10,16 @@ class fLoader extends Hls.DefaultConfig.loader {
       if (context.responseType === "arraybuffer") {
         var onSuccess = callbacks.onSuccess;
         callbacks.onSuccess = function (response, stats, context, networkDetails): void {
-          if (response.data instanceof ArrayBuffer) {
+          // ignore when response encrypted
+          if ((context as any).frag.levelkeys.identity.encrypted) {
+            onSuccess(response, stats, context, networkDetails);
+            return;
+          }
+
+          if (context.responseType === "arraybuffer" && response.data instanceof ArrayBuffer) {
             var data = new Uint8Array(response.data);
             var pre = 0;
-            while (pre < data.length) {
+            while (pre >= 0 && pre < 512 && pre < data.length) {
               var currnet = data.indexOf(0x47, pre + 1);
               if (currnet - pre === 188) {
                 response.data = response.data.slice(pre);
