@@ -117,8 +117,9 @@ const closeLoginDialog = () => {
     class="rounded-lg dark:bg-zinc-800 max-sm:w-full md:w-3/4 lg:w-2/5 xl:w-1/3"
     @closed="closeLoginDialog"
   >
-    <div class="text-center max-lg:mt-5">
-      <input class="l-input block w-full m-0 mb-4" placeholder="AList 地址" v-model="aList.host" />
+    <div class="text-center -mt-5">
+      <p class="mb-4"><b>注意：</b>仅支持3.25.0及以上版本</p>
+      <input class="l-input block w-full m-0 my-4" placeholder="AList 地址" v-model="aList.host" />
       <input
         class="l-input block w-full m-0 my-4"
         placeholder="用户名"
