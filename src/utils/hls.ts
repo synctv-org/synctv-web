@@ -1,17 +1,17 @@
 import artplayerPluginHlsQuality from "artplayer-plugin-hls-quality";
-import type { HlsConfig, FragmentLoaderConstructor } from "hls.js";
+import { type HlsConfig, type FragmentLoaderConstructor, type FragmentLoaderContext } from "hls.js";
 import Hls from "hls.js";
 
-class fLoader extends Hls.DefaultConfig.loader {
+class fLoader extends (Hls.DefaultConfig.loader as FragmentLoaderConstructor) {
   constructor(config: HlsConfig) {
     super(config);
     var load = this.load.bind(this);
-    this.load = function (context, config, callbacks): void {
+    this.load = function (context: FragmentLoaderContext, config, callbacks): void {
       if (context.responseType === "arraybuffer") {
         var onSuccess = callbacks.onSuccess;
         callbacks.onSuccess = function (response, stats, context, networkDetails): void {
           // ignore when response encrypted
-          if ((context as any).frag.levelkeys.identity.encrypted) {
+          if (context.frag.levelkeys?.identity.encrypted) {
             onSuccess(response, stats, context, networkDetails);
             return;
           }
@@ -28,6 +28,7 @@ class fLoader extends Hls.DefaultConfig.loader {
               pre = currnet;
             }
           }
+
           onSuccess(response, stats, context, networkDetails);
         };
       }
@@ -43,7 +44,7 @@ function newHlsConfig(headers: Record<string, string>): Partial<HlsConfig> {
         xhr.setRequestHeader(key, headers[key]);
       }
     },
-    fLoader: fLoader as FragmentLoaderConstructor
+    fLoader: fLoader
   };
 }
 
