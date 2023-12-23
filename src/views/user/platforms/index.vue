@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import bilibili from "./bilibili.vue";
 import alist from "./alist.vue";
+import emby from "./emby.vue";
 </script>
 
 <template>
@@ -11,6 +12,7 @@ import alist from "./alist.vue";
     >
       <bilibili />
       <alist />
+      <emby />
     </div>
   </div>
 </template>

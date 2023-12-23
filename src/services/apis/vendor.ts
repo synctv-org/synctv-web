@@ -169,3 +169,62 @@ export const logoutAList = useDefineApi<{ headers: { Authorization: string } }, 
   url: "/api/vendor/alist/logout",
   method: "POST"
 });
+
+// 登录 Emby
+export const loginEmbyApi = useDefineApi<
+  {
+    headers: { Authorization: string };
+    data: {
+      host: string;
+      username: string;
+      password: string;
+      apikey: string;
+    };
+  },
+  any
+>({
+  url: "/api/vendor/emby/login",
+  method: "POST"
+});
+
+// 获取 Emby 账号信息
+export const getEmbyAccountInfo = useDefineApi<
+  {
+    headers: { Authorization: string };
+  },
+  {
+    isLogin: boolean;
+    info: {
+      systemUpdateLevel: string;
+      operatingSystemDisplayName: string;
+      supportsLibraryMonitor: boolean;
+      webSocketPortNumber: number;
+      canSelfRestart: boolean;
+      programDataPath: string;
+      itemsByNamePath: string;
+      cachePath: string;
+      logPath: string;
+      internalMetadataPath: string;
+      transcodingTempPath: string;
+      httpServerPortNumber: number;
+      supportsHttps: boolean;
+      httpsPortNumber: number;
+      hardwareAccelerationRequiresPremiere: boolean;
+      localAddress: string;
+      wanAddress: string;
+      serverName: string;
+      version: string;
+      operatingSystem: string;
+      id: string;
+    };
+  }
+>({
+  url: "/api/vendor/emby/me",
+  method: "GET"
+});
+
+// 退出 Emby 登录
+export const logoutEmby = useDefineApi<{ headers: { Authorization: string } }, any>({
+  url: "/api/vendor/emby/logout",
+  method: "POST"
+});
