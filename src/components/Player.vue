@@ -10,9 +10,7 @@ onBeforeUnmount(() => {
   watchers.forEach((watcher) => watcher());
 });
 
-// TODO: artplayer v5.1.x
-// Artplayer.USE_RAF = true;
-
+Artplayer.USE_RAF = true;
 Artplayer.DBCLICK_FULLSCREEN = false;
 Artplayer.SEEK_STEP = 5;
 Artplayer.PLAYBACK_RATE = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4, 5].reverse();

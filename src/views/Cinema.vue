@@ -120,30 +120,12 @@ const playerOption = computed<options>(() => {
   return option;
 });
 
-const newLazyInitSyncPlugin = (initStatus: Status) => {
+const newLazyInitSyncPlugin = (status: Status) => {
   return (art: Artplayer): void => {
     import("@/plugins/sync")
       .then((sync) => {
-        console.log("开启进度同步");
-        art.plugins.add(sync.newSyncPlugin(sendElement, initStatus));
-        const cancelSync = watch(
-          () => room.currentMovieStatus,
-          (newVal) => {
-            newVal.playing
-              ? art.plugins.sync.setAndNoPublishPlay()
-              : art.plugins.sync.setAndNoPublishPause();
-            art.plugins.sync.setAndNoPublishSeek(newVal.seek);
-            art.plugins.sync.setAndNoPublishRate(newVal.rate);
-          },
-          {
-            deep: true
-          }
-        );
-
-        art.on("destroy", () => {
-          console.log("关闭进度同步");
-          cancelSync();
-        });
+        console.log("加载进度同步插件中...");
+        art.plugins.add(sync.newSyncPlugin(sendElement, status));
       })
       .catch((e) => {
         ElNotification({
@@ -160,7 +142,7 @@ const newLazyInitSubtitlePlugin = (subtitle: Subtitles) => {
   return (art: Artplayer): void => {
     import("@/plugins/subtitle")
       .then((subtitlePlugin) => {
-        console.log("开启字幕");
+        console.log("加载字幕插件中...");
         art.plugins.add(subtitlePlugin.newSubtitle(subtitle));
       })
       .catch((e) => {
@@ -174,7 +156,7 @@ const newLazyInitSubtitlePlugin = (subtitle: Subtitles) => {
   };
 };
 
-const getPlayerInstance = (art: Artplayer) => {
+const getPlayerInstance = async (art: Artplayer) => {
   player = art;
 };
 
@@ -280,10 +262,10 @@ const handleElementMessage = (msg: ElementMessage) => {
             `<p><b>SYSTEM：</b>欢迎新成员加入，当前共有 ${msg.peopleNum} 人在观看</p>`
           )
         : room.peopleNum > msg.peopleNum!
-        ? msgList.value.push(
-            `<p><b>SYSTEM：</b>有人离开了房间，当前还剩 ${msg.peopleNum} 人在观看</p>`
-          )
-        : "";
+          ? msgList.value.push(
+              `<p><b>SYSTEM：</b>有人离开了房间，当前还剩 ${msg.peopleNum} 人在观看</p>`
+            )
+          : "";
       room.peopleNum = msg.peopleNum!;
       break;
     }
