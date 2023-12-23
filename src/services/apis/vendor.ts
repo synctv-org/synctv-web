@@ -128,3 +128,44 @@ export const logoutBiliBili = useDefineApi<{ headers: { Authorization: string } 
   url: "/api/vendor/bilibili/logout",
   method: "POST"
 });
+
+// 登录 AList
+export const loginAListApi = useDefineApi<
+  {
+    headers: { Authorization: string };
+    data: {
+      host: string;
+      username: string;
+      hashedPassword: string;
+    };
+  },
+  any
+>({
+  url: "/api/vendor/alist/login",
+  method: "POST"
+});
+
+// 获取 AList 账号信息
+export const getAListAccountInfo = useDefineApi<
+  {
+    headers: { Authorization: string };
+  },
+  {
+    isLogin: boolean;
+    info: {
+      base_path: string;
+      id: number;
+      permission: number;
+      username: string;
+    };
+  }
+>({
+  url: "/api/vendor/alist/me",
+  method: "GET"
+});
+
+// 退出 AList 登录
+export const logoutAList = useDefineApi<{ headers: { Authorization: string } }, any>({
+  url: "/api/vendor/alist/logout",
+  method: "POST"
+});
