@@ -241,11 +241,6 @@ const closeLoginDialog = () => {
   SMSTime.value = 60;
   phone.value = code.value = NaN;
 };
-
-onMounted(async () => {
-  // 获取账号信息
-  await getAccountInfo();
-});
 </script>
 
 <template>
