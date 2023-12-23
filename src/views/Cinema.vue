@@ -8,7 +8,7 @@ import { ElNotification, ElMessage } from "element-plus";
 import router from "@/router";
 import { useMovieApi } from "@/hooks/useMovie";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
-import { strLengthLimit, blobToUin8Array } from "@/utils";
+import { strLengthLimit, blobToUint8Array } from "@/utils";
 import { ElementMessage, ElementMessageType, type Status } from "@/proto/message";
 import type { options } from "@/components/Player.vue";
 import RoomInfo from "@/components/cinema/RoomInfo.vue";
@@ -306,7 +306,7 @@ onMounted(() => {
     watch(
       () => data.value,
       () => {
-        blobToUin8Array(data.value)
+        blobToUint8Array(data.value)
           .then((array) => {
             handleElementMessage(ElementMessage.decode(array));
           })

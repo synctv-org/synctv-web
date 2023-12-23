@@ -27,7 +27,7 @@ export const strLengthLimit = (str: any, num: number) => {
     });
 };
 
-export const blobToUin8Array = (blob: Blob): Promise<Uint8Array> => {
+export const blobToUint8Array = (blob: Blob): Promise<Uint8Array> => {
   return new Promise((resolve, reject) => {
     blob
       .arrayBuffer()
