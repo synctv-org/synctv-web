@@ -45,13 +45,7 @@ export const decodeJWT = (jwt: string) => {
   if (parts.length !== 3) {
     throw new Error("非 JWT 格式！");
   }
-  try {
-    const decodedPayload = atob(parts[1]);
-    const parsedPayload = JSON.parse(decodedPayload);
-    return parsedPayload;
-  } catch (error) {
-    throw new Error("JWT 解析失败");
-  }
+  return JSON.parse(atob(parts[1]));
 };
 
 export const getAppIcon = (appName: string): string => {
