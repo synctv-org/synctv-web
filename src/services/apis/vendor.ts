@@ -172,6 +172,10 @@ export const getAListFileList = useDefineApi<
     data: {
       path: string;
     };
+    params: {
+      page: number;
+      max: number;
+    };
   },
   FileList
 >({

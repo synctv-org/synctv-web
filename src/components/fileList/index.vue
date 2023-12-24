@@ -22,6 +22,14 @@ const breadcrumb = () => {
     })
   ];
 };
+
+const selectOrToDir = (item: { name: string; path: string; isDir: boolean }) => {
+  if (item.isDir) {
+    emit("toDir", item.path);
+  } else {
+    // select file
+  }
+};
 </script>
 <template>
   <el-breadcrumb class="-mt-5 mb-2" :separator-icon="ArrowRight">
@@ -45,9 +53,9 @@ const breadcrumb = () => {
       class="flex items-center justify-between p-2 bg-slate-50 my-2 rounded-md cursor-pointer transition-all duration-300 hover:bg-slate-100 hover:shadow-md hover:scale-[1.02] shadow-slate-300"
       v-for="(item, i) in fileList?.items"
       :key="i"
-      @click="emit('toDir', item.path)"
+      @click="selectOrToDir(item)"
     >
-      <p>
+      <p class="truncate overflow-hidden mr-2 max-w-[80%]">
         <el-icon v-if="item.isDir" class="mr-2"><Folder /></el-icon>
         <el-icon v-else class="mr-2"><Document /></el-icon>
         {{ item.name }}
