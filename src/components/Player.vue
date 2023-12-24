@@ -193,6 +193,11 @@ const newPlayerOption = (html: HTMLDivElement): Option => {
       encoding: "utf-8",
       escape: true
     },
+    moreVideoAttr: {
+      controls: false,
+      preload: "auto",
+      playsInline: true
+    },
     customType: {
       flv: playFlv,
       m3u8: playM3u8,
