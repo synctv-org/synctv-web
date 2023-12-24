@@ -33,15 +33,17 @@ interface Etcd {
   password?: string;
 }
 
+export interface FileItems {
+  name: string;
+  path: string;
+  isDir: boolean;
+}
+
 export interface FileList {
   paths: {
     name: string;
     path: string;
   }[];
-  items: {
-    name: string;
-    path: string;
-    isDir: boolean;
-  }[];
+  items: FileItems[];
   total: number;
 }

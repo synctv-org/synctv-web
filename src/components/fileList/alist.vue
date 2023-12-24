@@ -54,7 +54,6 @@ onMounted(async () => {
           @current-change="getFileList()"
         />
         <div>
-          <span class="mr-3">已选择：？项</span>
           <button class="btn btn-success">添加</button>
         </div>
       </div>

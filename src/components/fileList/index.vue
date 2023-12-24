@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, type Ref } from "vue";
-import type { FileList } from "@/types/Vendor";
+import type { FileList, FileItems } from "@/types/Vendor";
 import { ArrowRight, Folder, Document } from "@element-plus/icons-vue";
 
 const props = defineProps<{
@@ -23,11 +23,29 @@ const breadcrumb = () => {
   ];
 };
 
-const selectOrToDir = (item: { name: string; path: string; isDir: boolean }) => {
+const selectedItems = ref<FileItems[]>([]);
+const selectItem = (item: FileItems) => {
+  selectedItems.value.push(item);
+};
+
+const findItem = (item: FileItems) => {
+  return selectedItems.value.find((i) => i.path === item.path);
+};
+
+const removeItem = (item: FileItems) => {
+  const i = selectedItems.value.findIndex((i) => i.path === item.path);
+  selectedItems.value.splice(i, 1);
+};
+
+const removeAll = () => {
+  selectedItems.value = [];
+};
+
+const selectOrToDir = (item: FileItems) => {
   if (item.isDir) {
     emit("toDir", item.path);
   } else {
-    // select file
+    findItem(item) ? removeItem(item) : selectItem(item);
   }
 };
 </script>
@@ -51,6 +69,9 @@ const selectOrToDir = (item: { name: string; path: string; isDir: boolean }) => 
     </div>
     <div
       class="flex items-center justify-between p-2 bg-slate-50 my-2 rounded-md cursor-pointer transition-all duration-300 hover:bg-slate-100 hover:shadow-md hover:scale-[1.02] shadow-slate-300"
+      :class="
+        findItem(item) && ' bg-slate-200 hover:shadow-none hover:bg-slate-300 hover:scale-100'
+      "
       v-for="(item, i) in fileList?.items"
       :key="i"
       @click="selectOrToDir(item)"
@@ -62,5 +83,18 @@ const selectOrToDir = (item: { name: string; path: string; isDir: boolean }) => 
       </p>
       {{ item.isDir ? "文件夹" : "文件" }}
     </div>
+  </div>
+  <div v-if="selectedItems.length > 0" class="flex justify-between items-center flex-wrap gap-3">
+    <p>已选择：{{ selectedItems.length }} 个项目</p>
+    <el-popconfirm
+      confirm-button-text="是"
+      cancel-button-text="否"
+      title="你确定要清空已选中的吗？!"
+      @confirm="removeAll"
+    >
+      <template #reference>
+        <a href="javascript:;">清空选中</a>
+      </template>
+    </el-popconfirm>
   </div>
 </template>
