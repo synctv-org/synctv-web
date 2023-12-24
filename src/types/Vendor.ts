@@ -32,3 +32,16 @@ interface Etcd {
   username?: string;
   password?: string;
 }
+
+export interface FileList {
+  paths: {
+    name: string;
+    path: string;
+  }[];
+  items: {
+    name: string;
+    path: string;
+    isDir: boolean;
+  }[];
+  total: number;
+}

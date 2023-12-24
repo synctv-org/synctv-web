@@ -1,5 +1,6 @@
 import { useDefineApi } from "@/stores/useDefineApi";
 import type { BilibiliVideoInfos } from "@/types/Movie";
+import type { FileList } from "@/types/Vendor";
 
 // 获取 哔哩哔哩 登录二维码
 export const getBiliBiliQRCode = useDefineApi<
@@ -162,6 +163,20 @@ export const getAListAccountInfo = useDefineApi<
 >({
   url: "/api/vendor/alist/me",
   method: "GET"
+});
+
+// 获取 AList 文件列表
+export const getAListFileList = useDefineApi<
+  {
+    headers: { Authorization: string };
+    data: {
+      path: string;
+    };
+  },
+  FileList
+>({
+  url: "/api/vendor/alist/list",
+  method: "POST"
 });
 
 // 退出 AList 登录
