@@ -472,7 +472,9 @@ const getBiliBiliVendors = async () => {
         <button class="btn btn-warning" @click="biliParse()">解析</button>
       </div>
 
-      <button v-else class="btn" @click="pushMovie()">添加到列表</button>
+      <button v-else-if="selectedMovieType < pushType.BILIBILI" class="btn" @click="pushMovie()">
+        添加到列表
+      </button>
     </div>
   </div>
 
