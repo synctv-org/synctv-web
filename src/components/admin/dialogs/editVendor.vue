@@ -20,13 +20,13 @@ const data = ref<Backend>({
     customCA: "",
     timeOut: "",
     consul: {
-      serverName: "",
+      serviceName: "",
       token: "",
       pathPrefix: "",
       namespace: "",
       partition: ""
     },
-    etcd: { serverName: "", username: "", password: "" }
+    etcd: { serviceName: "", username: "", password: "" }
   },
   usedBy: {
     bilibili: false,
@@ -47,13 +47,13 @@ const defaultData = {
     customCA: "",
     timeOut: "",
     consul: {
-      serverName: "",
+      serviceName: "",
       token: "",
       pathPrefix: "",
       namespace: "",
       partition: ""
     },
-    etcd: { serverName: "", username: "", password: "" }
+    etcd: { serviceName: "", username: "", password: "" }
   },
   usedBy: {
     bilibili: false,
@@ -136,7 +136,7 @@ defineExpose({ openDialog });
       </el-form-item>
       <div v-if="mode === 'consul'">
         <el-form-item label="服务名">
-          <el-input v-model="data.backend.consul!.serverName" />
+          <el-input v-model="data.backend.consul!.serviceName" />
         </el-form-item>
         <el-form-item label="token">
           <el-input v-model="data.backend.consul!.token" />
@@ -153,7 +153,7 @@ defineExpose({ openDialog });
       </div>
       <div v-if="mode === 'etcd'">
         <el-form-item label="服务名">
-          <el-input v-model="data.backend.etcd!.serverName" />
+          <el-input v-model="data.backend.etcd!.serviceName" />
         </el-form-item>
         <el-form-item label="用户名">
           <el-input v-model="data.backend.etcd!.username" />

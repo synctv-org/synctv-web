@@ -20,7 +20,7 @@ export interface Backend {
 }
 
 interface Consul {
-  serverName?: string;
+  serviceName?: string;
   token?: string;
   pathPrefix?: string;
   namespace?: string;
@@ -28,7 +28,7 @@ interface Consul {
 }
 
 interface Etcd {
-  serverName?: string;
+  serviceName?: string;
   username?: string;
   password?: string;
 }

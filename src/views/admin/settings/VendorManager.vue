@@ -78,12 +78,12 @@ onMounted(async () => {
           <template #default="scope">
             <div style="display: flex; align-items: center">
               <el-image
-                v-if="scope.row.info.backend.consul.serverName"
+                v-if="scope.row.info.backend.consul.serviceName"
                 style="max-width: 15px"
                 :src="getAppIcon('consul')"
               />
               <el-image
-                v-if="scope.row.info.backend.etcd.serverName"
+                v-if="scope.row.info.backend.etcd.serviceName"
                 style="max-width: 15px"
                 :src="getAppIcon('etcd')"
               />
