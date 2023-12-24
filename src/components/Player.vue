@@ -37,7 +37,9 @@ const Emits = defineEmits(["get-instance"]);
 const playMpd = (player: HTMLMediaElement, url: string, art: any) => {
   import("@/utils/dash").then((dash) => {
     if (dash.isSupported()) {
-      if (!art.plugins.artplayerPluginDashQuality) dash.newDashQualityPlugin()(art);
+      if (art.dash) art.dash.destroy();
+
+      if (!art.plugins.artplayerPluginDashQuality) art.plugins.add(dash.newDashQualityPlugin());
       const d = dash.newDash();
       d.initialize(player, url, false);
       art.dash = d;
@@ -48,11 +50,13 @@ const playMpd = (player: HTMLMediaElement, url: string, art: any) => {
   });
 };
 
-const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
+const playFlv = (player: HTMLMediaElement, url: string, art: Artplayer) => {
   import("mpegts.js")
     .then((mpegts) => mpegts.default)
     .then((mpegts) => {
       if (mpegts.isSupported()) {
+        if (art.flv) art.flv.destroy();
+
         const Config: Record<string, Record<string, string>> = {};
         Config["headers"] = Props.options.headers;
 
@@ -68,11 +72,13 @@ const playFlv = (player: HTMLMediaElement, url: string, art: any) => {
     });
 };
 
-const playMse = (player: HTMLMediaElement, url: string, art: any) => {
+const playMse = (player: HTMLMediaElement, url: string, art: Artplayer) => {
   import("mpegts.js")
     .then((mpegts) => mpegts.default)
     .then((mpegts) => {
       if (mpegts.isSupported()) {
+        if (art.flv) art.flv.destroy();
+
         const Config: Record<string, Record<string, string>> = {};
         Config["headers"] = Props.options.headers;
 
@@ -88,11 +94,13 @@ const playMse = (player: HTMLMediaElement, url: string, art: any) => {
     });
 };
 
-const playMpegts = (player: HTMLMediaElement, url: string, art: any) => {
+const playMpegts = (player: HTMLMediaElement, url: string, art: Artplayer) => {
   import("mpegts.js")
     .then((mpegts) => mpegts.default)
     .then((mpegts) => {
       if (mpegts.isSupported()) {
+        if (art.flv) art.flv.destroy();
+
         const Config: Record<string, Record<string, string>> = {};
         Config["headers"] = Props.options.headers;
 
@@ -111,11 +119,13 @@ const playMpegts = (player: HTMLMediaElement, url: string, art: any) => {
     });
 };
 
-const playM2ts = (player: HTMLMediaElement, url: string, art: any) => {
+const playM2ts = (player: HTMLMediaElement, url: string, art: Artplayer) => {
   import("mpegts.js")
     .then((mpegts) => mpegts.default)
     .then((mpegts) => {
       if (mpegts.isSupported()) {
+        if (art.flv) art.flv.destroy();
+
         const Config: Record<string, Record<string, string>> = {};
         Config["headers"] = Props.options.headers;
 
@@ -131,14 +141,16 @@ const playM2ts = (player: HTMLMediaElement, url: string, art: any) => {
     });
 };
 
-const playM3u8 = (player: HTMLMediaElement, url: string, art: any) => {
+const playM3u8 = (player: HTMLMediaElement, url: string, art: Artplayer) => {
   import("@/utils/hls").then((Hls) => {
     if (Hls.isSupported()) {
-      if (!art.plugins.artplayerPluginHlsQuality) Hls.newHlsQualityPlugin()(art);
       if (art.hls) art.hls.destroy();
+
+      if (!art.plugins.artplayerPluginHlsQuality) art.plugins.add(Hls.newHlsQualityPlugin());
       const hls = Hls.newHls(Props.options.headers);
       hls.loadSource(url);
       hls.attachMedia(player);
+      if (!player.src) player.src = url;
       art.hls = hls;
       art.on("destroy", () => hls.destroy());
     } else {
