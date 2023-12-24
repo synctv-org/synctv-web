@@ -3,7 +3,6 @@ import Artplayer from "artplayer";
 import type { Option } from "artplayer/types/option";
 import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import type { PropType, WatchStopHandle } from "vue";
-import { artPlay } from "@/utils";
 
 const watchers: WatchStopHandle[] = [];
 
@@ -227,7 +226,7 @@ const addKeyEvnet = (art: Artplayer) => {
         art.seek = art.currentTime + Artplayer.SEEK_STEP;
         break;
       case " ":
-        art.playing ? art.pause() : artPlay(art);
+        art.toggle();
         e.preventDefault();
         break;
     }

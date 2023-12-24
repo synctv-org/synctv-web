@@ -1,9 +1,32 @@
-import { debounces, artPlay } from "@/utils";
+import { debounces } from "@/utils";
 import { useDebounceFn } from "@vueuse/core";
 import { watch, type WatchStopHandle } from "vue";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
 import type Artplayer from "artplayer";
 import type { Status } from "@/proto/message";
+import { ElNotification } from "element-plus";
+
+export const artPlay = (art: Artplayer) => {
+  art.play().catch(() => {
+    art.muted = true;
+    art
+      .play()
+      .then(() => {
+        ElNotification({
+          title: "温馨提示",
+          type: "info",
+          message: "由于浏览器限制，播放器已静音，请手动开启声音"
+        });
+      })
+      .catch((e) => {
+        ElNotification({
+          title: "播放失败",
+          type: "error",
+          message: e
+        });
+      });
+  });
+};
 
 interface resould {
   name: string;
