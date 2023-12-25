@@ -24,7 +24,7 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const dir = ref("");
 const getFileList = async (paths?: string) => {
-  if (paths) dir.value = paths;
+  if (paths || paths === "") dir.value = paths;
   try {
     await execute({
       headers: { Authorization: userToken.value },

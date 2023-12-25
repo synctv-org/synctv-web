@@ -14,7 +14,7 @@ const breadcrumb = () => {
   if (!props.fileList) return;
   return props.fileList.paths.map((item, index) => {
     const name = item.name || "🏠主页";
-    const path = item.path || "/";
+    const path = item.path || "";
     return { path, name };
   });
 };
