@@ -103,7 +103,7 @@ onMounted(() => {
       </template>
     </el-popconfirm>
   </div>
-  <div class="flex justify-between items-center flex-wrap gap-3">
+  <div class="flex justify-between items-center flex-wrap gap-3 mt-2 -mb-2">
     <el-pagination
       v-if="fileList"
       class="flex-wrap gap-3"
