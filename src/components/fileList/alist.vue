@@ -8,6 +8,12 @@ import { userStore } from "@/stores/user";
 import type { BaseMovieInfo } from "@/types/Movie";
 import { useLocalStorage } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
+import type { FileItem } from "@/types/Vendor";
+
+interface AListItem extends FileItem {
+  size: number;
+  modified: number;
+}
 
 const FileList = ref<InstanceType<typeof index>>();
 const roomID = useRouteParams<string>("roomId");
@@ -92,10 +98,24 @@ defineExpose({
   <el-dialog v-model="open" title="文件列表" class="rounded-lg dark:bg-zinc-800 max-sm:w-full">
     <index ref="FileList" :fileList="state" @to-dir="getFileList" :is-loading="isLoading">
       <template #footer>
-        <div>
-          <el-button type="success" @click="submit" :loading="pushMovieLoading"
-            >添加到列表</el-button
-          >
+        <el-button
+          v-if="FileList && FileList.selectedItems.length > 0"
+          type="success"
+          @click="submit"
+          :loading="pushMovieLoading"
+          >添加到列表</el-button
+        >
+      </template>
+      <template #field>
+        <p class="w-20">大小</p>
+        <p class="ml-8 w-40 hidden xl:block">修改日期</p>
+      </template>
+      <template #item="{ item }">
+        <div class="w-24 text-center">
+          {{ item.isDir ? "" : ((item as AListItem).size / 1024 / 1024).toFixed(2) + " MB" }}
+        </div>
+        <div class="mx-4 w-40 text-left hidden xl:block">
+          {{ new Date((item as AListItem).modified).toLocaleString() }}
         </div>
       </template>
     </index>

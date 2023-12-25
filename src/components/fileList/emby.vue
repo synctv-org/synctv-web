@@ -91,11 +91,13 @@ defineExpose({
   <el-dialog v-model="open" title="文件列表" class="rounded-lg dark:bg-zinc-800 max-sm:w-full">
     <index ref="FileList" :fileList="state" @to-dir="getFileList" :is-loading="isLoading">
       <template #footer>
-        <div>
-          <el-button type="success" @click="submit" :loading="pushMovieLoading"
-            >添加到列表</el-button
-          >
-        </div>
+        <el-button
+          v-if="FileList && FileList.selectedItems.length > 0"
+          type="success"
+          @click="submit"
+          :loading="pushMovieLoading"
+          >添加到列表</el-button
+        >
       </template>
     </index>
   </el-dialog>

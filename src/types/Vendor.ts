@@ -33,7 +33,7 @@ interface Etcd {
   password?: string;
 }
 
-export interface FileItems {
+export interface FileItem {
   name: string;
   path: string;
   isDir: boolean;
@@ -46,6 +46,6 @@ export interface FileListPath {
 
 export interface FileList {
   paths: FileListPath[];
-  items: FileItems[];
+  items: FileItem[];
   total: number;
 }
