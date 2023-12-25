@@ -107,7 +107,7 @@ const playerOption = computed<options>(() => {
       newLazyInitSyncPlugin(room.currentMovieStatus)
     ]
   };
-  if (option.url.startsWith(window.location.origin) || option.url.startsWith("/")) {
+  if (option.url.startsWith(window.location.origin) || option.url.startsWith("/api/movie/live")) {
     option.headers = {
       ...option.headers,
       Authorization: roomToken.value
@@ -156,7 +156,7 @@ const newLazyInitSubtitlePlugin = (subtitle: Subtitles) => {
   };
 };
 
-const getPlayerInstance = async (art: Artplayer) => {
+const getPlayerInstance = (art: Artplayer) => {
   player = art;
 };
 
