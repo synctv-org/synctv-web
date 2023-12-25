@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import index from "./index.vue";
 import { getAListFileList } from "@/services/apis/vendor";
 import { pushMoviesApi } from "@/services/apis/movie";
 import { userStore } from "@/stores/user";
-import type { FileItems } from "@/types/Vendor";
 import type { BaseMovieInfo } from "@/types/Movie";
 import { useLocalStorage } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
@@ -41,8 +40,6 @@ const getFileList = async (paths?: string) => {
 const { execute: reqPushMoviesApi, isLoading: pushMovieLoading } = pushMoviesApi();
 const submit = async () => {
   const selectedItems = FileList.value?.selectedItems;
-  console.log(FileList.value?.selectedItems);
-
   try {
     if (!selectedItems) return;
     if (selectedItems.length === 0) return ElMessage.error("请选择视频");
@@ -85,10 +82,6 @@ const submit = async () => {
 
 defineExpose({
   openDialog
-});
-
-onMounted(async () => {
-  openDialog();
 });
 </script>
 <template>
