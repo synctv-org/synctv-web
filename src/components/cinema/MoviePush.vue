@@ -9,6 +9,7 @@ import customHeaders from "@/components/cinema/dialogs/customHeaders.vue";
 import customSubtitles from "@/components/cinema/dialogs/customSubtitles.vue";
 import bilibiliParse from "@/components/cinema/dialogs/bilibiliParse.vue";
 import alist from "@/components/fileList/alist.vue";
+import emby from "@/components/fileList/emby.vue";
 
 const Emits = defineEmits(["getMovies"]);
 
@@ -16,6 +17,7 @@ const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
 const customSubtitlesDialog = ref<InstanceType<typeof customSubtitles>>();
 const bilibiliParseDialog = ref<InstanceType<typeof bilibiliParse>>();
 const alistDialog = ref<InstanceType<typeof alist>>();
+const embyDialog = ref<InstanceType<typeof emby>>();
 
 const Props = defineProps<{
   token: string;
@@ -38,7 +40,8 @@ enum pushType {
   PROXY_LIVE,
   RTMP_SOURCE,
   BILIBILI,
-  ALIST
+  ALIST,
+  EMBY
 }
 
 interface movieTypeRecord {
@@ -156,6 +159,16 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
       defaultType: "",
       allowedTypes: []
     }
+  ],
+  [
+    pushType.EMBY,
+    {
+      name: "Emby",
+      comment: "解析 Emby 视频",
+      showProxy: false,
+      defaultType: "",
+      allowedTypes: []
+    }
   ]
 ]);
 
@@ -234,6 +247,20 @@ const selectPushType = () => {
         headers: {},
         vendorInfo: {
           vendor: "alist"
+        }
+      };
+      break;
+    case pushType.EMBY:
+      newMovieInfo.value = {
+        url: newMovieInfo.value.url,
+        name: newMovieInfo.value.name,
+        type: movieTypeRecords.get(selectedMovieType.value)?.defaultType || "",
+        proxy: true,
+        live: false,
+        rtmpSource: false,
+        headers: {},
+        vendorInfo: {
+          vendor: "emby"
         }
       };
       break;
@@ -402,6 +429,11 @@ const getBiliBiliVendors = async () => {
           <span class="text-sm min-w-fit"> 从 AList 中选择 </span>
         </div>
       </div>
+      <div class="w-full" v-if="selectedMovieType === pushType.EMBY">
+        <div class="more-option-list cursor-pointer" @click="embyDialog?.openDialog()">
+          <span class="text-sm min-w-fit"> 从 Emby 中选择 </span>
+        </div>
+      </div>
     </div>
     <div class="mx-5" v-if="!newMovieInfo.vendorInfo?.vendor">
       <el-collapse @change="" class="bg-transparent" style="background: #aaa0 !important">
@@ -502,6 +534,9 @@ const getBiliBiliVendors = async () => {
 
   <!-- AList 文件列表 -->
   <alist ref="alistDialog" />
+
+  <!-- Emby 文件列表 -->
+  <emby ref="embyDialog" />
 </template>
 
 <style lang="less" scoped>

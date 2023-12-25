@@ -242,6 +242,24 @@ export const getEmbyAccountInfo = useDefineApi<
   method: "GET"
 });
 
+// 获取 Emby 文件列表
+export const getEmbyFileList = useDefineApi<
+  {
+    headers: { Authorization: string };
+    data: {
+      path: string;
+    };
+    params: {
+      page: number;
+      max: number;
+    };
+  },
+  FileList
+>({
+  url: "/api/vendor/emby/list",
+  method: "POST"
+});
+
 // 退出 Emby 登录
 export const logoutEmby = useDefineApi<{ headers: { Authorization: string } }, any>({
   url: "/api/vendor/emby/logout",

@@ -6,21 +6,29 @@ import { ArrowRight, Folder, Document } from "@element-plus/icons-vue";
 const props = defineProps<{
   fileList: FileList | undefined;
   isLoading: boolean;
+  renderType: "alist" | "emby";
 }>();
 
 const emit = defineEmits(["toDir"]);
 
 const breadcrumb = () => {
   if (!props.fileList) return;
-  const paths = props.fileList.paths[0].path.split("/").filter(Boolean);
-  return [
-    { path: "/", name: "🏠主页" },
-    ...paths.map((path, index) => {
-      const fullPath = `/${paths.slice(0, index + 1).join("/")}`;
-      const name = path || "/";
-      return { path: fullPath, name };
-    })
-  ];
+  if (props.renderType === "alist") {
+    const paths = props.fileList.paths[0].path.split("/").filter(Boolean);
+    return [
+      { path: "/", name: "🏠主页" },
+      ...paths.map((path, index) => {
+        const fullPath = `/${paths.slice(0, index + 1).join("/")}`;
+        const name = path || "/";
+        return { path: fullPath, name };
+      })
+    ];
+  } else {
+    return props.fileList.paths.map((item, index) => {
+      const name = item.name || "🏠主页";
+      return { path: item.path, name };
+    });
+  }
 };
 
 const selectedItems = ref<FileItems[]>([]);
@@ -56,14 +64,18 @@ defineExpose({
 </script>
 <template>
   <el-breadcrumb class="-mt-5 mb-2" :separator-icon="ArrowRight">
-    <el-breadcrumb-item
-      v-for="(item, i) in breadcrumb()"
-      :key="i"
-      @click="emit('toDir', item.path)"
-    >
+    <el-breadcrumb-item v-for="(item, i) in breadcrumb()" :key="i">
       <template #default>
-        <span v-if="props.fileList!.paths[0].path === item.path">{{ item.name }}</span>
-        <b v-else class="cursor-pointer" @click="emit('toDir', item.path)">{{ item.name }}</b>
+        <div v-if="renderType === 'alist'">
+          <span v-if="props.fileList!.paths[0].path === item.path">{{ item.name }}</span>
+          <b v-else class="cursor-pointer" @click="emit('toDir', item.path)">{{ item.name }}</b>
+        </div>
+        <div v-else>
+          <span v-if="props.fileList!.paths[props.fileList!.paths.length - 1].path === item.path">{{
+            item.name
+          }}</span>
+          <b v-else class="cursor-pointer" @click="emit('toDir', item.path)">{{ item.name }}</b>
+        </div>
       </template>
     </el-breadcrumb-item>
   </el-breadcrumb>
