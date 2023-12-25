@@ -39,11 +39,13 @@ export interface FileItems {
   isDir: boolean;
 }
 
+export interface FileListPath {
+  name: string;
+  path: string;
+}
+
 export interface FileList {
-  paths: {
-    name: string;
-    path: string;
-  }[];
+  paths: FileListPath[];
   items: FileItems[];
   total: number;
 }

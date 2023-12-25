@@ -16,24 +16,20 @@ const { token: userToken } = userStore();
 const open = ref(false);
 const openDialog = () => {
   open.value = true;
-  getFileList();
 };
 
 const { execute, state, isLoading } = getAListFileList();
-const currentPage = ref(1);
-const pageSize = ref(10);
-const dir = ref("");
-const getFileList = async (paths?: string) => {
-  if (paths || paths === "") dir.value = paths;
+
+const getFileList = async (path: string, page: number, max: number) => {
   try {
     await execute({
       headers: { Authorization: userToken.value },
       data: {
-        path: dir.value
+        path: path
       },
       params: {
-        page: currentPage.value,
-        max: pageSize.value
+        page: page,
+        max: max
       }
     });
   } catch (err: any) {
@@ -94,25 +90,14 @@ defineExpose({
 </script>
 <template>
   <el-dialog v-model="open" title="文件列表" class="rounded-lg dark:bg-zinc-800 max-sm:w-full">
-    <index ref="FileList" :fileList="state" @to-dir="getFileList" :is-loading="isLoading" />
-    <template #footer>
-      <div class="flex justify-between items-center flex-wrap gap-3 -mt-7">
-        <el-pagination
-          class="flex-wrap gap-3"
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :pager-count="5"
-          layout="sizes, prev, pager, next, jumper"
-          :total="state?.total"
-          @size-change="getFileList()"
-          @current-change="getFileList()"
-        />
+    <index ref="FileList" :fileList="state" @to-dir="getFileList" :is-loading="isLoading">
+      <template #footer>
         <div>
           <el-button type="success" @click="submit" :loading="pushMovieLoading"
             >添加到列表</el-button
           >
         </div>
-      </div>
-    </template>
+      </template>
+    </index>
   </el-dialog>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import type { FileList, FileItems } from "@/types/Vendor";
 import { ArrowRight, Folder, Document } from "@element-plus/icons-vue";
 
@@ -9,15 +9,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(["toDir"]);
-
-const breadcrumb = () => {
-  if (!props.fileList) return;
-  return props.fileList.paths.map((item, index) => {
-    const name = item.name || "🏠主页";
-    const path = item.path || "";
-    return { path, name };
-  });
-};
 
 const selectedItems = ref<FileItems[]>([]);
 const selectItem = (item: FileItems) => {
@@ -37,27 +28,42 @@ const removeAll = () => {
   selectedItems.value = [];
 };
 
+const currentPage = ref(1);
+const pageSize = ref(10);
+
 const selectOrToDir = (item: FileItems) => {
   if (item.isDir) {
-    emit("toDir", item.path);
+    toDir(item.path, false);
   } else {
     findItem(item) ? removeItem(item) : selectItem(item);
   }
+};
+
+const toDir = (path: string, resetPage: boolean) => {
+  console.log("toDir", path);
+  if (resetPage) {
+    currentPage.value = 1;
+    pageSize.value = 10;
+  }
+  emit("toDir", path, currentPage.value, pageSize.value);
 };
 
 defineExpose({
   selectedItems,
   removeAll
 });
+
+onMounted(() => {
+  toDir("", true);
+});
 </script>
 <template>
   <el-breadcrumb class="-mt-5 mb-2" :separator-icon="ArrowRight">
-    <el-breadcrumb-item v-for="(item, i) in breadcrumb()" :key="i">
+    <el-breadcrumb-item v-for="(item, i) in props.fileList?.paths" :key="i">
       <template #default>
-        <span v-if="props.fileList!.paths[props.fileList!.paths.length - 1].path === item.path">{{
-          item.name
-        }}</span>
-        <b v-else class="cursor-pointer" @click="emit('toDir', item.path)">{{ item.name }}</b>
+        <b class="cursor-pointer" @click="toDir(item.path, true)">{{
+          item.name || (i === 0 ? "🏠主页" : undefined)
+        }}</b>
       </template>
     </el-breadcrumb-item>
   </el-breadcrumb>
@@ -96,5 +102,19 @@ defineExpose({
         <a href="javascript:;">清空选中</a>
       </template>
     </el-popconfirm>
+  </div>
+  <div class="flex justify-between items-center flex-wrap gap-3">
+    <el-pagination
+      v-if="fileList"
+      class="flex-wrap gap-3"
+      v-model:current-page="currentPage"
+      v-model:page-size="pageSize"
+      :pager-count="5"
+      layout="sizes, prev, pager, next, jumper"
+      :total="fileList?.total"
+      @size-change="toDir(fileList!.paths.findLast((i) => i)?.path || '', false)"
+      @current-change="toDir(fileList!.paths.findLast((i) => i)?.path || '', false)"
+    />
+    <slot name="footer"> </slot>
   </div>
 </template>
