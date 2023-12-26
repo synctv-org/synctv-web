@@ -358,7 +358,9 @@ const getBiliBiliVendors = async () => {
       url: `/api/vendor/backends/bilibili`
     });
     getBiliBiliVendorsLoading.value = false;
-    if (biliVendors.value) {
+    if (!biliVendors.value) {
+      biliVendors.value = [""];
+    } else if (biliVendors.value.indexOf("") === -1) {
       biliVendors.value.push("");
     }
   } catch (err: any) {
