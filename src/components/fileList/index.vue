@@ -8,8 +8,11 @@ const props = defineProps<{
   isLoading: boolean;
 }>();
 
-const emit = defineEmits(["toDir"]);
+const emit = defineEmits<{
+  toDir: [path: string, page: number, max: number, keywords?: string];
+}>();
 
+const keywords = ref("");
 const selectedItems = ref<FileItem[]>([]);
 const selectItem = (item: FileItem) => {
   selectedItems.value.push(item);
@@ -33,40 +36,49 @@ const pageSize = ref(10);
 
 const selectOrToDir = (item: FileItem) => {
   if (item.isDir) {
-    toDir(item.path, false);
+    toDir(item.path, true, true);
   } else {
     findItem(item) ? removeItem(item) : selectItem(item);
   }
 };
 
-const toDir = (path: string, resetPage: boolean) => {
+const toDir = (path: string, resetPage: boolean, resetKeywords: boolean) => {
   console.log("toDir", path);
   if (resetPage) {
     currentPage.value = 1;
     pageSize.value = 10;
   }
-  emit("toDir", path, currentPage.value, pageSize.value);
+  if (resetKeywords) {
+    keywords.value = "";
+  }
+  emit("toDir", path, currentPage.value, pageSize.value, keywords.value);
+};
+
+const refresh = (resetPage: boolean, resetKeywords: boolean) => {
+  toDir(props.fileList?.paths.findLast((i) => i)?.path || "", resetPage, resetKeywords);
 };
 
 defineExpose({
   selectedItems,
-  removeAll
+  removeAll,
+  refresh
 });
 
 onMounted(() => {
-  toDir("", true);
+  toDir("", true, true);
 });
 </script>
 <template>
   <el-breadcrumb class="-mt-5 mb-2" :separator-icon="ArrowRight">
     <el-breadcrumb-item v-for="(item, i) in props.fileList?.paths" :key="i">
       <template #default>
-        <b class="cursor-pointer" @click="toDir(item.path, true)">{{
+        <b class="cursor-pointer" @click="toDir(item.path, true, true)">{{
           item.name || (i === 0 ? "🏠主页" : undefined)
         }}</b>
       </template>
     </el-breadcrumb-item>
   </el-breadcrumb>
+  <el-input v-model="keywords" placeholder="搜索" @keyup.enter="refresh(true, false)" required />
   <div v-loading="!fileList || isLoading">
     <div class="flex px-1 py-1">
       <p class="mr-auto">名称</p>
@@ -116,8 +128,8 @@ onMounted(() => {
       :pager-count="5"
       layout="sizes, prev, pager, next, jumper"
       :total="fileList?.total"
-      @size-change="toDir(fileList!.paths.findLast((i) => i)?.path || '', false)"
-      @current-change="toDir(fileList!.paths.findLast((i) => i)?.path || '', false)"
+      @size-change="toDir(fileList!.paths.findLast((i) => i)?.path || '', false, false)"
+      @current-change="toDir(fileList!.paths.findLast((i) => i)?.path || '', false, false)"
     />
     <slot name="footer"> </slot>
   </div>
