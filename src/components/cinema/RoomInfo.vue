@@ -83,7 +83,7 @@ const deleteRoom = async () => {
 };
 
 const shareURL = computed(() => {
-  return `${window.location.origin}/web/joinRoom/${roomID.value}`;
+  return `${window.location.origin}/web/joinRoom/${roomID.value}?pwd=${password.value}`;
 });
 </script>
 
