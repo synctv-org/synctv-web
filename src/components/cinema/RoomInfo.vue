@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { ElNotification } from "element-plus";
 import { useLocalStorage } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
@@ -81,6 +81,10 @@ const deleteRoom = async () => {
     });
   }
 };
+
+const shareURL = computed(() => {
+  return `${window.location.origin}/web/joinRoom/${roomID.value}`;
+});
 </script>
 
 <template>
@@ -100,6 +104,14 @@ const deleteRoom = async () => {
               <div class="overflow-hidden flex text-ellipsis max-w-[150px]">
                 <span class="truncate">{{ roomID }}</span>
                 <CopyButton class="border-0" size="small" :value="roomID" />
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>分享链接</td>
+            <td>
+              <div class="overflow-hidden flex text-ellipsis max-w-[150px]">
+                <CopyButton class="border-0" size="small" :value="shareURL" />
               </div>
             </td>
           </tr>
