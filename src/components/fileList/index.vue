@@ -6,6 +6,7 @@ import { ArrowRight, Folder, Document } from "@element-plus/icons-vue";
 const props = defineProps<{
   fileList: FileList | undefined;
   isLoading: boolean;
+  enableSearch: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -78,7 +79,13 @@ onMounted(() => {
       </template>
     </el-breadcrumb-item>
   </el-breadcrumb>
-  <el-input v-model="keywords" placeholder="搜索" @keyup.enter="refresh(true, false)" required />
+  <el-input
+    v-if="enableSearch"
+    v-model="keywords"
+    placeholder="搜索"
+    @keyup.enter="refresh(true, false)"
+    required
+  />
   <div v-loading="!fileList || isLoading">
     <div class="flex px-1 py-1">
       <p class="mr-auto">名称</p>
