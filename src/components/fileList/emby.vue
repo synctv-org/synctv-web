@@ -6,12 +6,12 @@ import { getEmbyFileList } from "@/services/apis/vendor";
 import { pushMoviesApi } from "@/services/apis/movie";
 import { userStore } from "@/stores/user";
 import type { BaseMovieInfo } from "@/types/Movie";
-import { useLocalStorage } from "@vueuse/core";
-import { useRouteParams } from "@vueuse/router";
+
+const props = defineProps<{
+  roomToken: string;
+}>();
 
 const FileList = ref<InstanceType<typeof index>>();
-const roomID = useRouteParams<string>("roomId");
-const roomToken = useLocalStorage<string>(`room-${roomID.value}-token`, "");
 const { token: userToken } = userStore();
 const open = ref(false);
 const openDialog = () => {
@@ -47,7 +47,7 @@ const submit = async () => {
     if (!selectedItems) return;
     if (selectedItems.length === 0) return ElMessage.error("请选择视频");
     await reqPushMoviesApi({
-      headers: { Authorization: roomToken.value },
+      headers: { Authorization: props.roomToken },
       data: selectedItems.map(
         (item) =>
           <BaseMovieInfo>{

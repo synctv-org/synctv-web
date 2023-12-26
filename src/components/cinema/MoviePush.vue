@@ -533,10 +533,10 @@ const getBiliBiliVendors = async () => {
   />
 
   <!-- AList 文件列表 -->
-  <alist ref="alistDialog" />
+  <alist ref="alistDialog" :room-token="token" />
 
   <!-- Emby 文件列表 -->
-  <emby ref="embyDialog" />
+  <emby ref="embyDialog" :room-token="token" />
 </template>
 
 <style lang="less" scoped>
