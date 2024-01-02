@@ -24,8 +24,6 @@ const aList = ref({
   hashedPassword: ""
 });
 
-const currentPage = ref(0);
-const pageSize = ref(10);
 // 获取已经绑定的账号
 const { state: binds, execute: reqBinds, isLoading: getBindsLoading } = getAListBinds();
 const getBinds = async () => {
@@ -33,10 +31,6 @@ const getBinds = async () => {
     await reqBinds({
       headers: {
         Authorization: userToken.value
-      },
-      params: {
-        page: currentPage.value,
-        max: pageSize.value
       }
     });
   } catch (err: any) {
