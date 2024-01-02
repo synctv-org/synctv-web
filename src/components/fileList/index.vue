@@ -35,7 +35,7 @@ const removeAll = () => {
 const isSelect = (item: FileItem) => {
   return findItem(item)
     ? "bg-gray-200 hover:shadow-none hover:bg-slate-300 hover:scale-100 dark:bg-neutral-900 dark:hover:bg-stone-800"
-    : "";
+    : "bg-slate-50 hover:shadow-md hover:bg-slate-100 hover:scale-[1.02] dark:bg-neutral-700 dark:hover:bg-neutral-600";
 };
 
 const currentPage = ref(1);
@@ -105,7 +105,7 @@ onMounted(() => {
     </div>
     <div
       :class="
-        'flex items-center p-2 bg-slate-50 my-2 rounded-md cursor-pointer transition-all duration-300 hover:bg-slate-100 hover:shadow-md hover:scale-[1.02] shadow-slate-300 dark:bg-neutral-700 dark:hover:bg-neutral-600 ' +
+        'flex items-center p-2 my-2 rounded-md cursor-pointer transition-all duration-300 shadow-slate-300 ' +
         isSelect(item)
       "
       v-for="(item, i) in fileList?.items"
