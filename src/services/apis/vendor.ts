@@ -136,10 +136,6 @@ export const getAListBinds = useDefineApi<
     headers: {
       Authorization: string;
     };
-    params: {
-      page: number;
-      max: number;
-    };
   },
   {
     serverID: string;
@@ -218,6 +214,22 @@ export const logoutAList = useDefineApi<
 >({
   url: "/api/vendor/alist/logout",
   method: "POST"
+});
+
+// 获取已经绑定的 Emby 账号列表
+export const getEmbyBinds = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+  },
+  {
+    serverID: string;
+    host: string;
+  }[]
+>({
+  url: "/api/vendor/emby/binds",
+  method: "GET"
 });
 
 // 登录 Emby
