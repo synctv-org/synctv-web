@@ -130,6 +130,26 @@ export const logoutBiliBili = useDefineApi<{ headers: { Authorization: string } 
   method: "POST"
 });
 
+// 获取已经绑定的 AList 账号列表
+export const getAListBinds = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    params: {
+      page: number;
+      max: number;
+    };
+  },
+  {
+    serverID: string;
+    host: string;
+  }[]
+>({
+  url: "/api/vendor/alist/binds",
+  method: "GET"
+});
+
 // 登录 AList
 export const loginAListApi = useDefineApi<
   {
@@ -150,11 +170,14 @@ export const loginAListApi = useDefineApi<
 export const getAListAccountInfo = useDefineApi<
   {
     headers: { Authorization: string };
+    params: {
+      serverID: string;
+    };
   },
   {
     isLogin: boolean;
     info: {
-      base_path: string;
+      basePath: string;
       id: number;
       permission: number;
       username: string;
@@ -184,7 +207,15 @@ export const getAListFileList = useDefineApi<
 });
 
 // 退出 AList 登录
-export const logoutAList = useDefineApi<{ headers: { Authorization: string } }, any>({
+export const logoutAList = useDefineApi<
+  {
+    headers: { Authorization: string };
+    data: {
+      serverId: string;
+    };
+  },
+  any
+>({
   url: "/api/vendor/alist/logout",
   method: "POST"
 });
