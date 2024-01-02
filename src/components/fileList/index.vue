@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import type { FileList, FileItem } from "@/types/Vendor";
-import { ArrowRight, Folder, Document } from "@element-plus/icons-vue";
+import { ArrowRight, Folder, Document, Search } from "@element-plus/icons-vue";
 
 const props = defineProps<{
   fileList: FileList | undefined;
@@ -80,12 +80,17 @@ onMounted(() => {
     </el-breadcrumb-item>
   </el-breadcrumb>
   <el-input
+    class="my-2"
     v-if="enableSearch"
     v-model="keywords"
     placeholder="搜索"
     @keyup.enter="refresh(true, false)"
-    required
-  />
+    :disabled="isLoading"
+  >
+    <template #append>
+      <el-button :icon="Search" :disabled="isLoading" @click="refresh(true, false)" />
+    </template>
+  </el-input>
   <div v-loading="!fileList || isLoading">
     <div class="flex px-1 py-1">
       <p class="mr-auto">名称</p>
