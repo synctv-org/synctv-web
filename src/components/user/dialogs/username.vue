@@ -29,10 +29,10 @@ const rules = reactive<FormRules<FormData>>({
 });
 
 const { execute, isLoading } = changeUNameApi();
-const changeUName = async () => {
-  try {
-    await formDataRef.value?.validate(async (valid, fields) => {
-      if (valid) {
+const changeUName = () => {
+  formDataRef.value?.validate(async (valid, fields) => {
+    if (valid) {
+      try {
         await execute({
           headers: {
             Authorization: token.value
@@ -46,16 +46,16 @@ const changeUName = async () => {
         open.value = false;
         formDataRef.value?.resetFields();
         await getUserInfo();
+      } catch (err: any) {
+        console.error(err.message);
+        ElNotification({
+          title: "错误",
+          message: err.response.data.error || err.message,
+          type: "error"
+        });
       }
-    });
-  } catch (err: any) {
-    console.error(err.message);
-    ElNotification({
-      title: "错误",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
+    }
+  });
 };
 </script>
 
