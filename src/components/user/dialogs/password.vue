@@ -29,10 +29,10 @@ const rules = reactive<FormRules<FormData>>({
 });
 
 const { execute, state, isLoading } = changePasswordApi();
-const changePwd = async () => {
-  try {
-    await formDataRef.value?.validate(async (valid, fields) => {
-      if (valid) {
+const changePwd = () => {
+  formDataRef.value?.validate(async (valid, fields) => {
+    if (valid) {
+      try {
         await execute({
           headers: {
             Authorization: token.value
@@ -46,18 +46,19 @@ const changePwd = async () => {
             type: "success"
           });
           updateToken(state.value?.token);
+          formDataRef?.value?.resetFields();
           open.value = false;
         }
+      } catch (err: any) {
+        console.error(err.message);
+        ElNotification({
+          title: "错误",
+          message: err.response.data.error || err.message,
+          type: "error"
+        });
       }
-    });
-  } catch (err: any) {
-    console.error(err.message);
-    ElNotification({
-      title: "错误",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
+    }
+  });
 };
 </script>
 
