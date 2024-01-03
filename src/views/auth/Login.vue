@@ -185,7 +185,10 @@ onMounted(async () => {
       <button class="btn m-[10px]" @click="login">登录</button>
     </form>
     <br />
-    <div v-if="OAuth2Platforms_?.enabled" class="sm:w-96 w-full m-auto">
+    <div
+      v-if="OAuth2Platforms_?.enabled && OAuth2Platforms_.enabled.length > 0"
+      class="sm:w-96 w-full m-auto"
+    >
       <h4 class="text-[18px] font-bold">使用第三方平台登录</h4>
       <button
         v-for="item in OAuth2Platforms_?.enabled"
