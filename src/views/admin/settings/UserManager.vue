@@ -16,7 +16,6 @@ import CopyButton from "@/components/CopyButton.vue";
 import userRooms from "@/components/admin/dialogs/userRooms.vue";
 import newUser from "@/components/admin/dialogs/newUser.vue";
 import { ROLE, role } from "@/types/User";
-import { useTimeAgo } from "@vueuse/core";
 
 const props = defineProps<{
   title: string;
@@ -256,7 +255,7 @@ onMounted(async () => {
         </el-table-column>
         <el-table-column prop="createdAt" label="注册时间" width="200">
           <template #default="scope">
-            {{ useTimeAgo(new Date(scope.row.createdAt)).value }}
+            {{ new Date(scope.row.createdAt).toLocaleString() }}
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作">

@@ -9,7 +9,6 @@ import Account from "./account/index.vue";
 import UserPassword from "@/components/user/dialogs/password.vue";
 import Uname from "@/components/user/dialogs/username.vue";
 import { ROLE, role } from "@/types/User";
-import { useTimeAgo } from "@vueuse/core";
 
 const { info, token } = userStore();
 const pwdDialog = ref<InstanceType<typeof UserPassword>>();
@@ -107,7 +106,7 @@ onMounted(() => {});
                 <tr>
                   <td>注册时间</td>
                   <td>
-                    {{ info && useTimeAgo(new Date(info.createdAt)).value }}
+                    {{ info && new Date(info.createdAt).toLocaleString() }}
                   </td>
                 </tr>
                 <tr v-if="info!.role! >= ROLE.Admin">

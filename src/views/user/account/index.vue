@@ -4,7 +4,6 @@ import { ElNotification, ElMessage } from "element-plus";
 import { oAuth2Platforms, bindOAuth2Api, unbindOAuth2Api } from "@/services/apis/user";
 import { userStore } from "@/stores/user";
 import { getAppIcon } from "@/utils";
-import { useTimeAgo } from "@vueuse/core";
 
 const { token } = userStore();
 
@@ -125,7 +124,7 @@ onMounted(async () => {
         <el-table-column prop="providerUserID" label="账号ID" />
         <el-table-column prop="createdAt" label="绑定时间">
           <template #default="scope">
-            {{ useTimeAgo(new Date(scope.row.createdAt)).value }}
+            {{ new Date(scope.row.createdAt).toLocaleString() }}
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作">
