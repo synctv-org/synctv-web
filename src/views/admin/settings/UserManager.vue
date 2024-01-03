@@ -243,7 +243,7 @@ onMounted(async () => {
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="role" label="权限组" width="120">
+        <el-table-column prop="role" label="权限组" width="70">
           <template #default="scope">
             {{ getRole(scope.row.role) }}
           </template>
@@ -253,7 +253,7 @@ onMounted(async () => {
             <el-button type="primary" plain @click="getUserRoom(scope.row.id)"> 查看 </el-button>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="注册时间" width="200">
+        <el-table-column prop="createdAt" label="注册时间" width="160">
           <template #default="scope">
             {{ new Date(scope.row.createdAt).toLocaleString() }}
           </template>
