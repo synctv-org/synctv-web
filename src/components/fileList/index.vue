@@ -32,6 +32,11 @@ const removeAll = () => {
   selectedItems.value = [];
 };
 
+const setProxy = (item: FileItem) => {
+  const i = selectedItems.value.findIndex((i) => i.path === item.path);
+  selectedItems.value[i].isProxy = !selectedItems.value[i].isProxy;
+};
+
 const isSelect = (item: FileItem) => {
   return findItem(item)
     ? "bg-gray-200 hover:shadow-none hover:bg-slate-300 hover:scale-100 dark:bg-neutral-900 dark:hover:bg-stone-800"
@@ -68,7 +73,9 @@ const refresh = (resetPage: boolean, resetKeywords: boolean) => {
 defineExpose({
   selectedItems,
   removeAll,
-  refresh
+  refresh,
+  setProxy,
+  findItem
 });
 
 onMounted(() => {
@@ -112,15 +119,14 @@ onMounted(() => {
       :key="i"
       @click="selectOrToDir(item)"
     >
-      <p class="truncate overflow-hidden mr-auto max-w-[70%] xl:max-w-[40%] 2xl:max-w-[50%]">
+      <p
+        class="truncate overflow-hidden mr-auto max-w-[70%] xl:max-w-[40%] 2xl:max-w-[50%] flex items-center"
+      >
         <el-icon v-if="item.isDir" class="mr-2"><Folder /></el-icon>
         <el-icon v-else class="mr-2"><Document /></el-icon>
         {{ item.name }}
       </p>
       <slot name="item" :item="item"></slot>
-      <p class="w-14 text-center hidden xl:block">
-        {{ item.isDir ? "文件夹" : "文件" }}
-      </p>
     </div>
   </div>
   <div v-if="selectedItems.length > 0" class="flex justify-between items-center flex-wrap gap-3">

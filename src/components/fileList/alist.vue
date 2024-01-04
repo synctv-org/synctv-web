@@ -64,7 +64,7 @@ const submit = async () => {
             rtmpSource: false,
             type: "",
             headers: {},
-            proxy: false,
+            proxy: item.isProxy,
             vendorInfo: {
               vendor: "alist",
               alist: {
@@ -113,16 +113,29 @@ defineExpose({
         >
       </template>
       <template #field>
+        <p class="w-16 mr-6">开启代理</p>
         <p class="w-20">大小</p>
         <p class="ml-8 w-40 hidden xl:block">修改日期</p>
+        <p class="text-center mr-4 hidden xl:block">类型</p>
       </template>
       <template #item="{ item }">
+        <div class="w-4 mr-6 flex items-center">
+          <input
+            v-if="!item.isDir && FileList?.findItem(item)"
+            type="checkbox"
+            @click.stop=""
+            @change="FileList?.setProxy(item)"
+          />
+        </div>
         <div class="w-24 text-center">
           {{ item.isDir ? "" : ((item as AListItem).size / 1024 / 1024).toFixed(2) + " MB" }}
         </div>
         <div class="mx-4 w-40 text-left hidden xl:block">
           {{ new Date((item as AListItem).modified).toLocaleString() }}
         </div>
+        <p class="w-14 text-center hidden xl:block">
+          {{ item.isDir ? "文件夹" : "文件" }}
+        </p>
       </template>
     </index>
   </el-dialog>

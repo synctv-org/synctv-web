@@ -37,6 +37,7 @@ export interface FileItem {
   name: string;
   path: string;
   isDir: boolean;
+  isProxy?: boolean;
 }
 
 export interface FileListPath {
