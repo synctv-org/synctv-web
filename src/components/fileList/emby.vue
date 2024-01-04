@@ -6,6 +6,11 @@ import { getEmbyFileList } from "@/services/apis/vendor";
 import { pushMoviesApi } from "@/services/apis/movie";
 import { userStore } from "@/stores/user";
 import type { BaseMovieInfo } from "@/types/Movie";
+import type { FileItem } from "@/types/Vendor";
+
+interface EmbyItem extends FileItem {
+  type: string;
+}
 
 const props = defineProps<{
   roomToken: string;
@@ -58,7 +63,7 @@ const submit = async () => {
             rtmpSource: false,
             type: "",
             headers: {},
-            proxy: false,
+            proxy: item.isProxy,
             vendorInfo: {
               vendor: "emby",
               emby: {
@@ -97,6 +102,25 @@ defineExpose({
       :is-loading="isLoading"
       :enable-search="true"
     >
+      <template #field>
+        <p class="w-16 mr-6">开启代理</p>
+      </template>
+      <template #item="{ item }">
+        <div class="w-4 mr-8 flex items-center">
+          <input
+            v-if="!item.isDir && FileList?.findItem(item)"
+            type="checkbox"
+            @click.stop=""
+            @change="FileList?.setProxy(item)"
+          />
+        </div>
+        <p
+          class="w-14 text-center hidden xl:block truncate overflow-hidden"
+          :title="(item as EmbyItem).type"
+        >
+          {{ (item as EmbyItem).type }}
+        </p>
+      </template>
       <template #footer>
         <el-button
           v-if="FileList && FileList.selectedItems.length > 0"
