@@ -116,7 +116,6 @@ defineExpose({
         <p class="w-16 mr-6">开启代理</p>
         <p class="w-20">大小</p>
         <p class="ml-8 w-40 hidden xl:block">修改日期</p>
-        <p class="text-center mr-4 hidden xl:block">类型</p>
       </template>
       <template #item="{ item }">
         <div class="w-4 mr-6 flex items-center">
