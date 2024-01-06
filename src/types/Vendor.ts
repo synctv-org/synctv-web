@@ -9,7 +9,8 @@ export interface Backend {
     consul?: Consul;
     etcd?: Etcd;
   };
-  usedBy?: {
+  usedBy: {
+    enabled: boolean;
     bilibili?: boolean;
     bilibiliBackendName?: string;
     alist?: boolean;

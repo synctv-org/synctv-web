@@ -92,6 +92,28 @@ onMounted(async () => {
           </template>
         </el-table-column>
         <el-table-column prop="info.backend.comment" label="备注" />
+        <el-table-column prop="info.backend.usedBy.enabled" label="应用">
+          <template #default="scope">
+            <div v-if="scope.row.info.usedBy.enabled">
+              <el-image
+                v-if="scope.row.info.usedBy.alist"
+                style="max-width: 15px"
+                :src="getAppIcon('alist')"
+              />
+              <el-image
+                v-if="scope.row.info.usedBy.bilibili"
+                style="max-width: 15px"
+                :src="getAppIcon('bilibili')"
+              />
+              <el-image
+                v-if="scope.row.info.usedBy.emby"
+                style="max-width: 15px"
+                :src="getAppIcon('emby')"
+              />
+            </div>
+            <div v-else>禁用中</div>
+          </template>
+        </el-table-column>
         <el-table-column prop="info.backend.jwtSecret" label="JWT密钥" />
         <el-table-column prop="info.backend.timeOut" label="超时时间" />
         <el-table-column prop="status" label="当前状态">

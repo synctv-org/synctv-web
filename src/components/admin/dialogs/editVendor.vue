@@ -11,34 +11,8 @@ const emits = defineEmits(["updateVendorList"]);
 const isEditMode = ref(false);
 const mode = ref<"consul" | "etcd" | "none">("none");
 const formRef = ref<FormInstance>();
-const data = ref<Backend>({
-  backend: {
-    endpoint: "",
-    comment: "",
-    tls: false,
-    jwtSecret: "",
-    customCA: "",
-    timeOut: "",
-    consul: {
-      serviceName: "",
-      token: "",
-      pathPrefix: "",
-      namespace: "",
-      partition: ""
-    },
-    etcd: { serviceName: "", username: "", password: "" }
-  },
-  usedBy: {
-    bilibili: false,
-    bilibiliBackendName: "",
-    alist: false,
-    alistBackendName: "",
-    emby: false,
-    embyBackendName: ""
-  }
-});
 
-const defaultData = {
+const defaultData: Backend = {
   backend: {
     endpoint: "",
     comment: "",
@@ -56,6 +30,7 @@ const defaultData = {
     etcd: { serviceName: "", username: "", password: "" }
   },
   usedBy: {
+    enabled: false,
     bilibili: false,
     bilibiliBackendName: "",
     alist: false,
@@ -64,6 +39,8 @@ const defaultData = {
     embyBackendName: ""
   }
 };
+
+const data = ref<Backend>(defaultData);
 
 const title = computed(() => (isEditMode.value ? "配置解析器" : "新增解析器"));
 
@@ -162,26 +139,31 @@ defineExpose({ openDialog });
           <el-input v-model="data.backend.etcd!.password" />
         </el-form-item>
       </div>
-      <el-form-item label="应用到Bilibili">
-        <el-switch v-model="data.usedBy!.bilibili" />
+      <el-form-item label="启用">
+        <el-switch v-model="data.usedBy.enabled" />
       </el-form-item>
-      <el-form-item label="Bilibili服务名称">
-        <el-input v-model="data.usedBy!.bilibiliBackendName" />
-      </el-form-item>
+      <div v-if="data.usedBy.enabled">
+        <el-form-item label="应用到Bilibili">
+          <el-switch v-model="data.usedBy!.bilibili" />
+        </el-form-item>
+        <el-form-item label="Bilibili服务名称">
+          <el-input v-model="data.usedBy!.bilibiliBackendName" />
+        </el-form-item>
 
-      <el-form-item label="应用到Alist">
-        <el-switch v-model="data.usedBy!.alist" />
-      </el-form-item>
-      <el-form-item label="Alist服务名称">
-        <el-input v-model="data.usedBy!.alistBackendName" />
-      </el-form-item>
+        <el-form-item label="应用到Alist">
+          <el-switch v-model="data.usedBy!.alist" />
+        </el-form-item>
+        <el-form-item label="Alist服务名称">
+          <el-input v-model="data.usedBy!.alistBackendName" />
+        </el-form-item>
 
-      <el-form-item label="应用到Emby">
-        <el-switch v-model="data.usedBy!.emby" />
-      </el-form-item>
-      <el-form-item label="Emby服务名称">
-        <el-input v-model="data.usedBy!.embyBackendName" />
-      </el-form-item>
+        <el-form-item label="应用到Emby">
+          <el-switch v-model="data.usedBy!.emby" />
+        </el-form-item>
+        <el-form-item label="Emby服务名称">
+          <el-input v-model="data.usedBy!.embyBackendName" />
+        </el-form-item>
+      </div>
     </el-form>
 
     <template #footer>
