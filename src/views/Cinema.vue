@@ -316,7 +316,8 @@ onMounted(() => {
       }
     )
   );
-  getMovieListAndCurrent(true);
+  getCurrentMovie();
+  getMovies();
 });
 </script>
 
