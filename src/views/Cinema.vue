@@ -130,38 +130,20 @@ const playerOption = computed<options>(() => {
 });
 
 const newLazyInitSyncPlugin = (status: Status) => {
-  return (art: Artplayer): void => {
-    import("@/plugins/sync")
-      .then((sync) => {
-        console.log("加载进度同步插件中...");
-        art.plugins.add(sync.newSyncPlugin(sendElement, status));
-      })
-      .catch((e) => {
-        ElNotification({
-          title: "进度同步失败",
-          type: "error",
-          message: `进度同步插件加载失败，同步功能将不可用：${e}`
-        });
-        console.error(`进度同步插件加载失败，同步功能将不可用：${e}`);
-      });
+  const syncP = import("@/plugins/sync");
+  return async (art: Artplayer) => {
+    console.log("加载进度同步插件中...");
+    const sync = await syncP;
+    art.plugins.add(sync.newSyncPlugin(sendElement, status));
   };
 };
 
 const newLazyInitSubtitlePlugin = (subtitle: Subtitles) => {
-  return (art: Artplayer): void => {
-    import("@/plugins/subtitle")
-      .then((subtitlePlugin) => {
-        console.log("加载字幕插件中...");
-        art.plugins.add(subtitlePlugin.newSubtitle(subtitle));
-      })
-      .catch((e) => {
-        ElNotification({
-          title: "字幕加载失败",
-          type: "error",
-          message: `字幕插件加载失败，字幕功能将不可用：${e}`
-        });
-        console.error(`字幕插件加载失败，字幕功能将不可用：${e}`);
-      });
+  const subtitleP = import("@/plugins/subtitle");
+  return async (art: Artplayer) => {
+    console.log("加载字幕插件中...");
+    const subtitlePlugin = await subtitleP;
+    art.plugins.add(subtitlePlugin.newSubtitle(subtitle));
   };
 };
 

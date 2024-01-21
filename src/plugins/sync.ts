@@ -6,10 +6,14 @@ import type Artplayer from "artplayer";
 import type { Status } from "@/proto/message";
 import { ElNotification } from "element-plus";
 
-export const artPlay = (art: Artplayer) => {
-  art.play().catch(() => {
+const artPlay = async (art: Artplayer) => {
+  let retry = false;
+  await art.play().catch(() => {
     art.muted = true;
-    art
+    retry = true;
+  });
+  if (retry)
+    await art
       .play()
       .then(() => {
         ElNotification({
@@ -18,14 +22,13 @@ export const artPlay = (art: Artplayer) => {
           message: "由于浏览器限制，播放器已静音，请手动开启声音"
         });
       })
-      .catch((e) => {
+      .catch(() => {
         ElNotification({
           title: "播放失败",
-          type: "error",
-          message: e
+          message: "播放失败，请刷新页面重试",
+          type: "error"
         });
       });
-  });
 };
 
 interface resould {
@@ -84,13 +87,13 @@ export const newSyncPlugin = (
 
     const publishPlayDebounce = playingStatusDebounce(publishPlay);
 
-    const setAndNoPublishPlay = () => {
+    const setAndNoPublishPlay = async () => {
       if (art.option.isLive || art.playing) return;
       art.off("play", publishPlayDebounce);
       art.once("play", () => {
         art.on("play", publishPlayDebounce);
       });
-      artPlay(art);
+      await artPlay(art);
     };
 
     const publishPause = () => {
@@ -149,12 +152,12 @@ export const newSyncPlugin = (
     };
 
     if (!art.option.isLive) {
-      art.once("ready", () => {
+      art.once("ready", async () => {
         console.log("同步进度中...");
         art.currentTime = dynamicStatus.seek;
         art.playbackRate = dynamicStatus.rate;
         if (dynamicStatus.playing) {
-          artPlay(art);
+          await artPlay(art);
         }
 
         const intervals: number[] = [];
@@ -165,9 +168,12 @@ export const newSyncPlugin = (
           watch(
             dynamicStatus,
             (newStatus) => {
+              console.log("同步进度中...");
+              console.log(newStatus.playing);
+              console.log(art.playing);
               newStatus.playing ? setAndNoPublishPlay() : setAndNoPublishPause();
-              setAndNoPublishSeek(newStatus.seek);
               setAndNoPublishRate(newStatus.rate);
+              setAndNoPublishSeek(newStatus.seek);
             },
             { deep: true }
           )
