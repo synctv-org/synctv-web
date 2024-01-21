@@ -93,6 +93,11 @@ const sendMsg = (msg: string) => {
 };
 
 const playerOption = computed<options>(() => {
+  if (!room.currentMovie.base!.url) {
+    return {
+      url: ""
+    };
+  }
   let option: options = {
     url: room.currentMovie.base!.url,
     type: room.currentMovie.base!.type,
@@ -107,14 +112,18 @@ const playerOption = computed<options>(() => {
       newLazyInitSyncPlugin(room.currentMovieStatus)
     ]
   };
+  // when cross origin, add token to headers and query
   if (option.url.startsWith(window.location.origin) || option.url.startsWith("/api/movie/live")) {
     option.headers = {
       ...option.headers,
       Authorization: roomToken.value
     };
+    option.url = option.url.includes("?")
+      ? `${option.url}&token=${roomToken.value}`
+      : `${option.url}?token=${roomToken.value}`;
   }
   if (room.currentMovie.base!.subtitles) {
-    option.plugins.push(newLazyInitSubtitlePlugin(room.currentMovie.base!.subtitles));
+    option.plugins!.push(newLazyInitSubtitlePlugin(room.currentMovie.base!.subtitles));
   }
 
   return option;

@@ -1,8 +1,35 @@
 <script setup lang="ts">
 import Artplayer from "artplayer";
+import artplayerPluginDashQuality from "artplayer-plugin-dash-quality";
+import artplayerPluginHlsQuality from "artplayer-plugin-hls-quality";
+import type { HlsConfig, FragmentLoaderConstructor, FragmentLoaderContext } from "hls.js";
 import type { Option } from "artplayer/types/option";
 import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import type { PropType, WatchStopHandle } from "vue";
+
+function newDashQualityPlugin(): (art: Artplayer) => {
+  name: "artplayerPluginDashQuality";
+} {
+  return artplayerPluginDashQuality({
+    control: true,
+    setting: true,
+    getResolution: (level) => (level.height ? level.height + "P" : "自动"),
+    title: "画质",
+    auto: "自动"
+  });
+}
+
+function newHlsQualityPlugin(): (art: Artplayer) => {
+  name: "artplayerPluginHlsQuality";
+} {
+  return artplayerPluginHlsQuality({
+    control: true,
+    setting: true,
+    getResolution: (level) => (level.height ? level.height + "P" : "自动"),
+    title: "画质",
+    auto: "自动"
+  });
+}
 
 const watchers: WatchStopHandle[] = [];
 
@@ -19,10 +46,10 @@ let art: Artplayer;
 
 export interface options {
   url: string;
-  isLive: boolean;
+  isLive?: boolean;
   type?: string;
-  headers: Record<string, string>;
-  plugins: ((art: Artplayer) => unknown)[];
+  headers?: Record<string, string>;
+  plugins?: ((art: Artplayer) => unknown)[];
 }
 
 const Props = defineProps({
@@ -34,129 +61,178 @@ const Props = defineProps({
 
 const Emits = defineEmits(["get-instance"]);
 
-const playMpd = (player: HTMLMediaElement, url: string, art: any) => {
-  import("@/utils/dash").then((dash) => {
-    if (dash.isSupported()) {
-      if (art.dash) art.dash.destroy();
+const playMpd = async (player: HTMLMediaElement, url: string, art: any) => {
+  const dashjs = await import("dashjs");
 
-      if (!art.plugins.artplayerPluginDashQuality) art.plugins.add(dash.newDashQualityPlugin());
-      const d = dash.newDash();
-      d.initialize(player, url, false);
-      art.dash = d;
-      art.on("destroy", d.destroy);
-    } else {
-      art.notice.show = "Unsupported playback format: mpd";
-    }
-  });
+  if (!dashjs.supportsMediaSource()) {
+    art.notice.show = "Unsupported playback format: mpd";
+    return;
+  }
+
+  if (art.dash) art.dash.destroy();
+
+  if (!art.plugins.artplayerPluginDashQuality) art.plugins.add(newDashQualityPlugin());
+
+  const d = dashjs.MediaPlayer().create();
+  d.initialize(player, url, false);
+  art.dash = d;
+  art.on("destroy", d.destroy);
 };
 
-const playFlv = (player: HTMLMediaElement, url: string, art: Artplayer) => {
-  import("mpegts.js")
-    .then((mpegts) => mpegts.default)
-    .then((mpegts) => {
-      if (mpegts.isSupported()) {
-        if (art.flv) art.flv.destroy();
+const playFlv = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
+  const mpegts = await import("mpegts.js").then((m) => m.default);
 
-        const Config: Record<string, Record<string, string>> = {};
-        Config["headers"] = Props.options.headers;
+  if (!mpegts.isSupported()) {
+    art.notice.show = "Unsupported playback format: flv";
+    return;
+  }
 
-        const flv = mpegts.createPlayer({ type: "flv", url, isLive: art.option.isLive }, Config);
+  if (art.flv) art.flv.destroy();
 
-        flv.attachMediaElement(player);
-        flv.load();
-        art.flv = flv;
-        art.on("destroy", () => flv.destroy());
-      } else {
-        art.notice.show = "Unsupported playback format: flv";
-      }
-    });
+  const Config: Record<string, any> = {};
+
+  if (Props.options.headers) Config["headers"] = Props.options.headers;
+
+  const flv = mpegts.createPlayer({ type: "flv", url, isLive: art.option.isLive }, Config);
+  flv.attachMediaElement(player);
+  flv.load();
+  art.flv = flv;
+  art.on("destroy", () => flv.destroy());
 };
 
-const playMse = (player: HTMLMediaElement, url: string, art: Artplayer) => {
-  import("mpegts.js")
-    .then((mpegts) => mpegts.default)
-    .then((mpegts) => {
-      if (mpegts.isSupported()) {
-        if (art.flv) art.flv.destroy();
+const playMse = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
+  const mse = await import("mpegts.js").then((m) => m.default);
 
-        const Config: Record<string, Record<string, string>> = {};
-        Config["headers"] = Props.options.headers;
+  if (!mse.isSupported()) {
+    art.notice.show = "Unsupported playback format: mse";
+    return;
+  }
 
-        const mse = mpegts.createPlayer({ type: "mse", url, isLive: art.option.isLive }, Config);
+  if (art.flv) art.flv.destroy();
 
-        mse.attachMediaElement(player);
-        mse.load();
-        art.flv = mse;
-        art.on("destroy", () => mse.destroy());
-      } else {
-        art.notice.show = "Unsupported playback format: mse";
-      }
-    });
+  const Config: Record<string, any> = {};
+
+  if (Props.options.headers) Config["headers"] = Props.options.headers;
+
+  const mes = mse.createPlayer({ type: "mse", url, isLive: art.option.isLive }, Config);
+
+  mes.attachMediaElement(player);
+  mes.load();
+  art.flv = mes;
+  art.on("destroy", () => mes.destroy());
 };
 
-const playMpegts = (player: HTMLMediaElement, url: string, art: Artplayer) => {
-  import("mpegts.js")
-    .then((mpegts) => mpegts.default)
-    .then((mpegts) => {
-      if (mpegts.isSupported()) {
-        if (art.flv) art.flv.destroy();
+const playMpegts = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
+  const mpegts = await import("mpegts.js").then((m) => m.default);
 
-        const Config: Record<string, Record<string, string>> = {};
-        Config["headers"] = Props.options.headers;
+  if (!mpegts.isSupported()) {
+    art.notice.show = "Unsupported playback format: mpegts";
+    return;
+  }
 
-        const mpegtsPlayer = mpegts.createPlayer(
-          { type: "mpegts", url, isLive: art.option.isLive },
-          Config
-        );
+  if (art.flv) art.flv.destroy();
 
-        mpegtsPlayer.attachMediaElement(player);
-        mpegtsPlayer.load();
-        art.flv = mpegtsPlayer;
-        art.on("destroy", () => mpegtsPlayer.destroy());
-      } else {
-        art.notice.show = "Unsupported playback format: mpegts";
-      }
-    });
+  const Config: Record<string, any> = {};
+
+  if (Props.options.headers) Config["headers"] = Props.options.headers;
+
+  const ts = mpegts.createPlayer({ type: "mpegts", url, isLive: art.option.isLive }, Config);
+
+  ts.attachMediaElement(player);
+  ts.load();
+  art.flv = ts;
+  art.on("destroy", () => ts.destroy());
 };
 
-const playM2ts = (player: HTMLMediaElement, url: string, art: Artplayer) => {
-  import("mpegts.js")
-    .then((mpegts) => mpegts.default)
-    .then((mpegts) => {
-      if (mpegts.isSupported()) {
-        if (art.flv) art.flv.destroy();
+const playM2ts = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
+  const mpegts = await import("mpegts.js").then((m) => m.default);
 
-        const Config: Record<string, Record<string, string>> = {};
-        Config["headers"] = Props.options.headers;
+  if (!mpegts.isSupported()) {
+    art.notice.show = "Unsupported playback format: m2ts";
+    return;
+  }
 
-        const m2ts = mpegts.createPlayer({ type: "m2ts", url, isLive: art.option.isLive }, Config);
+  if (art.flv) art.flv.destroy();
 
-        m2ts.attachMediaElement(player);
-        m2ts.load();
-        art.flv = m2ts;
-        art.on("destroy", () => m2ts.destroy());
-      } else {
-        art.notice.show = "Unsupported playback format: m2ts";
-      }
-    });
+  const Config: Record<string, any> = {};
+
+  if (Props.options.headers) Config["headers"] = Props.options.headers;
+
+  const m2ts = mpegts.createPlayer({ type: "m2ts", url, isLive: art.option.isLive }, Config);
+
+  m2ts.attachMediaElement(player);
+  m2ts.load();
+  art.flv = m2ts;
+  art.on("destroy", () => m2ts.destroy());
 };
 
-const playM3u8 = (player: HTMLMediaElement, url: string, art: Artplayer) => {
-  import("@/utils/hls").then((Hls) => {
-    if (Hls.isSupported()) {
-      if (art.hls) art.hls.destroy();
+const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
+  const Hls = (await import("hls.js")).default;
 
-      if (!art.plugins.artplayerPluginHlsQuality) art.plugins.add(Hls.newHlsQualityPlugin());
-      const hls = Hls.newHls(Props.options.headers);
-      hls.loadSource(url);
-      hls.attachMedia(player);
+  if (!Hls.isSupported()) {
+    if (player.canPlayType("application/vnd.apple.mpegurl")) {
       if (!player.src) player.src = url;
-      art.hls = hls;
-      art.on("destroy", () => hls.destroy());
     } else {
       art.notice.show = "Unsupported playback format: m3u8";
     }
-  });
+    return;
+  }
+
+  if (art.hls) art.hls.destroy();
+
+  if (!art.plugins.artplayerPluginHlsQuality) art.plugins.add(newHlsQualityPlugin());
+
+  class fLoader extends (Hls.DefaultConfig.loader as FragmentLoaderConstructor) {
+    constructor(config: HlsConfig) {
+      super(config);
+      var load = this.load.bind(this);
+      this.load = function (context: FragmentLoaderContext, config, callbacks): void {
+        if (context.responseType === "arraybuffer") {
+          var onSuccess = callbacks.onSuccess;
+          callbacks.onSuccess = function (response, stats, context, networkDetails): void {
+            // ignore when response encrypted
+            if (context.frag.levelkeys?.identity.encrypted) {
+              onSuccess(response, stats, context, networkDetails);
+              return;
+            }
+
+            if (context.responseType === "arraybuffer" && response.data instanceof ArrayBuffer) {
+              var data = new Uint8Array(response.data);
+              var pre = 0;
+              while (pre >= 0 && pre < 512 && pre < data.length) {
+                var currnet = data.indexOf(0x47, pre + 1);
+                if (currnet - pre === 188) {
+                  response.data = response.data.slice(pre);
+                  break;
+                }
+                pre = currnet;
+              }
+            }
+
+            onSuccess(response, stats, context, networkDetails);
+          };
+        }
+        load(context, config, callbacks);
+      };
+    }
+  }
+
+  function newHlsConfig(headers?: Record<string, string>): Partial<HlsConfig> {
+    return {
+      xhrSetup: function (xhr: XMLHttpRequest, url: string): void | Promise<void> {
+        for (const key in headers) {
+          xhr.setRequestHeader(key, headers[key]);
+        }
+      },
+      fLoader: fLoader
+    };
+  }
+
+  const hls = new Hls(newHlsConfig(Props.options.headers));
+  hls.loadSource(url);
+  hls.attachMedia(player);
+  art.hls = hls;
+  art.on("destroy", () => hls.destroy());
 };
 
 const newPlayerOption = (html: HTMLDivElement): Option => {
