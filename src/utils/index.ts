@@ -18,8 +18,7 @@ export const debounces = (delay: number): Function => {
   return add;
 };
 
-export const strLengthLimit = (str: any, num: number) => {
-  if (typeof str !== "string") return;
+export const strLengthLimit = (str: string, num: number) => {
   if (str.length > num)
     throw ElMessage({
       type: "error",

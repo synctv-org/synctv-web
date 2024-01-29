@@ -1,7 +1,7 @@
 import { useDefineApi } from "@/stores/useDefineApi";
 import type { EditMovieInfo } from "@/types/Movie";
-import type { Status } from "@/proto/message";
-import type { BaseMovieInfo, MovieInfo } from "@/types/Movie";
+import type { MovieStatus } from "@/proto/message";
+import type { BaseMovieInfo, MovieInfo, CurrentMovie } from "@/types/Movie";
 // 获取影片列表，包括正在播放
 export const movieListApi = useDefineApi<
   {
@@ -14,7 +14,7 @@ export const movieListApi = useDefineApi<
   {
     current: {
       movie: MovieInfo;
-      status: Status;
+      status: MovieStatus;
     };
     movies: MovieInfo[] | [];
     total: number;
@@ -47,10 +47,7 @@ export const currentMovieApi = useDefineApi<
   {
     headers: { Authorization: string };
   },
-  {
-    movie: MovieInfo;
-    status: Status;
-  }
+  CurrentMovie
 >({
   url: "/api/movie/current",
   method: "GET"
@@ -123,22 +120,6 @@ export const swapMovieApi = useDefineApi<
 >({
   url: "/api/movie/swap",
   method: "POST"
-});
-
-// 当前影片状态
-export const movieStatusApi = useDefineApi<
-  {
-    headers: { Authorization: string };
-  },
-  {
-    current: {
-      movie: MovieInfo;
-      status: Status;
-    };
-  }
->({
-  url: "/api/movie/current",
-  method: "GET"
 });
 
 // 更改正在播放的影片

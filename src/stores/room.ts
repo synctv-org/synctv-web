@@ -1,8 +1,7 @@
 import { ref, computed } from "vue";
 import { defineStore } from "pinia";
 import { useStorage } from "@vueuse/core";
-import type { Status } from "@/proto/message";
-import type { MovieInfo } from "@/types/Movie";
+import type { CurrentMovie, MovieInfo } from "@/types/Movie";
 import { userStore } from "@/stores/user";
 const { token: userToken } = userStore();
 export const roomStore = defineStore("roomStore", () => {
@@ -18,28 +17,27 @@ export const roomStore = defineStore("roomStore", () => {
   const totalMovies = ref(0);
 
   // 设置播放当前影片
-  const currentMovie = ref<MovieInfo>({
-    id: "",
-    base: {
-      name: "",
-      live: false,
-      proxy: false,
-      url: "",
-      rtmpSource: false,
-      type: "",
-      headers: {},
-      subtitles: void 0,
-      vendorInfo: void 0
+  const current = ref<CurrentMovie>({
+    movie: {
+      id: "",
+      base: {
+        url: "",
+        name: "",
+        live: false,
+        proxy: false,
+        rtmpSource: false,
+        type: "",
+        headers: {}
+      },
+      createdAt: 0,
+      creator: ""
     },
-    createdAt: Date.now(),
-    creator: "SYSTEM"
-  });
-
-  // 当前影片播放状态
-  const currentMovieStatus = ref<Status>({
-    playing: false,
-    rate: 1,
-    seek: 0
+    status: {
+      playing: false,
+      seek: 0,
+      rate: 1
+    },
+    expireId: 0
   });
 
   // 是否主动上报
@@ -52,8 +50,7 @@ export const roomStore = defineStore("roomStore", () => {
     isDarkMode,
     movies,
     totalMovies,
-    currentMovie,
-    currentMovieStatus,
+    current,
     play,
     peopleNum,
     login

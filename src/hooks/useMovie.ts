@@ -22,41 +22,6 @@ export const useMovieApi = (roomToken: string) => {
   // 获取影片列表和正在播放的影片
   const currentPage = ref(1);
   const pageSize = ref(10);
-  const {
-    state: movieList,
-    isLoading: movieListLoading,
-    execute: reqMovieListApi
-  } = movieListApi();
-  /**
-   * @argument updateStatus 是否更新当前正在播放的影片（包括状态）
-   */
-  const getMovieListAndCurrent = async (updateStatus: boolean) => {
-    try {
-      await reqMovieListApi({
-        params: {
-          page: currentPage.value,
-          max: pageSize.value
-        },
-        headers: { Authorization: roomToken }
-      });
-
-      if (movieList.value) {
-        room.movies = movieList.value.movies;
-        room.totalMovies = movieList.value.total;
-        if (updateStatus) {
-          room.currentMovieStatus = movieList.value.current.status;
-          room.currentMovie = movieList.value.current.movie;
-        }
-      }
-    } catch (err: any) {
-      console.log(err);
-      ElNotification({
-        title: "获取影片列表失败",
-        message: err.response.data.error || err.message,
-        type: "error"
-      });
-    }
-  };
 
   // 获取影片列表
   const { state: movies, isLoading: moviesLoading, execute: reqMoviesApi } = moviesApi();
@@ -94,8 +59,7 @@ export const useMovieApi = (roomToken: string) => {
 
       if (currentMovie.value) {
         console.log(currentMovie.value);
-        room.currentMovie = currentMovie.value.movie;
-        room.currentMovieStatus = currentMovie.value.status;
+        room.current = currentMovie.value;
       }
     } catch (err: any) {
       console.log(err);
@@ -299,9 +263,6 @@ export const useMovieApi = (roomToken: string) => {
   return {
     currentPage,
     pageSize,
-    getMovieListAndCurrent,
-    movieListLoading,
-    movieList,
 
     getMovies,
     movies,

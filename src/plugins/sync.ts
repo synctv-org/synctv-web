@@ -3,7 +3,7 @@ import { useDebounceFn } from "@vueuse/core";
 import { watch, type WatchStopHandle } from "vue";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
 import type Artplayer from "artplayer";
-import type { Status } from "@/proto/message";
+import type { MovieStatus } from "@/proto/message";
 import { ElNotification } from "element-plus";
 
 const artPlay = async (art: Artplayer) => {
@@ -43,7 +43,8 @@ const debounceTime = 500;
 
 export const newSyncPlugin = (
   publishStatus: (msg: ElementMessage) => boolean,
-  dynamicStatus: Status
+  dynamicStatus: MovieStatus,
+  expireId: number
 ) => {
   return (art: Artplayer): resould => {
     const playingStatusDebounce = debounces(debounceTime);
@@ -54,8 +55,12 @@ export const newSyncPlugin = (
       publishStatus(
         ElementMessage.create({
           type: ElementMessageType.CHANGE_SEEK,
-          seek: art.currentTime,
-          rate: art.playbackRate
+          time: Date.now(),
+          changeMovieStatusReq: {
+            playing: art.playing,
+            seek: art.currentTime,
+            rate: art.playbackRate
+          }
         })
       );
       console.log("视频空降，:", art.currentTime);
@@ -79,8 +84,12 @@ export const newSyncPlugin = (
       publishStatus(
         ElementMessage.create({
           type: ElementMessageType.PLAY,
-          seek: art.currentTime,
-          rate: art.playbackRate
+          time: Date.now(),
+          changeMovieStatusReq: {
+            playing: true,
+            seek: art.currentTime,
+            rate: art.playbackRate
+          }
         })
       );
     };
@@ -101,8 +110,12 @@ export const newSyncPlugin = (
       publishStatus(
         ElementMessage.create({
           type: ElementMessageType.PAUSE,
-          seek: art.currentTime,
-          rate: art.playbackRate
+          time: Date.now(),
+          changeMovieStatusReq: {
+            playing: false,
+            seek: art.currentTime,
+            rate: art.playbackRate
+          }
         })
       );
     };
@@ -122,8 +135,12 @@ export const newSyncPlugin = (
       publishStatus(
         ElementMessage.create({
           type: ElementMessageType.CHANGE_RATE,
-          seek: art.currentTime,
-          rate: art.playbackRate
+          time: Date.now(),
+          changeMovieStatusReq: {
+            playing: art.playing,
+            seek: art.currentTime,
+            rate: art.playbackRate
+          }
         })
       );
       console.log("视频倍速,seek:", art.currentTime);
@@ -144,9 +161,16 @@ export const newSyncPlugin = (
       art.duration - art.currentTime > 5 &&
         publishStatus(
           ElementMessage.create({
-            type: ElementMessageType.CHECK_SEEK,
-            seek: art.currentTime,
-            rate: art.playbackRate
+            type: ElementMessageType.CHECK,
+            time: Date.now(),
+            checkReq: {
+              status: {
+                playing: art.playing,
+                seek: art.currentTime,
+                rate: art.playbackRate
+              },
+              expireId
+            }
           })
         );
     };

@@ -25,7 +25,7 @@ const password = ref("");
 const { state: newToken, execute: reqUpdateRoomPasswordApi } = updateRoomPasswordApi();
 const changePassword = async () => {
   try {
-    strLengthLimit(password, 32);
+    strLengthLimit(password.value, 32);
     await reqUpdateRoomPasswordApi({
       data: {
         password: password.value

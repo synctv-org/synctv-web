@@ -9,7 +9,7 @@ import router from "@/router";
 import { useMovieApi } from "@/hooks/useMovie";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUint8Array } from "@/utils";
-import { ElementMessage, ElementMessageType, type Status } from "@/proto/message";
+import { ElementMessage, ElementMessageType, type MovieStatus } from "@/proto/message";
 import type { options } from "@/components/Player.vue";
 import RoomInfo from "@/components/cinema/RoomInfo.vue";
 import MovieList from "@/components/cinema/MovieList.vue";
@@ -28,9 +28,7 @@ onBeforeUnmount(() => {
   watchers.forEach((w) => w());
 });
 
-const { getMovieListAndCurrent, getMovies, getCurrentMovie, currentMovie } = useMovieApi(
-  roomToken.value
-);
+const { getMovies, getCurrentMovie, currentMovie } = useMovieApi(roomToken.value);
 
 let player: Artplayer;
 
@@ -65,6 +63,9 @@ const sendElement = (msg: ElementMessage) => {
   if (!msg.time) {
     msg.time = Date.now();
   }
+  console.log(`-----Ws Send Start-----`);
+  console.log(msg);
+  console.log(`-----Ws Send End-----`);
   return send(ElementMessage.encode(msg).finish());
 };
 
@@ -72,16 +73,18 @@ const sendElement = (msg: ElementMessage) => {
 const msgList = ref<string[]>([]);
 const sendText_ = ref("");
 const sendText = () => {
-  if (sendText_.value === "")
+  if (sendText_.value === "") {
     return ElMessage({
       message: "发送的消息不能为空",
       type: "warning"
     });
-  strLengthLimit(sendText_.value, 64);
+  }
+
+  strLengthLimit(sendText_.value, 4096);
   sendElement(
     ElementMessage.create({
       type: ElementMessageType.CHAT_MESSAGE,
-      message: sendText_.value
+      chatReq: sendText_.value
     })
   );
   sendText_.value = "";
@@ -93,27 +96,27 @@ const sendMsg = (msg: string) => {
 };
 
 const playerOption = computed<options>(() => {
-  if (!room.currentMovie.base!.url) {
+  if (!room.current.movie.base!.url) {
     return {
       url: ""
     };
   }
   let option: options = {
-    url: room.currentMovie.base!.url,
-    type: room.currentMovie.base!.type,
-    isLive: room.currentMovie.base!.live,
-    headers: room.currentMovie.base!.headers,
+    url: room.current.movie.base!.url,
+    type: room.current.movie.base!.type,
+    isLive: room.current.movie.base!.live,
+    headers: room.current.movie.base!.headers,
     plugins: [
       // 弹幕
       artplayerPluginDanmuku({
         danmuku: [],
         speed: 4
       }),
-      newLazyInitSyncPlugin(room.currentMovieStatus)
+      newLazyInitSyncPlugin(room.current.status, room.current.expireId)
     ]
   };
   // when cross origin, add token to headers and query
-  if (option.url.startsWith(window.location.origin) || option.url.startsWith("/api/movie/live")) {
+  if (option.url.startsWith(window.location.origin) || option.url.startsWith("/api/movie")) {
     option.headers = {
       ...option.headers,
       Authorization: roomToken.value
@@ -122,19 +125,19 @@ const playerOption = computed<options>(() => {
       ? `${option.url}&token=${roomToken.value}`
       : `${option.url}?token=${roomToken.value}`;
   }
-  if (room.currentMovie.base!.subtitles) {
-    option.plugins!.push(newLazyInitSubtitlePlugin(room.currentMovie.base!.subtitles));
+  if (room.current.movie.base!.subtitles) {
+    option.plugins!.push(newLazyInitSubtitlePlugin(room.current.movie.base!.subtitles));
   }
 
   return option;
 });
 
-const newLazyInitSyncPlugin = (status: Status) => {
+const newLazyInitSyncPlugin = (status: MovieStatus, expireId: number) => {
   const syncP = import("@/plugins/sync");
   return async (art: Artplayer) => {
     console.log("加载进度同步插件中...");
     const sync = await syncP;
-    art.plugins.add(sync.newSyncPlugin(sendElement, status));
+    art.plugins.add(sync.newSyncPlugin(sendElement, status, expireId));
   };
 };
 
@@ -157,10 +160,10 @@ const handleElementMessage = (msg: ElementMessage) => {
   console.log(`-----Ws Message End-----`);
   switch (msg.type) {
     case ElementMessageType.ERROR: {
-      console.error(msg.message);
+      console.error(msg.error);
       ElNotification({
         title: "错误",
-        message: msg.message,
+        message: msg.error,
         type: "error"
       });
       break;
@@ -168,8 +171,8 @@ const handleElementMessage = (msg: ElementMessage) => {
 
     // 聊天消息
     case ElementMessageType.CHAT_MESSAGE: {
-      msgList.value.push(`${msg.sender}：${msg.message}`);
-      sendDanmuku(msg.message);
+      msgList.value.push(`${msg.chatResp!.sender?.username}：${msg.chatResp!.message}`);
+      sendDanmuku(msg.chatResp!.message);
 
       // 自动滚动到最底部
       if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
@@ -181,83 +184,50 @@ const handleElementMessage = (msg: ElementMessage) => {
 
       break;
     }
-
-    // 播放
-    case ElementMessageType.PLAY: {
-      room.currentMovieStatus.playing = true;
-      room.currentMovieStatus.seek = msg.seek;
-      room.currentMovieStatus.rate = msg.rate;
-      break;
-    }
-
-    // 暂停
-    case ElementMessageType.PAUSE: {
-      room.currentMovieStatus.playing = false;
-      room.currentMovieStatus.seek = msg.seek;
-      room.currentMovieStatus.rate = msg.rate;
-      break;
-    }
-
-    // 视频进度发生变化
-    case ElementMessageType.CHANGE_SEEK: {
-      room.currentMovieStatus.seek = msg.seek;
-      room.currentMovieStatus.rate = msg.rate;
-      break;
-    }
-
-    case ElementMessageType.TOO_FAST: {
-      ElNotification({
-        title: "播放速度过快",
-        type: "warning"
-      });
-      room.currentMovieStatus.seek = msg.seek;
-      room.currentMovieStatus.rate = msg.rate;
-      break;
-    }
-
+    case ElementMessageType.PLAY:
+    case ElementMessageType.PAUSE:
+    case ElementMessageType.CHANGE_SEEK:
+    case ElementMessageType.CHANGE_RATE:
+    case ElementMessageType.TOO_FAST:
     case ElementMessageType.TOO_SLOW: {
-      ElNotification({
-        title: "播放速度落后",
-        type: "warning"
-      });
-      room.currentMovieStatus.seek = msg.seek;
-      room.currentMovieStatus.rate = msg.rate;
+      switch (msg.type) {
+        case ElementMessageType.TOO_FAST: {
+          ElNotification({
+            title: "播放速度过快",
+            type: "warning"
+          });
+          break;
+        }
+        case ElementMessageType.TOO_SLOW: {
+          ElNotification({
+            title: "播放速度落后",
+            type: "warning"
+          });
+          break;
+        }
+      }
+      room.current.status = msg.movieStatusChanged!.status!;
       break;
     }
 
-    case ElementMessageType.CHECK_SEEK: {
-      break;
-    }
-
-    case ElementMessageType.CHANGE_RATE: {
-      room.currentMovieStatus.seek = msg.seek;
-      room.currentMovieStatus.rate = msg.rate;
+    case ElementMessageType.CHECK: {
       break;
     }
 
     // 设置正在播放的影片
-    case ElementMessageType.CHANGE_CURRENT: {
+    case ElementMessageType.CURRENT_CHANGED: {
       getCurrentMovie();
       break;
     }
 
     // 播放列表更新
-    case ElementMessageType.CHANGE_MOVIES: {
+    case ElementMessageType.MOVIES_CHANGED: {
       getMovies();
       break;
     }
 
-    case ElementMessageType.CHANGE_PEOPLE: {
-      room.peopleNum < msg.peopleNum!
-        ? msgList.value.push(
-            `<p><b>SYSTEM：</b>欢迎新成员加入，当前共有 ${msg.peopleNum} 人在观看</p>`
-          )
-        : room.peopleNum > msg.peopleNum!
-          ? msgList.value.push(
-              `<p><b>SYSTEM：</b>有人离开了房间，当前还剩 ${msg.peopleNum} 人在观看</p>`
-            )
-          : "";
-      room.peopleNum = msg.peopleNum!;
+    case ElementMessageType.PEOPLE_CHANGED: {
+      room.peopleNum = msg.peopleChanged!;
       break;
     }
   }
@@ -320,7 +290,7 @@ onMounted(() => {
           class="card-title flex flex-wrap justify-between max-sm:text-sm max-sm:pb-4"
           v-if="playerOption.url"
         >
-          {{ room.currentMovie.base!.name }}
+          {{ room.current.movie.base!.name }}
           <small>👁‍🗨 {{ room.peopleNum }} </small>
         </div>
         <div class="card-title flex flex-wrap justify-between max-sm:text-sm" v-else>

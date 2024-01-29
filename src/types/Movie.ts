@@ -1,8 +1,16 @@
+import type { MovieStatus } from "@/proto/message";
+
 export interface MovieInfo {
   id: string;
   base: BaseMovieInfo;
   createdAt: number;
   creator: string;
+}
+
+export interface CurrentMovie {
+  movie: MovieInfo;
+  status: MovieStatus;
+  expireId: number;
 }
 
 export interface Subtitles {
