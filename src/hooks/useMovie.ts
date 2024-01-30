@@ -59,7 +59,9 @@ export const useMovieApi = (roomToken: string) => {
 
       if (currentMovie.value) {
         console.log(currentMovie.value);
-        room.current = currentMovie.value;
+        room.currentMovie = currentMovie.value.movie;
+        room.currentStatus = currentMovie.value.status;
+        room.currentExpireId = currentMovie.value.expireId;
       }
     } catch (err: any) {
       console.log(err);

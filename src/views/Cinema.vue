@@ -96,23 +96,23 @@ const sendMsg = (msg: string) => {
 };
 
 const playerOption = computed<options>(() => {
-  if (!room.current.movie.base!.url) {
+  if (!room.currentMovie.base!.url) {
     return {
       url: ""
     };
   }
   let option: options = {
-    url: room.current.movie.base!.url,
-    type: room.current.movie.base!.type,
-    isLive: room.current.movie.base!.live,
-    headers: room.current.movie.base!.headers,
+    url: room.currentMovie.base!.url,
+    type: room.currentMovie.base!.type,
+    isLive: room.currentMovie.base!.live,
+    headers: room.currentMovie.base!.headers,
     plugins: [
       // 弹幕
       artplayerPluginDanmuku({
         danmuku: [],
         speed: 4
       }),
-      newLazyInitSyncPlugin(room.current.status, room.current.expireId)
+      newLazyInitSyncPlugin(room.currentExpireId)
     ]
   };
   // when cross origin, add token to headers and query
@@ -125,19 +125,19 @@ const playerOption = computed<options>(() => {
       ? `${option.url}&token=${roomToken.value}`
       : `${option.url}?token=${roomToken.value}`;
   }
-  if (room.current.movie.base!.subtitles) {
-    option.plugins!.push(newLazyInitSubtitlePlugin(room.current.movie.base!.subtitles));
+  if (room.currentMovie.base!.subtitles) {
+    option.plugins!.push(newLazyInitSubtitlePlugin(room.currentMovie.base!.subtitles));
   }
 
   return option;
 });
 
-const newLazyInitSyncPlugin = (status: MovieStatus, expireId: number) => {
+const newLazyInitSyncPlugin = (expireId: number) => {
   const syncP = import("@/plugins/sync");
   return async (art: Artplayer) => {
     console.log("加载进度同步插件中...");
     const sync = await syncP;
-    art.plugins.add(sync.newSyncPlugin(sendElement, status, expireId));
+    art.plugins.add(sync.newSyncPlugin(sendElement, room.currentStatus, expireId));
   };
 };
 
@@ -146,7 +146,7 @@ const newLazyInitSubtitlePlugin = (subtitle: Subtitles) => {
   return async (art: Artplayer) => {
     console.log("加载字幕插件中...");
     const subtitlePlugin = await subtitleP;
-    art.plugins.add(subtitlePlugin.newSubtitle(subtitle));
+    art.controls.add(subtitlePlugin.newSubtitleControl(subtitle));
   };
 };
 
@@ -189,24 +189,31 @@ const handleElementMessage = (msg: ElementMessage) => {
     case ElementMessageType.CHANGE_SEEK:
     case ElementMessageType.CHANGE_RATE:
     case ElementMessageType.TOO_FAST:
-    case ElementMessageType.TOO_SLOW: {
+    case ElementMessageType.TOO_SLOW:
+    case ElementMessageType.SYNC_MOVIE_STATUS: {
       switch (msg.type) {
-        case ElementMessageType.TOO_FAST: {
+        case ElementMessageType.TOO_FAST:
           ElNotification({
             title: "播放速度过快",
             type: "warning"
           });
           break;
-        }
-        case ElementMessageType.TOO_SLOW: {
+        case ElementMessageType.TOO_SLOW:
           ElNotification({
             title: "播放速度落后",
             type: "warning"
           });
           break;
-        }
+        case ElementMessageType.SYNC_MOVIE_STATUS:
+          ElNotification({
+            title: "播放状态同步中",
+            type: "success"
+          });
+          break;
       }
-      room.current.status = msg.movieStatusChanged!.status!;
+      room.currentStatus.playing = msg.movieStatusChanged!.status!.playing;
+      room.currentStatus.seek = msg.movieStatusChanged!.status!.seek;
+      room.currentStatus.rate = msg.movieStatusChanged!.status!.rate;
       break;
     }
 
@@ -290,7 +297,7 @@ onMounted(() => {
           class="card-title flex flex-wrap justify-between max-sm:text-sm max-sm:pb-4"
           v-if="playerOption.url"
         >
-          {{ room.current.movie.base!.name }}
+          {{ room.currentMovie.base!.name }}
           <small>👁‍🗨 {{ room.peopleNum }} </small>
         </div>
         <div class="card-title flex flex-wrap justify-between max-sm:text-sm" v-else>

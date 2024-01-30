@@ -12,14 +12,15 @@ const newSubtitleHtml = (name: string): HTMLElement => {
   return SubtitleHtml;
 };
 
-const newSubtitleControl = (
+export const newSubtitleControl = (
   subtitles: Record<
     string,
     {
       url: string;
       type: string;
     }
-  >
+  >,
+  controlName: string = "subtitle"
 ): ComponentOption => {
   subtitles["关闭"] = {
     url: "",
@@ -27,7 +28,7 @@ const newSubtitleControl = (
   };
   const subtitleHTML = newSubtitleHtml("字幕");
   return {
-    name: "subtitle",
+    name: controlName,
     html: subtitleHTML,
     position: "right",
     selector: Object.keys(subtitles).map((key) => {
@@ -47,26 +48,5 @@ const newSubtitleControl = (
       }
       return subtitleHTML.outerHTML;
     }
-  };
-};
-
-export const newSubtitle = (
-  subtitles: Record<
-    string,
-    {
-      url: string;
-      type: string;
-    }
-  >
-): ((art: Artplayer) => unknown) => {
-  return (art: Artplayer) => {
-    if (!subtitles) return;
-    if (art.controls.subtitle) {
-      art.controls.remove("subtitle");
-    }
-    art.controls.add(newSubtitleControl(subtitles));
-    return {
-      name: "subtitles"
-    };
   };
 };

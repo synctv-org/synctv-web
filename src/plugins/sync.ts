@@ -8,12 +8,12 @@ import { ElNotification } from "element-plus";
 
 const artPlay = async (art: Artplayer) => {
   let retry = false;
-  await art.play().catch(() => {
+  await art.video.play().catch(() => {
     art.muted = true;
     retry = true;
   });
   if (retry)
-    await art
+    await art.video
       .play()
       .then(() => {
         ElNotification({
@@ -22,16 +22,16 @@ const artPlay = async (art: Artplayer) => {
           message: "由于浏览器限制，播放器已静音，请手动开启声音"
         });
       })
-      .catch(() => {
+      .catch((e) => {
         ElNotification({
-          title: "播放失败",
-          message: "播放失败，请刷新页面重试",
-          type: "error"
+          title: "自动播放失败，请手动点击同步按钮",
+          type: "error",
+          message: e
         });
       });
 };
 
-interface resould {
+interface syncPlugin {
   name: string;
   setAndNoPublishSeek: (seek: number) => void;
   setAndNoPublishPlay: () => void;
@@ -41,12 +41,30 @@ interface resould {
 
 const debounceTime = 500;
 
+const newSyncControl = (art: Artplayer, publishStatus: (msg: ElementMessage) => boolean) => {
+  if (art.controls.syncControl) {
+    art.controls.remove("syncControl");
+  }
+  art.controls.add({
+    name: "syncControl",
+    html: "同步",
+    position: "right",
+    click: function () {
+      publishStatus(
+        ElementMessage.create({
+          type: ElementMessageType.SYNC_MOVIE_STATUS
+        })
+      );
+    }
+  });
+};
+
 export const newSyncPlugin = (
   publishStatus: (msg: ElementMessage) => boolean,
   dynamicStatus: MovieStatus,
   expireId: number
 ) => {
-  return (art: Artplayer): resould => {
+  return (art: Artplayer): syncPlugin => {
     const playingStatusDebounce = debounces(debounceTime);
 
     let lastestSeek = 0;
@@ -56,8 +74,9 @@ export const newSyncPlugin = (
         ElementMessage.create({
           type: ElementMessageType.CHANGE_SEEK,
           time: Date.now(),
+          // seek event dont publish playing status
+          // because playing status will change when seeking
           changeMovieStatusReq: {
-            playing: art.playing,
             seek: art.currentTime,
             rate: art.playbackRate
           }
@@ -98,10 +117,6 @@ export const newSyncPlugin = (
 
     const setAndNoPublishPlay = async () => {
       if (art.option.isLive || art.playing) return;
-      art.off("play", publishPlayDebounce);
-      art.once("play", () => {
-        art.on("play", publishPlayDebounce);
-      });
       await artPlay(art);
     };
 
@@ -124,11 +139,7 @@ export const newSyncPlugin = (
 
     const setAndNoPublishPause = () => {
       if (art.option.isLive || !art.playing) return;
-      art.off("pause", publishPauseDebounce);
-      art.once("pause", () => {
-        art.on("pause", publishPauseDebounce);
-      });
-      art.pause();
+      art.video.pause();
     };
 
     const publishRate = () => {
@@ -191,17 +202,17 @@ export const newSyncPlugin = (
         watchers.push(
           watch(
             dynamicStatus,
-            (newStatus) => {
+            async (newStatus) => {
               console.log("同步进度中...");
-              console.log(newStatus.playing);
-              console.log(art.playing);
-              newStatus.playing ? setAndNoPublishPlay() : setAndNoPublishPause();
               setAndNoPublishRate(newStatus.rate);
               setAndNoPublishSeek(newStatus.seek);
+              newStatus.playing ? await setAndNoPublishPlay() : setAndNoPublishPause();
             },
             { deep: true }
           )
         );
+
+        newSyncControl(art, publishStatus);
 
         art.on("play", publishPlayDebounce);
 
@@ -234,7 +245,7 @@ export const newSyncPlugin = (
     }
 
     return {
-      name: "sync",
+      name: "syncPlugin",
       setAndNoPublishSeek,
       setAndNoPublishPlay,
       setAndNoPublishPause,
