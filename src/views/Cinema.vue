@@ -73,7 +73,7 @@ const sendElement = (msg: ElementMessage) => {
 const msgList = ref<string[]>([]);
 const sendText_ = ref("");
 const sendText = () => {
-  if (sendText_.value === "") {
+  if (sendText_.value.length === 0) {
     return ElMessage({
       message: "发送的消息不能为空",
       type: "warning"
