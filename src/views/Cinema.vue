@@ -20,7 +20,7 @@ const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
 import { nextTick } from 'vue';
 // 获取时间
-const formatTime = (date) => {
+const formatTime = (date: Date) => {
   const hours = `0${date.getHours()}`.slice(-2);
   const minutes = `0${date.getMinutes()}`.slice(-2);
   const seconds = `0${date.getSeconds()}`.slice(-2);
