@@ -174,8 +174,11 @@ const handleElementMessage = (msg: ElementMessage) => {
       msgList.value.push(`${msg.chatResp!.sender?.username}：${msg.chatResp!.message}`);
       sendDanmuku(msg.chatResp!.message);
 
-      // 自动滚动到最底部
-      if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
+      // 自动滚动到最底部，并稍作延迟以确保所有消息都能完全显示
+      if (chatArea.value) {
+       setTimeout(() => {
+       chatArea.value.scrollTop = chatArea.value.scrollHeight;}, 100); // 可以根据需要调整延迟时间，单位为毫秒
+    }
 
       if (msgList.value.length > 40)
         return (msgList.value = [
