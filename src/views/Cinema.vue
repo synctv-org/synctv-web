@@ -18,6 +18,15 @@ import type { Subtitles } from "@/types/Movie";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
+import { nextTick } from 'vue';
+// 获取时间
+const formatTime = (date: Date) => {
+  const hours = `0${date.getHours()}`.slice(-2);
+  const minutes = `0${date.getMinutes()}`.slice(-2);
+  const seconds = `0${date.getSeconds()}`.slice(-2);
+  return `${hours}:${minutes}:${seconds}`;
+};
+
 // 获取房间信息
 const room = roomStore();
 const roomID = useRouteParams<string>("roomId");
@@ -91,8 +100,20 @@ const sendText = () => {
   if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
 };
 
+const MAX_MESSAGE_COUNT = 40;// 设定聊天记录的最大长度
 const sendMsg = (msg: string) => {
   msgList.value.push(msg);
+  // 如果超过聊天记录最大长度，则从前面开始删除多余的消息
+  nextTick(() => {
+    if (msgList.value.length > MAX_MESSAGE_COUNT) {
+      msgList.value.splice(0, msgList.value.length - MAX_MESSAGE_COUNT);
+    }
+  });
+
+  // 确保聊天区域滚动到底部
+  nextTick(() => {
+    if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
+  });
 };
 
 const playerOption = computed<options>(() => {
@@ -171,16 +192,16 @@ const handleElementMessage = (msg: ElementMessage) => {
 
     // 聊天消息
     case ElementMessageType.CHAT_MESSAGE: {
-      msgList.value.push(`${msg.chatResp!.sender?.username}：${msg.chatResp!.message}`);
+      const currentTime = formatTime(new Date()); // 格式化时间
+      const senderName = msg.chatResp!.sender?.username; 
+      const messageContent = msg.chatResp!.message;
+      const messageWithTime = `${senderName}：${messageContent} <small>[${currentTime}]</small>`;
+      // 添加消息到消息列表
+      sendMsg(messageWithTime);
       sendDanmuku(msg.chatResp!.message);
 
       // 自动滚动到最底部
       if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
-
-      if (msgList.value.length > 40)
-        return (msgList.value = [
-          "<p><b>SYSTEM：</b>已达到最大聊天记录长度，系统已自动清空...</p>"
-        ]);
 
       break;
     }
@@ -265,6 +286,11 @@ onMounted(() => {
     });
     return;
   }
+  // 从 sessionStorage 获取存储的聊天消息
+  const storedMessages = sessionStorage.getItem('chatMessages');
+  if (storedMessages) {
+    msgList.value = JSON.parse(storedMessages);
+  }
 
   // 启动websocket连接
   open();
@@ -277,6 +303,8 @@ onMounted(() => {
         blobToUint8Array(data.value)
           .then((array) => {
             handleElementMessage(ElementMessage.decode(array));
+             // 将新消息存储到 sessionStorage
+            sessionStorage.setItem('chatMessages', JSON.stringify(msgList.value));
           })
           .catch((err) => {
             console.error(err);
