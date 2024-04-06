@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch, defineAsyncComponent } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+  defineAsyncComponent,
+  nextTick
+} from "vue";
 import type { WatchStopHandle } from "vue";
 import { useWebSocket, useResizeObserver, useLocalStorage } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
@@ -18,7 +26,6 @@ import type { Subtitles } from "@/types/Movie";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
-import { nextTick } from 'vue';
 // 获取时间
 const formatTime = (date: Date) => {
   const hours = `0${date.getHours()}`.slice(-2);
@@ -37,7 +44,7 @@ onBeforeUnmount(() => {
   watchers.forEach((w) => w());
 });
 
-const { getMovies, getCurrentMovie, currentMovie } = useMovieApi(roomToken.value);
+const { getMovies, getCurrentMovie } = useMovieApi(roomToken.value);
 
 let player: Artplayer;
 
@@ -100,7 +107,7 @@ const sendText = () => {
   if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
 };
 
-const MAX_MESSAGE_COUNT = 40;// 设定聊天记录的最大长度
+const MAX_MESSAGE_COUNT = 40; // 设定聊天记录的最大长度
 const sendMsg = (msg: string) => {
   msgList.value.push(msg);
   // 如果超过聊天记录最大长度，则从前面开始删除多余的消息
@@ -193,7 +200,7 @@ const handleElementMessage = (msg: ElementMessage) => {
     // 聊天消息
     case ElementMessageType.CHAT_MESSAGE: {
       const currentTime = formatTime(new Date()); // 格式化时间
-      const senderName = msg.chatResp!.sender?.username; 
+      const senderName = msg.chatResp!.sender?.username;
       const messageContent = msg.chatResp!.message;
       const messageWithTime = `${senderName}：${messageContent} <small>[${currentTime}]</small>`;
       // 添加消息到消息列表
@@ -287,7 +294,7 @@ onMounted(() => {
     return;
   }
   // 从 sessionStorage 获取存储的聊天消息
-  const storedMessages = sessionStorage.getItem('chatMessages');
+  const storedMessages = sessionStorage.getItem("chatMessages");
   if (storedMessages) {
     msgList.value = JSON.parse(storedMessages);
   }
@@ -303,8 +310,8 @@ onMounted(() => {
         blobToUint8Array(data.value)
           .then((array) => {
             handleElementMessage(ElementMessage.decode(array));
-             // 将新消息存储到 sessionStorage
-            sessionStorage.setItem('chatMessages', JSON.stringify(msgList.value));
+            // 将新消息存储到 sessionStorage
+            sessionStorage.setItem("chatMessages", JSON.stringify(msgList.value));
           })
           .catch((err) => {
             console.error(err);

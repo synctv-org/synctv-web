@@ -91,12 +91,12 @@ export const useSettings = () => {
     ["email_signup_white_list_enable", { value: false, name: "邮箱域名白名单" }],
     ["email_signup_white_list", { value: "", name: "允许的邮箱域名" }],
     ["smtp_host", { value: "", name: "SMTP 服务器地址" }],
+    ["smtp_port", { value: "", name: "SMTP 端口" }],
+    ["smtp_protocol", { value: "", name: "SMTP 加密方式" }],
     ["smtp_username", { value: "", name: "SMTP 账号" }],
     ["smtp_password", { value: "", name: "SMTP 密码" }],
-    ["smtp_port", { value: "", name: "SMTP 端口" }],
     ["smtp_from", { value: "", name: "SMTP 发件地址" }],
-    ["smtp_pool_size", { value: "", name: "SMTP 连接池大小" }],
-    ["smtp_protocol", { value: "", name: "SMTP 加密方式" }]
+    ["smtp_pool_size", { value: "", name: "SMTP 连接池大小" }]
   ]);
 
   const databaseSettingsGroup: Map<settingGroupName, settingGroup> = new Map([
