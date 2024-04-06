@@ -9,6 +9,7 @@ import { createPinia } from "pinia";
 
 import App from "./App.vue";
 import router from "./router";
+import { indexStore } from "@/stores";
 import { userStore } from "@/stores/user";
 
 import SunIcon from "./components/icons/Sun.vue";
@@ -28,10 +29,12 @@ app
   .component("PersonIcon", PersonIcon);
 
 const { getUserInfo, token } = userStore();
+const { getSiteOptions } = indexStore();
 
 const initApp = async () => {
   try {
     token.value && (await getUserInfo());
+    await getSiteOptions();
     app.use(createPinia());
     app.use(router);
   } catch (err: any) {

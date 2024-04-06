@@ -75,3 +75,16 @@ export const oAuth2Callback = useDefineApi<
 >({
   method: "POST"
 });
+
+// 获取站点配置信息
+export const getPublicSettings = useDefineApi<
+  any,
+  {
+    emailEnable: boolean;
+    emailWhitelistEnabled: boolean;
+    emailWhitelist: string[];
+  }
+>({
+  url: "/api/public/settings",
+  method: "GET"
+});
