@@ -9,7 +9,15 @@ export interface settingType {
   disabled?: boolean;
 }
 
-export type settingGroupName = "all" | "database" | "room" | "proxy" | "rtmp" | "user" | "oauth2";
+export type settingGroupName =
+  | "all"
+  | "database"
+  | "room"
+  | "proxy"
+  | "rtmp"
+  | "user"
+  | "oauth2"
+  | "email";
 
 export interface settingGroup {
   name?: string;
@@ -73,6 +81,22 @@ export const useSettings = () => {
     ["disable_user_signup", { value: false, name: "禁止用户注册" }],
     ["signup_need_review", { value: false, name: "注册需要审核" }],
     ["user_max_room_count", { value: 0, append: "个", name: "用户最大创建房间数" }]
+  ]);
+
+  const defaultEmailSettings: Map<string, settingType> = new Map([
+    ["enable_email", { value: false, name: "是否启用" }],
+    ["email_disable_user_signup", { value: false, name: "禁止用户使用邮箱注册" }],
+    ["email_signup_need_review", { value: 0, append: "个", name: "邮箱注册需要审核" }],
+    ["email_retrieve_password_url_path", { value: "", name: "重置密码URL" }],
+    ["email_signup_white_list_enable", { value: false, name: "邮箱域名白名单" }],
+    ["email_signup_white_list", { value: "", name: "允许的邮箱域名" }],
+    ["smtp_host", { value: "", name: "SMTP 服务器地址" }],
+    ["smtp_username", { value: "", name: "SMTP 账号" }],
+    ["smtp_password", { value: "", name: "SMTP 密码" }],
+    ["smtp_port", { value: "", name: "SMTP 端口" }],
+    ["smtp_from", { value: "", name: "SMTP 发件地址" }],
+    ["smtp_pool_size", { value: "", name: "SMTP 连接池大小" }],
+    ["smtp_protocol", { value: "", name: "SMTP 加密方式" }]
   ]);
 
   const databaseSettingsGroup: Map<settingGroupName, settingGroup> = new Map([
@@ -205,6 +229,16 @@ export const useSettings = () => {
     ]
   ]);
 
+  const emailSettingGroup: Map<settingGroupName, settingGroup> = new Map([
+    [
+      "email",
+      {
+        name: "邮箱设置",
+        value: defaultEmailSettings
+      }
+    ]
+  ]);
+
   return {
     generateOAuth2SettingsMap,
     databaseSettingsGroup,
@@ -213,6 +247,7 @@ export const useSettings = () => {
     rtmpSettingsGroup,
     userSettingsGroup,
     OAuth2SettingGroup,
+    emailSettingGroup,
     defaultDatabaseSettings,
     defaultRoomSettings,
     defaultProxySettings,

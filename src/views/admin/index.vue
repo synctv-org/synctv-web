@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { ref, watch, shallowRef, type Component, onMounted } from "vue";
-import { userStore } from "@/stores/user";
-import { ElNotification } from "element-plus";
-import { roomStore } from "@/stores/room";
 import { useScreen } from "@/hooks/useScreen";
 import type { settingGroupName } from "@/hooks/useSettings";
 
@@ -11,8 +8,6 @@ import RoomsManager from "./settings/RoomsManager.vue";
 import SiteSetting from "./settings/SiteSetting.vue";
 import VendorManager from "./settings/VendorManager.vue";
 
-const { info: userInfo } = userStore();
-const room = roomStore();
 const { isPhone } = useScreen();
 
 interface Tabs {
@@ -73,6 +68,12 @@ const tabs: Tabs[] = [
     icon: "🪬",
     component: SiteSetting,
     showType: "oauth2"
+  },
+  {
+    name: "邮箱设置",
+    icon: "📧",
+    component: SiteSetting,
+    showType: "email"
   },
   {
     name: "所有设置",

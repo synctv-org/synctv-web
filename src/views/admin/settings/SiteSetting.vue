@@ -25,16 +25,21 @@ const {
   proxySettingsGroup,
   OAuth2SettingGroup,
   rtmpSettingsGroup,
-  userSettingsGroup
+  userSettingsGroup,
+  emailSettingGroup
 } = useSettings();
 
-const settingsGroups = {
+const settingsGroups: Record<
+  settingGroupName,
+  Map<string, settingGroup> | [string, settingGroup][]
+> = {
   database: databaseSettingsGroup,
   room: roomSettingsGroup,
   proxy: proxySettingsGroup,
   oauth2: OAuth2SettingGroup,
   rtmp: rtmpSettingsGroup,
   user: userSettingsGroup,
+  email: emailSettingGroup,
   all: [
     ...roomSettingsGroup,
     ...rtmpSettingsGroup,
@@ -150,6 +155,9 @@ onMounted(async () => {
               </el-input>
             </el-form-item>
           </el-form>
+        </div>
+        <div class="card-footer" v-if="props.showType === 'email'">
+          <el-button type="primary" @click="getAllSettings">发送测试邮件</el-button>
         </div>
       </div>
     </el-col>
