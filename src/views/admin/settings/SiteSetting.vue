@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed } from "vue";
-import { ElNotification } from "element-plus";
+import { ElMessage, ElMessageBox, ElNotification } from "element-plus";
 import { userStore } from "@/stores/user";
 import {
   useSettings,
@@ -8,7 +8,7 @@ import {
   type settingGroupName,
   type settingType
 } from "@/hooks/useSettings";
-import { assignSettingApi } from "@/services/apis/admin";
+import { assignSettingApi, sendTestMailApi } from "@/services/apis/admin";
 import { useUpdateSettings } from "@/hooks/useUpdateSettings";
 
 const props = defineProps<{
@@ -16,7 +16,7 @@ const props = defineProps<{
   showType: settingGroupName;
 }>();
 
-const { token } = userStore();
+const { token, info } = userStore();
 const { updateSet } = useUpdateSettings();
 
 const {
@@ -46,7 +46,8 @@ const settingsGroups: Record<
     ...proxySettingsGroup,
     ...userSettingsGroup,
     ...OAuth2SettingGroup,
-    ...databaseSettingsGroup
+    ...databaseSettingsGroup,
+    ...emailSettingGroup
   ]
 };
 
@@ -74,7 +75,7 @@ const getAllSettings = async () => {
         }
       } else {
         console.log(
-          `Group ${group} is not found in the response, it will be added to the settings.`
+          `Group ${group} is not found in the defaults, it will be added to the settings.`
         );
         settings.value.set(group, {
           name: group,
@@ -116,7 +117,38 @@ const getAllSettings = async () => {
     ElNotification({
       title: "获取设置列表失败",
       type: "error",
-      message: err.response.data.error || err.message
+      message: err.response?.data.error || err.message
+    });
+  }
+};
+
+const { execute, isLoading: sendTestMailBtnLoading } = sendTestMailApi();
+const toSendTestMail = async () => {
+  const { value } = await ElMessageBox.prompt("如果为空，将发送到绑定的邮箱", "请输入邮箱地址", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消"
+  });
+  const regex =
+    /[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[\w](?:[\w-]*[\w])?\.)+[\w](?:[\w-]*[\w])?/;
+  if (value && !regex.test(value)) return ElMessage.error("请输入正确的邮箱地址");
+
+  try {
+    ElMessage.info("邮件发送中");
+    await execute({
+      headers: {
+        Authorization: token.value
+      },
+      data: {
+        email: value ?? info.value?.email
+      }
+    });
+    ElMessage.success("邮件发送成功");
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "邮件发送失败",
+      type: "error",
+      message: err.response?.data.error || err.message
     });
   }
 };
@@ -157,7 +189,9 @@ onMounted(async () => {
           </el-form>
         </div>
         <div class="card-footer" v-if="props.showType === 'email'">
-          <el-button type="primary" @click="getAllSettings">发送测试邮件</el-button>
+          <el-button type="primary" @click="toSendTestMail" :loading="sendTestMailBtnLoading"
+            >发送测试邮件</el-button
+          >
         </div>
       </div>
     </el-col>
