@@ -29,13 +29,13 @@ app
   .component("PersonIcon", PersonIcon);
 
 const { getUserInfo, token } = userStore();
-const { getSiteOptions } = indexStore();
 
 const initApp = async () => {
   try {
     token.value && (await getUserInfo());
-    await getSiteOptions();
     app.use(createPinia());
+    const { getSiteOptions } = indexStore();
+    await getSiteOptions();
     app.use(router);
   } catch (err: any) {
     console.error(err);

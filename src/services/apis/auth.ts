@@ -1,18 +1,29 @@
 import { useDefineApi } from "@/stores/useDefineApi";
+import type { RegForm, EmailRegForm } from "@/types";
 
 // 注册
 export const RegisterApi = useDefineApi<
   {
-    data: {
-      username: string;
-      password: string;
-    };
+    data: RegForm;
   },
   {
     token: string;
   }
 >({
   url: "/api/user/signup",
+  method: "POST"
+});
+
+// 邮箱注册
+export const useEmailRegisterApi = useDefineApi<
+  {
+    data: EmailRegForm;
+  },
+  {
+    token: string;
+  }
+>({
+  url: "/api/user/signup/email",
   method: "POST"
 });
 
@@ -87,4 +98,31 @@ export const getPublicSettings = useDefineApi<
 >({
   url: "/api/public/settings",
   method: "GET"
+});
+
+// 获取注册验证码
+export const getRegCaptchaApi = useDefineApi<
+  any,
+  {
+    captchaID: string;
+    captchaBase64: string;
+  }
+>({
+  url: "/api/user/signup/email/captcha",
+  method: "GET"
+});
+
+// 发送注册验证码
+export const sendRegCodeApi = useDefineApi<
+  {
+    data: {
+      email: string;
+      captchaID: string;
+      answer: string;
+    };
+  },
+  any
+>({
+  url: "/api/user/signup/email/captcha",
+  method: "POST"
 });

@@ -2,12 +2,14 @@
 import { ref, computed } from "vue";
 import { RouterLink } from "vue-router";
 import { userStore } from "@/stores/user";
+import { indexStore } from "@/stores";
 import DarkModeSwitcher from "@/components/DarkModeSwitcher.vue";
 import router from "@/router";
 import SyncTVLogo from "@/assets/appIcons/synctv-nobg.svg";
 import { ROLE } from "@/types/User";
 const mobileMenu = ref(false);
 
+const { settings } = indexStore();
 const { isLogin, info } = userStore();
 
 const menuLinks = computed(() => {
@@ -31,6 +33,12 @@ const menuLinks = computed(() => {
       to: "/auth/login"
     }
   ];
+
+  if (settings?.emailEnable)
+    links.push({
+      name: "注册",
+      to: "/auth/register"
+    });
 
   if (isLogin.value) {
     const loginLinks = [

@@ -436,3 +436,19 @@ export const reconnectVendorApi = useDefineApi<
   url: "/api/admin/vendors/reconnect",
   method: "POST"
 });
+
+// 发送测试邮件
+export const sendTestMailApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      email?: string;
+    };
+  },
+  {}
+>({
+  url: "/api/admin/email/test",
+  method: "POST"
+});

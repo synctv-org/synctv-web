@@ -1,12 +1,16 @@
 import { ref } from "vue";
 import { ElNotification } from "element-plus";
-import { createGlobalState } from "@vueuse/core";
 import { getPublicSettings } from "@/services/apis/auth";
+import { defineStore } from "pinia";
 
-export const indexStore = createGlobalState(() => {
+export const indexStore = defineStore("indexStore", () => {
   const { execute, state } = getPublicSettings();
 
-  const settings = ref();
+  const settings = ref<{
+    emailEnable: boolean;
+    emailWhitelistEnabled: boolean;
+    emailWhitelist: string[];
+  }>();
 
   const getSiteOptions = async () => {
     try {
@@ -25,6 +29,7 @@ export const indexStore = createGlobalState(() => {
   };
 
   return {
-    getSiteOptions
+    getSiteOptions,
+    settings
   };
 });

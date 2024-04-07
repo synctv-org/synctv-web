@@ -27,6 +27,12 @@ const router = createRouter({
       meta: { title: "登录", permission: ROLE.Visitor }
     },
     {
+      path: "/auth/register",
+      name: "register",
+      component: () => import("../views/auth/Register.vue"),
+      meta: { title: "注册", permission: ROLE.Visitor }
+    },
+    {
       path: "/createRoom",
       name: "createRoom",
       component: () => import("../views/CreateRoom.vue"),
