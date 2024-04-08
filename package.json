@@ -21,7 +21,7 @@
     "artplayer-plugin-hls-quality": "^2.0.0",
     "axios": "^1.6.0",
     "crypto-js": "^4.2.0",
-    "dashjs": "^4.7.2",
+    "dashjs": "^4.7.4",
     "element-plus": "^2.3.8",
     "gsap": "^3.12.2",
     "hls.js": "^1.5.3",
