@@ -24,6 +24,7 @@ const formData = ref<EmailRegForm & { captchaID: string; answer: string }>({
   answer: ""
 });
 const emailProvider = ref(settings?.emailWhitelistEnabled && settings?.emailWhitelist[0]);
+const confirmPwd = ref("");
 
 const toSendRegCode = async () => {
   try {
@@ -72,12 +73,9 @@ const toRegister = async () => {
     !formData.value.captcha ||
     !formData.value.answer
   ) {
-    return ElNotification({
-      title: "错误",
-      message: "请填写表单完整",
-      type: "error"
-    });
+    return ElMessage.error("请填写表单完整");
   }
+  if (formData.value.password !== confirmPwd.value) return ElMessage.error("两次输入的密码不一致");
   try {
     regDisable.value = true;
     for (const key in formData.value) {
@@ -185,6 +183,14 @@ onMounted(async () => await refreshRegCaptcha());
         type="password"
         v-model="formData.password"
         placeholder="密码"
+        required
+      />
+      <br />
+      <input
+        class="l-input a-input"
+        type="password"
+        v-model="confirmPwd"
+        placeholder="确认密码"
         required
       />
       <br />
