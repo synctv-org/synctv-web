@@ -34,7 +34,7 @@ const menuLinks = computed(() => {
     }
   ];
 
-  if (settings?.emailEnable)
+  if (settings?.emailEnable && !settings.emailDisableUserSignup)
     links.push({
       name: "注册",
       to: "/auth/register"

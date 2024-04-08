@@ -8,6 +8,7 @@ export const indexStore = defineStore("indexStore", () => {
 
   const settings = ref<{
     emailEnable: boolean;
+    emailDisableUserSignup: boolean;
     emailWhitelistEnabled: boolean;
     emailWhitelist: string[];
   }>();
