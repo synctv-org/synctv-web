@@ -29,11 +29,7 @@ const confirmPwd = ref("");
 const toSendRegCode = async () => {
   try {
     if (!formData.value.email || !formData.value.answer)
-      return ElNotification({
-        title: "错误",
-        message: "请填写邮箱或图形验证码",
-        type: "error"
-      });
+      return ElMessage.error("请填写邮箱或图形验证码");
     const email = settings?.emailWhitelistEnabled
       ? `${formData.value.email}@${emailProvider.value}`
       : formData.value.email;

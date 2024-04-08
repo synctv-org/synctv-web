@@ -32,11 +32,7 @@ const emailProvider = ref(settings?.emailWhitelistEnabled && settings?.emailWhit
 const toSendResetCode = async () => {
   try {
     if (!formData.value.email || !formData.value.answer)
-      return ElNotification({
-        title: "错误",
-        message: "请填写邮箱或图形验证码",
-        type: "error"
-      });
+      return ElMessage.error("请填写邮箱或图形验证码");
     const email = settings?.emailWhitelistEnabled
       ? `${formData.value.email}@${emailProvider.value}`
       : formData.value.email;
@@ -74,11 +70,7 @@ const toSendResetCode = async () => {
 const btnDisable = ref(false);
 const toReset = async () => {
   if (!formData.value.email || !formData.value.password || !formData.value.captcha) {
-    return ElNotification({
-      title: "错误",
-      message: "请填写表单完整",
-      type: "error"
-    });
+    return ElMessage.error("请填写表单完整");
   }
   try {
     btnDisable.value = true;

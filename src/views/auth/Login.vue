@@ -70,14 +70,9 @@ console.log("redirect: ", (redirect.value as string) ?? "");
 const { getUserInfo: updateUserInfo, updateToken } = userStore();
 const { execute: reqLoginApi, state: loginData } = LoginApi();
 const login = async () => {
-  if (formData.value?.username === "" || formData.value?.password === "") {
-    ElNotification({
-      title: "错误",
-      message: "请填写表单完整",
-      type: "error"
-    });
-    return;
-  }
+  if (!formData.value?.username || !formData.value?.password)
+    return ElMessage.error("请填写表单完整");
+
   try {
     for (const key in formData.value) {
       strLengthLimit(key, 32);
