@@ -155,19 +155,13 @@ onMounted(async () => await refreshRegCaptcha());
         required
       />
       <br />
-      <div class="l-input m-0 my-[10px] flex justify-between mx-auto" style="width: 70%">
-        <input
-          type="text"
-          class="bg-transparent transition-all duration-500 outline-none focus:outline-none w-3/5"
-          placeholder="图形验证码"
-          v-model="formData.answer"
-          required
-        />
-        <button class="text-blue-500 w-2/5" @click="toSendRegCode" v-if="!sendRegCodeLoading">
-          发送验证码
-        </button>
-        <button class="text-blue-500 w-2/5" v-else disabled>正在发送...</button>
-      </div>
+      <input
+        class="l-input a-input"
+        type="text"
+        v-model="formData.answer"
+        placeholder="图形验证码"
+        required
+      />
       <div v-if="captchaLoading">
         <el-image>
           <template #error>
@@ -183,13 +177,20 @@ onMounted(async () => await refreshRegCaptcha());
         :src="captcha?.captchaBase64"
         @click="refreshRegCaptcha"
       />
-      <input
-        class="l-input a-input"
-        type="text"
-        v-model="formData.captcha"
-        placeholder="邮箱验证码"
-        required
-      />
+      <div class="l-input m-0 my-[10px] flex justify-between mx-auto" style="width: 70%">
+        <input
+          type="text"
+          class="bg-transparent transition-all duration-500 outline-none focus:outline-none w-3/5"
+          placeholder="邮箱验证码"
+          v-model="formData.captcha"
+          required
+        />
+        <button class="text-blue-500 w-2/5" @click="toSendRegCode" v-if="!sendRegCodeLoading">
+          发送验证码
+        </button>
+        <button class="text-blue-500 w-2/5" v-else disabled>正在发送...</button>
+      </div>
+
       <br />
       <div class="text-sm"><b>注意：</b>所有输入框最大只可输入32个字符</div>
       <button class="btn m-[10px]" @click="toRegister" :disabled="regDisable">完成注册</button>
