@@ -7,6 +7,7 @@ export interface settingType {
   comment?: string;
   name?: string;
   disabled?: boolean;
+  isTextarea?: boolean;
 }
 
 export type settingGroupName =
@@ -89,7 +90,7 @@ export const useSettings = () => {
     ["email_signup_need_review", { value: 0, append: "个", name: "邮箱注册需要审核" }],
     ["email_retrieve_password_url_path", { value: "", name: "重置密码URL" }],
     ["email_signup_white_list_enable", { value: false, name: "邮箱域名白名单" }],
-    ["email_signup_white_list", { value: "", name: "允许的邮箱域名" }],
+    ["email_signup_white_list", { value: "", name: "允许的邮箱域名", isTextarea: true }],
     ["smtp_host", { value: "", name: "SMTP 服务器地址" }],
     ["smtp_port", { value: "", name: "SMTP 端口" }],
     ["smtp_protocol", { value: "", name: "SMTP 加密方式" }],

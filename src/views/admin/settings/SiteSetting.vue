@@ -182,6 +182,7 @@ onMounted(async () => {
                 v-model.trim.lazy="setting[1].value"
                 :placeholder="setting[1].placeholder"
                 :disabled="setting[1].disabled"
+                :type="setting[1].isTextarea ? 'textarea' : 'text'"
               >
                 <template #append v-if="setting[1].append">{{ setting[1].append }}</template>
               </el-input>
