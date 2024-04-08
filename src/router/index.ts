@@ -33,6 +33,12 @@ const router = createRouter({
       meta: { title: "注册", permission: ROLE.Visitor }
     },
     {
+      path: "/auth/reset",
+      name: "reset",
+      component: () => import("../views/auth/Reset.vue"),
+      meta: { title: "重置密码", permission: ROLE.Visitor }
+    },
+    {
       path: "/createRoom",
       name: "createRoom",
       component: () => import("../views/CreateRoom.vue"),

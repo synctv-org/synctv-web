@@ -92,6 +92,7 @@ export const getPublicSettings = useDefineApi<
   any,
   {
     emailEnable: boolean;
+    emailDisableUserSignup: boolean;
     emailWhitelistEnabled: boolean;
     emailWhitelist: string[];
   }
@@ -100,7 +101,7 @@ export const getPublicSettings = useDefineApi<
   method: "GET"
 });
 
-// 获取注册验证码
+// 获取 注册 验证码
 export const getRegCaptchaApi = useDefineApi<
   any,
   {
@@ -112,7 +113,7 @@ export const getRegCaptchaApi = useDefineApi<
   method: "GET"
 });
 
-// 发送注册验证码
+// 发送 注册 验证码
 export const sendRegCodeApi = useDefineApi<
   {
     data: {
@@ -124,5 +125,47 @@ export const sendRegCodeApi = useDefineApi<
   any
 >({
   url: "/api/user/signup/email/captcha",
+  method: "POST"
+});
+
+// 获取 找回密码 验证码
+export const getResetCaptchaApi = useDefineApi<
+  any,
+  {
+    captchaID: string;
+    captchaBase64: string;
+  }
+>({
+  url: "/api/user/retrieve/email/captcha",
+  method: "GET"
+});
+
+// 发送 找回密码 验证码
+export const sendResetCodeApi = useDefineApi<
+  {
+    data: {
+      email: string;
+      captchaID: string;
+      answer: string;
+    };
+  },
+  any
+>({
+  url: "/api/user/retrieve/email/captcha",
+  method: "POST"
+});
+
+// 重置密码
+export const resetPasswordApi = useDefineApi<
+  {
+    data: {
+      email: string;
+      captcha: string;
+      password: string;
+    };
+  },
+  any
+>({
+  url: "/api/user/retrieve/email",
   method: "POST"
 });

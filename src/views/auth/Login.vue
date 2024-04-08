@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
+import { indexStore } from "@/stores";
 import { OAuth2Platforms, loginWithOAuth2, LoginApi } from "@/services/apis/auth";
 import { userInfo } from "@/services/apis/user";
 import { useRouteQuery } from "@vueuse/router";
@@ -54,6 +55,8 @@ const platforms: { [key: string]: { name: string; class: string } } = {
     class: "btn-default"
   }
 };
+
+const { settings } = indexStore();
 
 const formData = ref({
   username: localStorage.getItem("uname") || "",
@@ -181,6 +184,14 @@ onMounted(async () => {
       <div>
         <input class="w-auto" type="checkbox" v-model="savePwd" />
         <label title="明文保存到本机哦~">&nbsp;记住密码</label>
+
+        <a
+          v-if="settings?.emailEnable"
+          class="ml-4"
+          href="javascript:;"
+          @click="router.push('/auth/reset')"
+          >重置密码</a
+        >
       </div>
       <button class="btn m-[10px]" @click="login">登录</button>
     </form>
