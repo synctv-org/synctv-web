@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage, ElMessageBox } from "element-plus";
+import { indexStore } from "@/stores";
 import { userStore } from "@/stores/user";
 import router from "@/router/index";
 import { userInfo } from "@/services/apis/user";
@@ -8,6 +9,7 @@ import { useEmailRegisterApi, getRegCaptchaApi, sendRegCodeApi } from "@/service
 import { strLengthLimit } from "@/utils";
 import type { EmailRegForm } from "@/types";
 
+const { settings } = indexStore();
 const { getUserInfo: updateUserInfo, updateToken } = userStore();
 
 const { state: userToken, execute: emailRegisterApi } = useEmailRegisterApi();
@@ -21,6 +23,7 @@ const formData = ref<EmailRegForm & { captchaID: string; answer: string }>({
   captchaID: "",
   answer: ""
 });
+const emailProvider = ref(settings?.emailWhitelistEnabled && settings?.emailWhitelist[0]);
 
 const toSendRegCode = async () => {
   try {
@@ -30,8 +33,11 @@ const toSendRegCode = async () => {
         message: "请填写邮箱或图形验证码",
         type: "error"
       });
+    const email = settings?.emailWhitelistEnabled
+      ? `${formData.value.email}@${emailProvider.value}`
+      : formData.value.email;
     const v = await ElMessageBox.confirm(
-      `我们将发送验证码到此邮箱：${formData.value.email}，请确认该邮箱地址是否正确`,
+      `我们将发送验证码到此邮箱：${email}，请确认该邮箱地址是否正确`,
       "警告",
       {
         confirmButtonText: "准确无误！",
@@ -40,9 +46,12 @@ const toSendRegCode = async () => {
       }
     );
     if (v !== "confirm") return;
-
     await sendRegCode({
-      data: formData.value
+      data: {
+        email,
+        captchaID: formData.value.captchaID,
+        answer: formData.value.answer
+      }
     });
     ElMessage.success("验证码发送成功");
   } catch (err: any) {
@@ -74,8 +83,15 @@ const toRegister = async () => {
     for (const key in formData.value) {
       strLengthLimit(key, 32);
     }
+    const email = settings?.emailWhitelistEnabled
+      ? `${formData.value.email}@${emailProvider.value}`
+      : formData.value.email;
     await emailRegisterApi({
-      data: formData.value
+      data: {
+        email,
+        password: formData.value.password,
+        captcha: formData.value.captcha
+      }
     });
     if (!userToken.value)
       return ElNotification({
@@ -139,7 +155,24 @@ onMounted(async () => await refreshRegCaptcha());
 <template>
   <div class="room">
     <form @submit.prevent="" class="reg-box">
+      <div
+        v-if="settings?.emailWhitelistEnabled"
+        class="l-input m-0 -mb-[14px] flex justify-between mx-auto"
+        style="width: 70%"
+      >
+        <input
+          v-model="formData.email"
+          class="bg-transparent transition-all duration-500 outline-none focus:outline-none w-3/5"
+          type="text"
+          placeholder="邮箱"
+          required
+        />
+        <select class="w-3/2" v-model="emailProvider" placeholder="请选择">
+          <option v-for="i in settings.emailWhitelist" :key="i" :value="i">@{{ i }}</option>
+        </select>
+      </div>
       <input
+        v-else
         class="l-input a-input"
         type="email"
         v-model="formData.email"
@@ -190,8 +223,6 @@ onMounted(async () => await refreshRegCaptcha());
         </button>
         <button class="text-blue-500 w-2/5" v-else disabled>正在发送...</button>
       </div>
-
-      <br />
       <div class="text-sm"><b>注意：</b>所有输入框最大只可输入32个字符</div>
       <button class="btn m-[10px]" @click="toRegister" :disabled="regDisable">完成注册</button>
     </form>
