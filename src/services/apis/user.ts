@@ -109,3 +109,67 @@ export const unbindOAuth2Api = useDefineApi<
 >({
   method: "POST"
 });
+
+// 获取 绑定邮箱 验证码
+export const getBindEmailCaptchaApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+  },
+  {
+    captchaID: string;
+    captchaBase64: string;
+  }
+>({
+  url: "/api/user/bind/email/captcha",
+  method: "GET"
+});
+
+// 发送 绑定邮箱 验证码
+export const sendBindEmailCodeApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      email: string;
+      captchaID: string;
+      answer: string;
+    };
+  },
+  any
+>({
+  url: "/api/user/bind/email/captcha",
+  method: "POST"
+});
+
+// 绑定邮箱
+export const bindEmailApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      email: string;
+      captcha: string;
+    };
+  },
+  any
+>({
+  url: "/api/user/bind/email",
+  method: "POST"
+});
+
+// 解绑邮箱
+export const unbindEmailApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+  },
+  any
+>({
+  url: "/api/user/unbind/email",
+  method: "POST"
+});

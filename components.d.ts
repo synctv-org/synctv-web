@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     Alist: typeof import('./src/components/fileList/alist.vue')['default']
     BilibiliParse: typeof import('./src/components/cinema/dialogs/bilibiliParse.vue')['default']
+    copy: typeof import('./src/components/user/dialogs/username copy.vue')['default']
     CopyButton: typeof import('./src/components/CopyButton.vue')['default']
     CustomHeaders: typeof import('./src/components/cinema/dialogs/customHeaders.vue')['default']
     CustomSubtitles: typeof import('./src/components/cinema/dialogs/customSubtitles.vue')['default']
@@ -42,6 +43,7 @@ declare module 'vue' {
     ElTag: typeof import('element-plus/es')['ElTag']
     ElTextarea: typeof import('element-plus/es')['ElTextarea']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
+    Email: typeof import('./src/components/user/dialogs/email.vue')['default']
     Emby: typeof import('./src/components/fileList/emby.vue')['default']
     FileList: typeof import('./src/components/fileList/index.vue')['default']
     Header: typeof import('./src/components/Header.vue')['default']
