@@ -147,6 +147,9 @@ onMounted(async () => {
               <a class="text-red-500" href="javascript:;">💥解除绑定</a>
             </template>
           </el-popconfirm>
+          <a href="javascript:;" @click="bindEmailDialog?.openDialog" style="margin-left: 10px"
+            >换绑</a
+          >
         </h3>
         <a v-else href="javascript:;" @click="bindEmailDialog?.openDialog">立即绑定</a>
       </div>
