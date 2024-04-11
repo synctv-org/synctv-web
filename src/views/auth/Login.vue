@@ -189,6 +189,11 @@ onMounted(async () => {
         >
       </div>
       <button class="btn m-[10px]" @click="login">登录</button>
+      <div v-if="settings?.emailEnable">
+        还没有账号？<a class="ml-2" href="javascript:;" @click="router.push('/auth/register')"
+          >立即注册</a
+        >
+      </div>
     </form>
     <br />
     <div
