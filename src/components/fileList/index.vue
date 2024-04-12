@@ -77,10 +77,6 @@ defineExpose({
   setProxy,
   findItem
 });
-
-onMounted(() => {
-  toDir("", true, true);
-});
 </script>
 <template>
   <el-breadcrumb class="-mt-5 mb-2" :separator-icon="ArrowRight">

@@ -19,8 +19,9 @@ const props = defineProps<{
 const FileList = ref<InstanceType<typeof index>>();
 const { token: userToken } = userStore();
 const open = ref(false);
-const openDialog = () => {
+const openDialog = async () => {
   open.value = true;
+  await getFileList("", 1, 10);
 };
 
 const { execute, state, isLoading } = getEmbyFileList();
