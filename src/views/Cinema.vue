@@ -145,10 +145,10 @@ const playerOption = computed<options>(() => {
   };
   // when cross origin, add token to headers and query
   if (option.url.startsWith(window.location.origin) || option.url.startsWith("/api/movie")) {
-    option.headers = {
-      ...option.headers,
-      Authorization: roomToken.value
-    };
+    // option.headers = {
+    //   ...option.headers,
+    //   Authorization: roomToken.value
+    // };
     option.url = option.url.includes("?")
       ? `${option.url}&token=${roomToken.value}`
       : `${option.url}?token=${roomToken.value}`;

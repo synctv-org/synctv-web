@@ -25,7 +25,13 @@ function newHlsQualityPlugin(): (art: Artplayer) => {
   return artplayerPluginHlsQuality({
     control: true,
     setting: true,
-    getResolution: (level) => (level.height ? level.height + "P" : "自动"),
+    getResolution: (level) => {
+      // console.log(level);
+      if (level.name) {
+        return level.name;
+      }
+      return level.height ? level.height + "P" : "自动";
+    },
     title: "画质",
     auto: "自动"
   });
