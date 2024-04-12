@@ -64,7 +64,12 @@ const openLiveInfoDialog = async (id: string) => {
 // 清空确认
 const confirmClear = async () => {
   await clearMovieList();
-  emits("send-msg", "PLAYER：视频已清空");
+  emits("send-msg", "PLAYER：列表已清空");
+};
+
+const confirmCancelPlayback = async () => {
+  await changeCurrentMovie("", true);
+  emits("send-msg", "PLAYER：播放已取消");
 };
 </script>
 
@@ -113,7 +118,31 @@ const confirmClear = async () => {
           <small class="truncate">{{ item.base!.url || item.id }}</small>
         </div>
 
-        <div class="m-auto p-2">
+        <div class="m-auto p-2" v-if="room.currentMovie.id === item.id">
+          <button
+            class="btn btn-dense btn-success border-green-500 text-green-600 bg-green-100 dark:bg-green-950 dark:border-green-800 m-0 mr-5"
+            disabled
+          >
+            正在播放
+            <PlayIcon class="inline-block" width="18px" />
+          </button>
+          <el-popconfirm
+            width="220"
+            confirm-button-text="是"
+            cancel-button-text="否"
+            title="你确定要取消正在播放的影片吗？!"
+            @confirm="confirmCancelPlayback"
+          >
+            <template #reference>
+              <button class="btn btn-dense btn-error m-0 mr-1">
+                取消播放
+                <TrashIcon class="inline-block" width="16px" height="16px" />
+              </button>
+            </template>
+          </el-popconfirm>
+        </div>
+
+        <div class="m-auto p-2" v-else>
           <button class="btn btn-dense m-0 mr-1" @click="changeCurrentMovie(item['id'])">
             播放
             <PlayIcon class="inline-block" width="18px" />
@@ -176,11 +205,22 @@ const confirmClear = async () => {
           width="220"
           confirm-button-text="是"
           cancel-button-text="否"
+          title="你确定要取消正在播放的影片吗？!"
+          @confirm="confirmCancelPlayback"
+        >
+          <template #reference>
+            <button class="btn btn-error">取消播放</button>
+          </template>
+        </el-popconfirm>
+        <el-popconfirm
+          width="220"
+          confirm-button-text="是"
+          cancel-button-text="否"
           title="你确定要清空影片列表吗？!"
           @confirm="confirmClear"
         >
           <template #reference>
-            <button class="btn btn-error mr-2">清空列表</button>
+            <button class="btn btn-error mx-2">清空列表</button>
           </template>
         </el-popconfirm>
         <button class="btn btn-success" @click="getMovies()">更新列表</button>
