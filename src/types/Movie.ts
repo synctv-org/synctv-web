@@ -34,28 +34,30 @@ export interface BaseMovieInfo {
   subtitles?: Subtitles;
 }
 
+export interface EditMovieInfo extends BaseMovieInfo {
+  id: string;
+}
+
 export interface VendorInfo {
   vendor: string;
   bilibili?: BilibiliVendorInfo;
   backend?: string;
 }
 
-export interface BilibiliVendorInfo {
+export interface BilibiliBaseInfo {
   bvid?: string;
   cid?: number;
   epid?: number;
-  quality?: number;
   shared: boolean;
 }
 
-export interface EditMovieInfo extends BaseMovieInfo {
-  id: string;
+export interface BilibiliVendorInfo extends BilibiliBaseInfo {
+  quality?: number;
 }
 
-export interface BilibiliVideoInfos {
-  bvid?: string;
-  cid?: number;
-  epid?: number;
+export interface BilibiliVideoInfos extends BilibiliBaseInfo {
   name: string;
+  live: boolean;
   coverImage: string;
+  proxy: boolean;
 }

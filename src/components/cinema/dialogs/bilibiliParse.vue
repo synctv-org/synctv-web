@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
-import type { BaseMovieInfo } from "@/types/Movie";
+import type { BaseMovieInfo, BilibiliVideoInfos } from "@/types/Movie";
 import { parseBiliBiliVideo } from "@/services/apis/vendor";
 import { pushMoviesApi } from "@/services/apis/movie";
 import { userStore } from "@/stores/user";
@@ -12,19 +12,9 @@ const Props = defineProps<{
   vendor: string;
 }>();
 
-interface BilibiliVideo {
-  name: string;
-  bvid?: string;
-  cid?: number;
-  epid?: number;
-  coverImage: string;
-  proxy: boolean;
-  shared: boolean;
-}
-
 // 获取房间信息
 const { token: userToken } = userStore();
-const biliVideos = ref<BilibiliVideo[]>([]);
+const biliVideos = ref<BilibiliVideoInfos[]>([]);
 const open = ref(false);
 const { state, execute } = parseBiliBiliVideo();
 const openDialog = async () => {
@@ -46,6 +36,7 @@ const openDialog = async () => {
           bvid: item.bvid,
           cid: item.cid,
           epid: item.epid,
+          live: item.live,
           coverImage: item.coverImage,
           proxy: item.epid ? true : false,
           shared: item.epid ? true : false
@@ -73,17 +64,17 @@ const openDialog = async () => {
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(20);
-const selectedItems = ref<BilibiliVideo[]>([]);
+const selectedItems = ref<BilibiliVideoInfos[]>([]);
 
-const selectItem = (item: BilibiliVideo) => {
+const selectItem = (item: BilibiliVideoInfos) => {
   selectedItems.value.push(item);
 };
 
-const findItem = (item: BilibiliVideo) => {
+const findItem = (item: BilibiliVideoInfos) => {
   return selectedItems.value.find((i) => i.cid === item.cid);
 };
 
-const removeItem = (item: BilibiliVideo) => {
+const removeItem = (item: BilibiliVideoInfos) => {
   selectedItems.value.splice(selectedItems.value.indexOf(item), 1);
 };
 
@@ -129,6 +120,7 @@ const submit = async () => {
           <BaseMovieInfo>{
             name: item.name,
             proxy: item.proxy,
+            live: item.live,
             vendorInfo: {
               vendor: "bilibili",
               bilibili: {
