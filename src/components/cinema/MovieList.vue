@@ -202,6 +202,7 @@ const confirmCancelPlayback = async () => {
       <div></div>
       <div>
         <el-popconfirm
+          v-if="room.currentMovie.id"
           width="220"
           confirm-button-text="是"
           cancel-button-text="否"
