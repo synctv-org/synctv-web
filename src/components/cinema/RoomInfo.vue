@@ -122,6 +122,7 @@ const shareURL = computed(() => {
                 :type="isShowPassword ? 'text' : 'password'"
                 v-model="password"
                 class="w-full m-0 pl-1 inline-block bg-neutral-200 border border-neutral-200 rounded-md focus:outline-none hover:bg-neutral-100 transition-all text-sm dark:bg-neutral-700 dark:border-neutral-800"
+                autocomplete="new-password"
               />
               <button
                 class="inline-block absolute -translate-x-5 opacity-50 pr-0.5"

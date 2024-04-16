@@ -17,7 +17,7 @@ import router from "@/router";
 import { useMovieApi } from "@/hooks/useMovie";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUint8Array } from "@/utils";
-import { ElementMessage, ElementMessageType, type MovieStatus } from "@/proto/message";
+import { ElementMessage, ElementMessageType } from "@/proto/message";
 import type { options } from "@/components/Player.vue";
 import RoomInfo from "@/components/cinema/RoomInfo.vue";
 import MovieList from "@/components/cinema/MovieList.vue";
@@ -367,6 +367,7 @@ onMounted(() => {
             v-model="sendText_"
             placeholder="按 Enter 键即可发送..."
             class="l-input w-full bg-transparent"
+            autocomplete="off"
           />
           <button class="btn w-24 m-2.5 ml-0" @click="sendText()">发送</button>
         </div>

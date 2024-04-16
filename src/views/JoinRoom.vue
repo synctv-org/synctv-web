@@ -38,9 +38,22 @@ onMounted(() => {
 <template>
   <div :class="isModal ? 'room-dialog' : 'room'">
     <form @submit.prevent="" :class="!isModal && 'sm:w-96 ' + 'w-full'">
-      <input class="l-input" type="text" v-model="formData.roomId" placeholder="房间ID" required />
+      <input
+        class="l-input"
+        type="text"
+        v-model="formData.roomId"
+        placeholder="房间ID"
+        required
+        autocomplete="off"
+      />
       <br />
-      <input class="l-input" type="password" v-model="formData.password" placeholder="房间密码" />
+      <input
+        class="l-input"
+        type="password"
+        v-model="formData.password"
+        placeholder="房间密码"
+        autocomplete="new-password"
+      />
       <br />
       <button class="btn m-[10px]" @click="joinRoom(formData)">加入</button>
       <div class="text-sm">

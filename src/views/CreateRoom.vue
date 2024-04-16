@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { ElNotification, ElMessage } from "element-plus";
+import { ElNotification } from "element-plus";
 import router from "@/router/index";
 import { createRoomApi } from "@/services/apis/room";
 import { strLengthLimit } from "@/utils";
@@ -71,9 +71,16 @@ const operateRoom = async () => {
         v-model="formData.roomName"
         placeholder="房间名"
         required
+        autocomplete="off"
       />
       <br />
-      <input class="l-input" type="password" v-model="formData.password" placeholder="房间密码" />
+      <input
+        class="l-input"
+        type="password"
+        v-model="formData.password"
+        placeholder="房间密码"
+        autocomplete="new-password"
+      />
       <br />
       <div>
         <input class="w-auto" type="checkbox" v-model="formData.setting.hidden" />

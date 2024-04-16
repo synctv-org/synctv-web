@@ -160,6 +160,7 @@ onMounted(async () => await refreshRegCaptcha());
           type="text"
           placeholder="邮箱"
           required
+          autocomplete="off"
         />
         <select class="w-3/2" v-model="emailProvider" placeholder="请选择">
           <option v-for="i in settings.emailWhitelist" :key="i" :value="i">@{{ i }}</option>
@@ -172,6 +173,7 @@ onMounted(async () => await refreshRegCaptcha());
         v-model="formData.email"
         placeholder="邮箱"
         required
+        autocomplete="off"
       />
       <br />
       <input
@@ -180,6 +182,7 @@ onMounted(async () => await refreshRegCaptcha());
         v-model="formData.password"
         placeholder="密码"
         required
+        autocomplete="new-password"
       />
       <br />
       <input
