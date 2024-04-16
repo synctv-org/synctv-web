@@ -12,7 +12,7 @@ const emit = defineEmits(["updateHeaders"]);
 
 const open = ref(false);
 const openDialog = () => {
-  Object.keys(props.customHeader).map((key: any) => {
+  Object.keys(props.customHeader ?? {}).map((key: any) => {
     rArray.push({ [key]: props.customHeader[key] });
   });
   open.value = true;
