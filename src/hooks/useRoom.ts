@@ -68,6 +68,8 @@ export const useRoomApi = (roomId: string) => {
           type: "error"
         });
       localStorage.setItem(`room-${joinRoomInfo.value.roomId}-token`, joinRoomInfo.value?.token);
+      if (formData.password)
+        localStorage.setItem(`room-${joinRoomInfo.value.roomId}-pwd`, formData.password);
       ElNotification({
         title: "加入成功",
         type: "success"

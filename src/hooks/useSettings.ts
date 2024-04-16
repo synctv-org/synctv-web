@@ -100,6 +100,20 @@ export const useSettings = () => {
     ["smtp_pool_size", { value: "", name: "SMTP 连接池大小" }]
   ]);
 
+  const defaultCinemaSettings: Map<string, settingType> = new Map([
+    ["hidden", { value: false, name: "隐藏此房间" }],
+    ["disable_join_new_user", { value: false, name: "禁止新用户加入" }],
+    ["join_need_review", { value: false, name: "加入需要审核" }],
+    ["user_default_permissions", { value: 0, name: "用户默认权限" }],
+    ["can_get_movie_list", { value: false, name: "允许用户获取影片列表" }],
+    ["can_add_movie", { value: false, name: "允许用户添加影片" }],
+    ["can_edit_movie", { value: false, name: "允许用户编辑影片" }],
+    ["can_delete_movie", { value: false, name: "允许用户删除影片" }],
+    ["can_set_current_movie", { value: false, name: "允许用户切换影片" }],
+    ["can_set_current_status", { value: false, name: "是否可以上报进度" }],
+    ["can_send_chat_message", { value: false, name: "是否允许聊天 / 发送弹幕" }]
+  ]);
+
   const databaseSettingsGroup: Map<settingGroupName, settingGroup> = new Map([
     [
       "database",
@@ -249,6 +263,7 @@ export const useSettings = () => {
     userSettingsGroup,
     OAuth2SettingGroup,
     emailSettingGroup,
+    defaultCinemaSettings,
     defaultDatabaseSettings,
     defaultRoomSettings,
     defaultProxySettings,

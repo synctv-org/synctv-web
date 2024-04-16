@@ -44,7 +44,8 @@ const operateRoom = async () => {
         type: "error"
       });
     localStorage.setItem(`room-${createRoomInfo.value.roomId}-token`, createRoomInfo.value?.token);
-
+    if (formData.value.password)
+      localStorage.setItem(`room-${createRoomInfo.value.roomId}-pwd`, formData.value.password);
     ElNotification({
       title: "创建成功",
       type: "success"

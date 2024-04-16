@@ -17,7 +17,7 @@ const props = defineProps<{
 }>();
 
 const { token, info } = userStore();
-const { updateSet } = useUpdateSettings();
+const { updateSet } = useUpdateSettings("admin", token.value);
 
 const {
   databaseSettingsGroup,

@@ -1,11 +1,14 @@
 import { ElNotification } from "element-plus";
-import { updateSettingApi } from "@/services/apis/admin";
-import { userStore } from "@/stores/user";
+import { updateSettingApi as updateAdminSettingApi } from "@/services/apis/admin";
+import { updateSettingApi as updateRoomSettingApi } from "@/services/apis/room";
 
-const { token } = userStore();
+const UpdateType = {
+  admin: updateAdminSettingApi,
+  room: updateRoomSettingApi
+};
 
-export const useUpdateSettings = () => {
-  const { state, isLoading, execute } = updateSettingApi();
+export const useUpdateSettings = (type: keyof typeof UpdateType, token: string) => {
+  const { state, isLoading, execute } = UpdateType[type]();
 
   const updateSet = async (key: string, value: any) => {
     const data: Record<string, any> = {};
@@ -13,7 +16,7 @@ export const useUpdateSettings = () => {
     try {
       await execute({
         headers: {
-          Authorization: token.value
+          Authorization: token
         },
         data: data
       });
@@ -21,7 +24,7 @@ export const useUpdateSettings = () => {
       console.error(err.message);
       ElNotification({
         title: `${key} 设置失败`,
-        message: err.response ? err.response.data.error : err.message,
+        message: err.response?.data.error || err.message,
         type: "error"
       });
     }

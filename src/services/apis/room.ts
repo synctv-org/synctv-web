@@ -93,7 +93,7 @@ export const delRoomApi = useDefineApi<
   },
   {}
 >({
-  url: "/api/room/delete",
+  url: "/api/room/admin/delete",
   method: "POST"
 });
 
@@ -109,7 +109,7 @@ export const updateRoomPasswordApi = useDefineApi<
     token: string;
   }
 >({
-  url: "/api/room/pwd",
+  url: "/api/room/admin/pwd",
   method: "POST"
 });
 
@@ -128,4 +128,43 @@ export const hotRoom = useDefineApi<
 >({
   url: "/api/room/hot",
   method: "GET"
+});
+
+// 获取房间设置
+export const roomSettingsApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+  },
+  {
+    hidden: boolean;
+    disable_join_new_user: boolean;
+    join_need_review: boolean;
+    user_default_permissions: number;
+    can_get_movie_list: boolean;
+    can_add_movie: boolean;
+    can_delete_movie: boolean;
+    can_edit_movie: boolean;
+    can_set_current_movie: boolean;
+    can_set_current_status: boolean;
+    can_send_chat_message: boolean;
+  }
+>({
+  url: "/api/room/admin/settings",
+  method: "GET"
+});
+
+// 修改房间设置
+export const updateSettingApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: Record<string, any>;
+  },
+  any
+>({
+  url: "/api/room/admin/settings",
+  method: "POST"
 });
