@@ -11,7 +11,7 @@ const { state: createRoomInfo, execute: reqCreateRoomApi } = createRoomApi();
 const formData = ref({
   roomName: "",
   password: "",
-  setting: {
+  settings: {
     hidden: false
   }
 });
@@ -83,7 +83,7 @@ const operateRoom = async () => {
       />
       <br />
       <div>
-        <input class="w-auto" type="checkbox" v-model="formData.setting.hidden" />
+        <input class="w-auto" type="checkbox" v-model="formData.settings.hidden" />
         <label title="不显示在房间列表">&nbsp;是否隐藏此房间</label>
       </div>
       <button class="btn m-[10px]" @click="operateRoom()">创建房间</button>

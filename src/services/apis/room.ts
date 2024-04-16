@@ -29,7 +29,7 @@ export const createRoomApi = useDefineApi<
     data: {
       roomName: string;
       password: string;
-      setting: {
+      settings: {
         hidden: boolean;
       };
     };
