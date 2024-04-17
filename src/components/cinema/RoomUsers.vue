@@ -193,10 +193,7 @@ defineExpose({
         <el-table-column prop="username" label="用户名" width="160" />
         <el-table-column prop="id" label="ID" width="50">
           <template #default="scope">
-            <div class="flex overflow-hidden text-ellipsis max-w-[100px]">
-              <span class="truncate">{{ scope.row.id }}</span>
-              <CopyButton size="small" :value="scope.row.id" />
-            </div>
+            <CopyButton size="small" :value="scope.row.userId" />
           </template>
         </el-table-column>
         <el-table-column prop="role" label="在线状态" width="90">

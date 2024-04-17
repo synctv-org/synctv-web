@@ -40,7 +40,6 @@ const parsePermissions = (permissions: number, type: "member" | "admin") => {
     if (!isNaN(Number(permission))) {
       if ((permissions & Number(permission)) !== 0) {
         result.push(Number(permission));
-        console.log(type, permission, permissions);
       }
     }
   }
