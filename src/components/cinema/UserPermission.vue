@@ -1,15 +1,10 @@
 <script lang="ts" setup>
 import { computed, ref } from "vue";
-import { ElMessage, ElMessageBox, ElNotification } from "element-plus";
+import { ElNotification } from "element-plus";
 import { RoomMemberPermission, RoomAdminPermission, useRoomPermission } from "@/hooks/useRoom";
 import { setMemberPermitApi, setAdminPermitApi } from "@/services/apis/room";
 import { useLocalStorage } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
-interface Option {
-  key: number | string;
-  label: string;
-  disabled: boolean;
-}
 
 const open = ref(false);
 const mP = ref<number[]>([]);
@@ -21,10 +16,12 @@ const openDialog = async (
   adminPermissions: RoomAdminPermission
 ) => {
   open.value = true;
-  mP.value = parseMemberPermissions(memberPermissions);
-  aP.value = parseMemberPermissions(adminPermissions);
+  mP.value = parsePermissions(memberPermissions, "member");
+  aP.value = parsePermissions(adminPermissions, "admin");
   userId.value = uid;
 };
+
+const emit = defineEmits(["updateUserList"]);
 
 const roomID = useRouteParams<string>("roomId");
 const roomToken = useLocalStorage(`room-${roomID.value}-token`, "");
@@ -36,19 +33,19 @@ const {
 } = useRoomPermission();
 const tabs = ref<"default" | "admin">("default");
 
-function parseMemberPermissions(permissions: number) {
+const parsePermissions = (permissions: number, type: "member" | "admin") => {
   let result: number[] = [];
-
-  for (let permission in RoomMemberPermission) {
+  const P = type === "member" ? RoomMemberPermission : RoomAdminPermission;
+  for (let permission in P) {
     if (!isNaN(Number(permission))) {
       if ((permissions & Number(permission)) !== 0) {
         result.push(Number(permission));
+        console.log(type, permission, permissions);
       }
     }
   }
-
   return result;
-}
+};
 
 const memberPermissionKeys = roomMemberPermissionKeys.map((key) => ({
   key: key.value,
@@ -91,6 +88,8 @@ const setPermit = async () => {
       title: "设置成功",
       type: "success"
     });
+    open.value = false;
+    emit("updateUserList");
   } catch (err: any) {
     console.error(err);
     ElNotification({

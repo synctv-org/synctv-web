@@ -2,7 +2,6 @@ import { ref } from "vue";
 import { ElNotification } from "element-plus";
 import { roomStore } from "@/stores/room";
 import {
-  movieListApi,
   moviesApi,
   currentMovieApi,
   editMovieInfoApi,

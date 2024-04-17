@@ -49,7 +49,8 @@ const getUserListApi = async () => {
         status: status_.value,
         search: search.value,
         keyword: keyword.value
-      }
+      },
+      url: "/api/room/admin/members"
     });
     if (state.value) {
       totalItems.value = state.value.total;
@@ -308,5 +309,5 @@ defineExpose({
   </el-drawer>
 
   <!-- 用户权限编辑对话框 -->
-  <UserPermission ref="userPermissionDialog" />
+  <UserPermission ref="userPermissionDialog" @updateUserList="getUserListApi" />
 </template>

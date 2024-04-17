@@ -20,10 +20,10 @@ export enum RoomMemberPermission {
   PermissionSetCurrentStatus = 1 << 5,
   PermissionSendChatMessage = 1 << 6,
 
-  AllPermissions = (2 ^ 32) - 1,
-  NoPermission = 0,
-  DefaultPermissions = RoomMemberPermission.PermissionGetMovieList |
-    RoomMemberPermission.PermissionSendChatMessage
+  // AllPermissions = (2 ^ 32) - 1,
+  NoPermission = 0
+  // DefaultPermissions = RoomMemberPermission.PermissionGetMovieList |
+  //   RoomMemberPermission.PermissionSendChatMessage
 }
 
 // 房间权限（管理员）
@@ -35,13 +35,13 @@ export enum RoomAdminPermission {
   PermissionSetRoomPassword = 1 << 4,
   PermissionDeleteRoom = 1 << 5,
 
-  AllAdminPermissions = (2 ^ 32) - 1,
-  NoAdminPermission = 0,
-  DefaultAdminPermissions = RoomAdminPermission.PermissionApprovePendingMember |
-    RoomAdminPermission.PermissionBanRoomMember |
-    RoomAdminPermission.PermissionSetUserPermission |
-    RoomAdminPermission.PermissionSetRoomSettings |
-    RoomAdminPermission.PermissionSetRoomPassword
+  // AllAdminPermissions = (2 ^ 32) - 1,
+  NoAdminPermission = 0
+  // DefaultAdminPermissions = RoomAdminPermission.PermissionApprovePendingMember |
+  //   RoomAdminPermission.PermissionBanRoomMember |
+  //   RoomAdminPermission.PermissionSetUserPermission |
+  //   RoomAdminPermission.PermissionSetRoomSettings |
+  //   RoomAdminPermission.PermissionSetRoomPassword
 }
 
 export const useRoomApi = (roomId: string) => {
@@ -305,8 +305,13 @@ export const useRoomApi = (roomId: string) => {
 
 export const useRoomPermission = () => {
   // member
-  const hasMemberPermission = (p: RoomMemberPermission, permission: RoomMemberPermission) =>
-    (p & permission) == permission;
+  const hasMemberPermission = (
+    p: RoomMemberPermission | undefined,
+    permission: RoomMemberPermission
+  ) => {
+    if (!p) return;
+    return (p & permission) === permission;
+  };
 
   const myMemberPermissions = (p: RoomMemberPermission) => {
     let permissions = [];
@@ -320,8 +325,8 @@ export const useRoomPermission = () => {
 
   const roomMemberPermissionKeysTranslate: Record<RoomMemberPermission, string> = {
     [RoomMemberPermission.NoPermission]: "无权限",
-    [RoomMemberPermission.DefaultPermissions]: "默认权限",
-    [RoomMemberPermission.AllPermissions]: "所有权限",
+    // [RoomMemberPermission.DefaultPermissions]: "默认权限",
+    // [RoomMemberPermission.AllPermissions]: "所有权限",
     [RoomMemberPermission.PermissionGetMovieList]: "获取影片列表",
     [RoomMemberPermission.PermissionAddMovie]: "添加影片",
     [RoomMemberPermission.PermissionDeleteMovie]: "删除影片",
@@ -334,7 +339,10 @@ export const useRoomPermission = () => {
   const roomMemberPermissionKeys = Object.keys(RoomMemberPermission)
     .filter((key) => typeof RoomMemberPermission[key as any] === "number")
     .filter(
-      (key) => key !== "DefaultPermissions" && key !== "AllPermissions" && key !== "NoPermission"
+      (key) =>
+        // key !== "DefaultPermissions" &&
+        // key !== "AllPermissions" &&
+        key !== "NoPermission"
     )
     .map((key) => ({ text: key, value: RoomMemberPermission[key as any] }));
 
@@ -356,16 +364,16 @@ export const useRoomPermission = () => {
     .filter((key) => typeof RoomAdminPermission[key as any] === "number")
     .filter(
       (key) =>
-        key !== "DefaultAdminPermissions" &&
-        key !== "AllAdminPermissions" &&
+        // key !== "DefaultAdminPermissions" &&
+        // key !== "AllAdminPermissions" &&
         key !== "NoAdminPermission"
     )
     .map((key) => ({ text: key, value: RoomAdminPermission[key as any] }));
 
   const roomAdminPermissionKeysTranslate = {
     [RoomAdminPermission.NoAdminPermission]: "无管理员权限",
-    [RoomAdminPermission.DefaultAdminPermissions]: "默认管理员权限",
-    [RoomAdminPermission.AllAdminPermissions]: "所有管理员权限",
+    // [RoomAdminPermission.DefaultAdminPermissions]: "默认管理员权限",
+    // [RoomAdminPermission.AllAdminPermissions]: "所有管理员权限",
     [RoomAdminPermission.PermissionApprovePendingMember]: "允许通过加入房间",
     [RoomAdminPermission.PermissionBanRoomMember]: "封禁房间成员",
     [RoomAdminPermission.PermissionSetUserPermission]: "修改成员权限",
