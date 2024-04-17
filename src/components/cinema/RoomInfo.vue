@@ -4,6 +4,7 @@ import { useLocalStorage, type WebSocketStatus } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
 import CopyButton from "../CopyButton.vue";
 import RoomManage from "@/components/cinema/RoomManage.vue";
+import RoomUsers from "@/components/cinema/RoomUsers.vue";
 
 const props = defineProps<{
   status: WebSocketStatus;
@@ -18,6 +19,7 @@ const shareURL = computed(() => {
 });
 
 const roomManageDrawer = ref<InstanceType<typeof RoomManage>>();
+const roomUsersDrawer = ref<InstanceType<typeof RoomUsers>>();
 </script>
 
 <template>
@@ -59,11 +61,15 @@ const roomManageDrawer = ref<InstanceType<typeof RoomManage>>();
     </div>
 
     <div class="card-footer flex-wrap justify-between">
-      <button class="btn btn-success" @click="roomManageDrawer?.openDrawer">用户列表</button>
+      <button class="btn btn-success" @click="roomUsersDrawer?.openDrawer">用户列表</button>
       <button class="btn" @click="roomManageDrawer?.openDrawer">房间设置</button>
     </div>
   </div>
 
+  <!-- 用户列表 -->
+  <RoomUsers ref="roomUsersDrawer" />
+
+  <!-- 房间设置 -->
   <RoomManage ref="roomManageDrawer" />
 </template>
 

@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     Alist: typeof import('./src/components/fileList/alist.vue')['default']
     BilibiliParse: typeof import('./src/components/cinema/dialogs/bilibiliParse.vue')['default']
+    copy: typeof import('./src/components/cinema/RoomManage copy.vue')['default']
     CopyButton: typeof import('./src/components/CopyButton.vue')['default']
     CustomHeaders: typeof import('./src/components/cinema/dialogs/customHeaders.vue')['default']
     CustomSubtitles: typeof import('./src/components/cinema/dialogs/customSubtitles.vue')['default']
@@ -59,6 +60,7 @@ declare module 'vue' {
     RoomInfo: typeof import('./src/components/cinema/RoomInfo.vue')['default']
     RoomList: typeof import('./src/components/RoomList.vue')['default']
     RoomManage: typeof import('./src/components/cinema/RoomManage.vue')['default']
+    RoomUsers: typeof import('./src/components/cinema/RoomUsers.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Sun: typeof import('./src/components/icons/Sun.vue')['default']

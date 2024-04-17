@@ -1,5 +1,6 @@
 import { useDefineApi } from "@/stores/useDefineApi";
 import type { RoomList } from "@/types/Room";
+import type { ROLE } from "@/types/User";
 
 // 房间列表
 export const roomListApi = useDefineApi<
@@ -166,5 +167,104 @@ export const updateSettingApi = useDefineApi<
   any
 >({
   url: "/api/room/admin/settings",
+  method: "POST"
+});
+
+// 房间内用户列表
+export const userListApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    params: {
+      page: number;
+      max: number;
+      sort: "join" | "name";
+      order: string;
+
+      status: string;
+      role: string;
+      search: "all" | "name" | "id";
+      keyword: string;
+    };
+  },
+  {
+    list: {
+      userId: string;
+      username: string;
+      role: ROLE;
+      joinAt: number;
+      isOnline: boolean;
+      roomId: string;
+      permissions: number;
+      adminPermissions: number;
+    }[];
+    total: number;
+  }
+>({
+  url: "/api/room/admin/members"
+});
+
+// 封禁用户
+export const banUserApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/room/admin/members/ban",
+  method: "POST"
+});
+
+// 解封用户
+export const unBanUserApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/room/admin/members/unban",
+  method: "POST"
+});
+
+// 设置为管理员
+export const setAdminApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/room/admin/members/admin",
+  method: "POST"
+});
+
+// 设置为普通成员
+export const setMemberApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/room/admin/members/member",
   method: "POST"
 });
