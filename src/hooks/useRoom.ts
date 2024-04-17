@@ -1,14 +1,17 @@
 import { ref } from "vue";
 import { ElNotification } from "element-plus";
 import { userStore } from "@/stores/user";
+import { roomStore } from "@/stores/room";
 import router from "@/router";
 import { myRoomListApi } from "@/services/apis/user";
 import { userRoomListApi } from "@/services/apis/admin";
-import { joinRoomApi, checkRoomApi, roomListApi, hotRoom } from "@/services/apis/room";
+import { joinRoomApi, checkRoomApi, roomListApi, hotRoom, myInfoApi } from "@/services/apis/room";
 import { strLengthLimit } from "@/utils";
+import { storeToRefs } from "pinia";
 
 // 获取用户信息
 const { info, token } = userStore();
+const { myInfo } = storeToRefs(roomStore());
 
 // 房间权限（默认用户）
 export enum RoomMemberPermission {
@@ -104,6 +107,8 @@ export const useRoomApi = (roomId: string) => {
       localStorage.setItem(`room-${joinRoomInfo.value.roomId}-token`, joinRoomInfo.value?.token);
       if (formData.password)
         localStorage.setItem(`room-${joinRoomInfo.value.roomId}-pwd`, formData.password);
+
+      await getMyInfo(joinRoomInfo.value.token);
       ElNotification({
         title: "加入成功",
         type: "success"
@@ -273,6 +278,29 @@ export const useRoomApi = (roomId: string) => {
     }
   };
 
+  // 我的信息
+  const { state: _myInfo, execute: reqMyInfoApi } = myInfoApi();
+  const getMyInfo = async (roomToken: string) => {
+    try {
+      await reqMyInfoApi({
+        headers: {
+          Authorization: roomToken
+        }
+      });
+
+      if (_myInfo.value) {
+        myInfo.value = _myInfo.value;
+      }
+    } catch (err: any) {
+      console.error(err.message);
+      ElNotification({
+        title: "错误",
+        message: err.response.data.error || err.message,
+        type: "error"
+      });
+    }
+  };
+
   return {
     checkRoom,
     thisRoomInfo,
@@ -299,7 +327,10 @@ export const useRoomApi = (roomId: string) => {
     userRoomListLoading,
 
     getHotRoomList,
-    hotRoomList
+    hotRoomList,
+
+    getMyInfo,
+    myInfo
   };
 };
 

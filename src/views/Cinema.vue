@@ -15,6 +15,7 @@ import { roomStore } from "@/stores/room";
 import { ElNotification, ElMessage } from "element-plus";
 import router from "@/router";
 import { useMovieApi } from "@/hooks/useMovie";
+import { RoomMemberPermission, useRoomApi, useRoomPermission } from "@/hooks/useRoom";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUint8Array } from "@/utils";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
@@ -45,6 +46,8 @@ onBeforeUnmount(() => {
 });
 
 const { getMovies, getCurrentMovie } = useMovieApi(roomToken.value);
+const { getMyInfo, myInfo } = useRoomApi(roomID.value);
+const { hasMemberPermission } = useRoomPermission();
 
 let player: Artplayer;
 
@@ -107,7 +110,7 @@ const sendText = () => {
   if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
 };
 
-const MAX_MESSAGE_COUNT = 40; // 设定聊天记录的最大长度
+const MAX_MESSAGE_COUNT = 64; // 设定聊天记录的最大长度
 const sendMsg = (msg: string) => {
   msgList.value.push(msg);
   // 如果超过聊天记录最大长度，则从前面开始删除多余的消息
@@ -283,7 +286,18 @@ const resetChatAreaHeight = () => {
 const card = ref(null);
 useResizeObserver(card, resetChatAreaHeight);
 
-onMounted(() => {
+const can = (p: RoomMemberPermission) => {
+  if (!myInfo.value) return;
+  const myP = myInfo.value.permissions;
+  return hasMemberPermission(myP, p);
+};
+
+const p = async () => {
+  if (can(RoomMemberPermission.PermissionGetMovieList)) await getMovies();
+  await getCurrentMovie();
+};
+
+onMounted(async () => {
   if (roomToken.value === "") {
     router.push({
       name: "joinRoom",
@@ -293,6 +307,10 @@ onMounted(() => {
     });
     return;
   }
+
+  // 获取用户信息
+  if (!myInfo.value) await getMyInfo(roomToken.value);
+
   // 从 sessionStorage 获取存储的聊天消息
   const storedMessages = sessionStorage.getItem("chatMessages");
   if (storedMessages) {
@@ -306,21 +324,21 @@ onMounted(() => {
   watchers.push(
     watch(
       () => data.value,
-      () => {
-        blobToUint8Array(data.value)
-          .then((array) => {
-            handleElementMessage(ElementMessage.decode(array));
-            // 将新消息存储到 sessionStorage
-            sessionStorage.setItem("chatMessages", JSON.stringify(msgList.value));
-          })
-          .catch((err) => {
-            console.error(err);
-          });
+      async () => {
+        try {
+          const arr = await blobToUint8Array(data.value);
+          handleElementMessage(ElementMessage.decode(arr));
+          // 将新消息存储到 sessionStorage
+          sessionStorage.setItem("chatMessages", JSON.stringify(msgList.value));
+        } catch (err: any) {
+          console.error(err);
+          ElMessage.error(err.message);
+        }
       }
     )
   );
-  getCurrentMovie();
-  getMovies();
+
+  await p();
 });
 </script>
 
@@ -360,7 +378,11 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="card-footer" style="justify-content: center; padding: 0.5rem">
+        <div
+          v-if="can(RoomMemberPermission.PermissionSendChatMessage)"
+          class="card-footer"
+          style="justify-content: center; padding: 0.5rem"
+        >
           <input
             type="text"
             @keyup.enter="sendText()"
@@ -382,12 +404,25 @@ onMounted(() => {
     </el-col>
 
     <!-- 影片列表 -->
-    <el-col :lg="12" :md="16" :sm="15" :xs="24" class="mb-5 max-sm:mb-2">
+    <el-col
+      v-if="can(RoomMemberPermission.PermissionGetMovieList)"
+      :lg="12"
+      :md="16"
+      :sm="15"
+      :xs="24"
+      class="mb-5 max-sm:mb-2"
+    >
       <MovieList @send-msg="sendMsg" />
     </el-col>
 
     <!-- 添加影片 -->
-    <el-col :lg="6" :md="14" :xs="24" class="mb-5 max-sm:mb-2">
+    <el-col
+      v-if="can(RoomMemberPermission.PermissionAddMovie)"
+      :lg="6"
+      :md="14"
+      :xs="24"
+      class="mb-5 max-sm:mb-2"
+    >
       <MoviePush @getMovies="getMovies()" :token="roomToken" />
     </el-col>
   </el-row>

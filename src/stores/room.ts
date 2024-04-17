@@ -4,6 +4,7 @@ import { useStorage } from "@vueuse/core";
 import type { CurrentMovie, MovieInfo } from "@/types/Movie";
 import { userStore } from "@/stores/user";
 import type { MovieStatus } from "@/proto/message";
+import type { MyInfo } from "@/types/Room";
 const { token: userToken } = userStore();
 export const roomStore = defineStore("roomStore", () => {
   const isDarkMode = useStorage<boolean>("isDarkMode", localStorage.isDarkMode === "true");
@@ -11,6 +12,8 @@ export const roomStore = defineStore("roomStore", () => {
   const login = computed(() => {
     return userToken.value !== "";
   });
+
+  const myInfo = ref<MyInfo>();
 
   // 影片列表
   const movies = ref<MovieInfo[]>([]);
@@ -53,6 +56,7 @@ export const roomStore = defineStore("roomStore", () => {
     currentExpireId,
     play,
     peopleNum,
-    login
+    login,
+    myInfo
   };
 });

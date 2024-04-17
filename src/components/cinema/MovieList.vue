@@ -5,6 +5,7 @@ import { useRouteParams } from "@vueuse/router";
 import { roomStore } from "@/stores/room";
 import type { EditMovieInfo, MovieInfo } from "@/types/Movie";
 import { useMovieApi } from "@/hooks/useMovie";
+import { useRoomApi, RoomMemberPermission, useRoomPermission } from "@/hooks/useRoom";
 import customHeaders from "@/components/cinema/dialogs/customHeaders.vue";
 import customSubtitles from "@/components/cinema/dialogs/customSubtitles.vue";
 
@@ -15,6 +16,13 @@ const customSubtitlesDialog = ref<InstanceType<typeof customSubtitles>>();
 const room = roomStore();
 const roomID = useRouteParams<string>("roomId");
 const roomToken = useLocalStorage<string>(`room-${roomID.value}-token`, "");
+const { myInfo } = useRoomApi(roomID.value);
+const { hasMemberPermission } = useRoomPermission();
+const can = (p: RoomMemberPermission) => {
+  if (!myInfo.value) return;
+  const myP = myInfo.value.permissions;
+  return hasMemberPermission(myP, p);
+};
 
 const emits = defineEmits(["send-msg"]);
 const {
@@ -88,7 +96,7 @@ const confirmCancelPlayback = async () => {
         <div class="m-auto pl-2">
           <input v-model="selectMovies" type="checkbox" :value="item['id']" />
         </div>
-        <div class="overflow-hidden text-ellipsis m-auto p-2 w-7/12">
+        <div class="overflow-hidden text-ellipsis mr-auto p-2 w-7/12">
           <b class="block text-base font-semibold" :title="`ID: ${item.id}`">
             <el-tag class="mr-1" size="small" v-if="item.base!.live"> 直播流 </el-tag>
             <el-tag class="mr-1" size="small" type="success" v-if="item.base!.proxy"> 代理 </el-tag>
@@ -128,6 +136,7 @@ const confirmCancelPlayback = async () => {
             <PlayIcon class="inline-block" width="18px" />
           </button>
           <el-popconfirm
+            v-if="can(RoomMemberPermission.PermissionSetCurrentMovie)"
             width="220"
             confirm-button-text="是"
             cancel-button-text="否"
@@ -144,15 +153,24 @@ const confirmCancelPlayback = async () => {
         </div>
 
         <div class="m-auto p-2" v-else>
-          <button class="btn btn-dense m-0 mr-1" @click="changeCurrentMovie(item['id'])">
+          <button
+            v-if="can(RoomMemberPermission.PermissionSetCurrentMovie)"
+            class="btn btn-dense m-0 mr-1"
+            @click="changeCurrentMovie(item['id'])"
+          >
             播放
             <PlayIcon class="inline-block" width="18px" />
           </button>
-          <button class="btn btn-dense btn-warning m-0 mr-1" @click="openEditDialog(item)">
+          <button
+            v-if="can(RoomMemberPermission.PermissionEditMovie)"
+            class="btn btn-dense btn-warning m-0 mr-1"
+            @click="openEditDialog(item)"
+          >
             编辑
             <EditIcon class="inline-block" width="16px" height="16px" />
           </button>
           <el-popconfirm
+            v-if="can(RoomMemberPermission.PermissionDeleteMovie)"
             width="220"
             confirm-button-text="是"
             cancel-button-text="否"
@@ -172,11 +190,16 @@ const confirmCancelPlayback = async () => {
 
     <div class="card-footer justify-between flex-wrap overflow-hidden">
       <div v-if="selectMovies.length >= 2">
-        <button v-if="selectMovies.length === 2" class="btn mr-2" @click="swapMovie">
+        <button
+          v-if="selectMovies.length === 2 && can(RoomMemberPermission.PermissionAddMovie)"
+          class="btn mr-2"
+          @click="swapMovie"
+        >
           交换位置
         </button>
 
         <el-popconfirm
+          v-if="can(RoomMemberPermission.PermissionDeleteMovie)"
           width="220"
           confirm-button-text="是"
           cancel-button-text="否"
@@ -203,7 +226,7 @@ const confirmCancelPlayback = async () => {
       <div></div>
       <div>
         <el-popconfirm
-          v-if="room.currentMovie.id"
+          v-if="room.currentMovie.id && can(RoomMemberPermission.PermissionSetCurrentMovie)"
           width="220"
           confirm-button-text="是"
           cancel-button-text="否"
@@ -215,6 +238,7 @@ const confirmCancelPlayback = async () => {
           </template>
         </el-popconfirm>
         <el-popconfirm
+          v-if="can(RoomMemberPermission.PermissionDeleteMovie)"
           width="220"
           confirm-button-text="是"
           cancel-button-text="否"

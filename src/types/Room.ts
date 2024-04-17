@@ -1,3 +1,5 @@
+import type { RoomAdminPermission, RoomMemberPermission } from "@/hooks/useRoom";
+
 export interface RoomList {
   roomId: string;
   roomName: string;
@@ -7,6 +9,15 @@ export interface RoomList {
   createdAt: number;
   creatorId: string;
   status: number;
+}
+
+export interface MyInfo {
+  userId: string;
+  roomId: string;
+  joinAt: number;
+  role: ROLE;
+  permissions: RoomMemberPermission;
+  adminPermissions: RoomAdminPermission;
 }
 
 export enum RoomStatus {

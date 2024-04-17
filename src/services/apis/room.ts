@@ -1,5 +1,5 @@
 import { useDefineApi } from "@/stores/useDefineApi";
-import type { RoomList } from "@/types/Room";
+import type { MyInfo, RoomList } from "@/types/Room";
 import type { ROLE } from "@/types/Room";
 
 // 房间列表
@@ -301,4 +301,17 @@ export const setAdminPermitApi = useDefineApi<
 >({
   url: "/api/room/admin/members/admin/permissions",
   method: "POST"
+});
+
+// 我的信息
+export const myInfoApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+  },
+  MyInfo
+>({
+  url: "/api/room/me",
+  method: "GET"
 });
