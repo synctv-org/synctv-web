@@ -43,8 +43,11 @@ declare module 'vue' {
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
+    ElTabPane: typeof import('element-plus/es')['ElTabPane']
+    ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTag: typeof import('element-plus/es')['ElTag']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
+    ElTransfer: typeof import('element-plus/es')['ElTransfer']
     Email: typeof import('./src/components/user/dialogs/email.vue')['default']
     Emby: typeof import('./src/components/fileList/emby.vue')['default']
     FileList: typeof import('./src/components/fileList/index.vue')['default']
@@ -66,6 +69,7 @@ declare module 'vue' {
     Sun: typeof import('./src/components/icons/Sun.vue')['default']
     Trash: typeof import('./src/components/icons/Trash.vue')['default']
     Username: typeof import('./src/components/user/dialogs/username.vue')['default']
+    UserPermission: typeof import('./src/components/cinema/UserPermission.vue')['default']
     UserRooms: typeof import('./src/components/admin/dialogs/userRooms.vue')['default']
   }
   export interface ComponentCustomProperties {

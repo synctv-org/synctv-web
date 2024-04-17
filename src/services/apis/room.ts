@@ -1,6 +1,6 @@
 import { useDefineApi } from "@/stores/useDefineApi";
 import type { RoomList } from "@/types/Room";
-import type { ROLE } from "@/types/User";
+import type { ROLE } from "@/types/Room";
 
 // 房间列表
 export const roomListApi = useDefineApi<
@@ -266,5 +266,39 @@ export const setMemberApi = useDefineApi<
   any
 >({
   url: "/api/room/admin/members/member",
+  method: "POST"
+});
+
+// 设置普通成员组的权限
+export const setMemberPermitApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+      permissions: number;
+    };
+  },
+  any
+>({
+  url: "/api/room/admin/members/member/permissions",
+  method: "POST"
+});
+
+// 设置管理员组的权限
+export const setAdminPermitApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+      adminPermissions: number;
+    };
+  },
+  any
+>({
+  url: "/api/room/admin/members/admin/permissions",
   method: "POST"
 });

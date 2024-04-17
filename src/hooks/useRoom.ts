@@ -10,6 +10,40 @@ import { strLengthLimit } from "@/utils";
 // 获取用户信息
 const { info, token } = userStore();
 
+// 房间权限（默认用户）
+export enum RoomMemberPermission {
+  PermissionGetMovieList = 1 << 0,
+  PermissionAddMovie = 1 << 1,
+  PermissionDeleteMovie = 1 << 2,
+  PermissionEditMovie = 1 << 3,
+  PermissionSetCurrentMovie = 1 << 4,
+  PermissionSetCurrentStatus = 1 << 5,
+  PermissionSendChatMessage = 1 << 6,
+
+  AllPermissions = (2 ^ 32) - 1,
+  NoPermission = 0,
+  DefaultPermissions = RoomMemberPermission.PermissionGetMovieList |
+    RoomMemberPermission.PermissionSendChatMessage
+}
+
+// 房间权限（管理员）
+export enum RoomAdminPermission {
+  PermissionApprovePendingMember = 1 << 0,
+  PermissionBanRoomMember = 1 << 1,
+  PermissionSetUserPermission = 1 << 2,
+  PermissionSetRoomSettings = 1 << 3,
+  PermissionSetRoomPassword = 1 << 4,
+  PermissionDeleteRoom = 1 << 5,
+
+  AllAdminPermissions = (2 ^ 32) - 1,
+  NoAdminPermission = 0,
+  DefaultAdminPermissions = RoomAdminPermission.PermissionApprovePendingMember |
+    RoomAdminPermission.PermissionBanRoomMember |
+    RoomAdminPermission.PermissionSetUserPermission |
+    RoomAdminPermission.PermissionSetRoomSettings |
+    RoomAdminPermission.PermissionSetRoomPassword
+}
+
 export const useRoomApi = (roomId: string) => {
   // 检查房间状态
   const { state: thisRoomInfo, execute: reqCheckRoomApi } = checkRoomApi();
@@ -238,6 +272,7 @@ export const useRoomApi = (roomId: string) => {
       });
     }
   };
+
   return {
     checkRoom,
     thisRoomInfo,
@@ -265,5 +300,91 @@ export const useRoomApi = (roomId: string) => {
 
     getHotRoomList,
     hotRoomList
+  };
+};
+
+export const useRoomPermission = () => {
+  // member
+  const hasMemberPermission = (p: RoomMemberPermission, permission: RoomMemberPermission) =>
+    (p & permission) == permission;
+
+  const myMemberPermissions = (p: RoomMemberPermission) => {
+    let permissions = [];
+    for (let i = 0; i < 7; i++) {
+      if ((p & (1 << i)) != 0) {
+        permissions.push(RoomMemberPermission[1 << i]);
+      }
+    }
+    return permissions;
+  };
+
+  const roomMemberPermissionKeysTranslate: Record<RoomMemberPermission, string> = {
+    [RoomMemberPermission.NoPermission]: "无权限",
+    [RoomMemberPermission.DefaultPermissions]: "默认权限",
+    [RoomMemberPermission.AllPermissions]: "所有权限",
+    [RoomMemberPermission.PermissionGetMovieList]: "获取影片列表",
+    [RoomMemberPermission.PermissionAddMovie]: "添加影片",
+    [RoomMemberPermission.PermissionDeleteMovie]: "删除影片",
+    [RoomMemberPermission.PermissionEditMovie]: "编辑影片",
+    [RoomMemberPermission.PermissionSetCurrentMovie]: "老板换碟",
+    [RoomMemberPermission.PermissionSetCurrentStatus]: "同步视频进度",
+    [RoomMemberPermission.PermissionSendChatMessage]: "聊天和弹幕"
+  };
+
+  const roomMemberPermissionKeys = Object.keys(RoomMemberPermission)
+    .filter((key) => typeof RoomMemberPermission[key as any] === "number")
+    .filter(
+      (key) => key !== "DefaultPermissions" && key !== "AllPermissions" && key !== "NoPermission"
+    )
+    .map((key) => ({ text: key, value: RoomMemberPermission[key as any] }));
+
+  // admin
+  const hasAdminPermission = (p: RoomAdminPermission, permission: RoomAdminPermission) =>
+    (p & permission) == permission;
+
+  const myAdminPermissions = (p: RoomAdminPermission) => {
+    let permissions = [];
+    for (let i = 0; i < 6; i++) {
+      if ((p & (1 << i)) != 0) {
+        permissions.push(RoomAdminPermission[1 << i]);
+      }
+    }
+    return permissions;
+  };
+
+  const roomAdminPermissionKeys = Object.keys(RoomAdminPermission)
+    .filter((key) => typeof RoomAdminPermission[key as any] === "number")
+    .filter(
+      (key) =>
+        key !== "DefaultAdminPermissions" &&
+        key !== "AllAdminPermissions" &&
+        key !== "NoAdminPermission"
+    )
+    .map((key) => ({ text: key, value: RoomAdminPermission[key as any] }));
+
+  const roomAdminPermissionKeysTranslate = {
+    [RoomAdminPermission.NoAdminPermission]: "无管理员权限",
+    [RoomAdminPermission.DefaultAdminPermissions]: "默认管理员权限",
+    [RoomAdminPermission.AllAdminPermissions]: "所有管理员权限",
+    [RoomAdminPermission.PermissionApprovePendingMember]: "允许通过加入房间",
+    [RoomAdminPermission.PermissionBanRoomMember]: "封禁房间成员",
+    [RoomAdminPermission.PermissionSetUserPermission]: "修改成员权限",
+    [RoomAdminPermission.PermissionSetRoomSettings]: "修改房间设置",
+    [RoomAdminPermission.PermissionSetRoomPassword]: "修改房间密码",
+    [RoomAdminPermission.PermissionDeleteRoom]: "删除房间"
+  };
+
+  return {
+    // member
+    hasMemberPermission,
+    myMemberPermissions,
+    roomMemberPermissionKeys,
+    roomMemberPermissionKeysTranslate,
+
+    // admin
+    hasAdminPermission,
+    myAdminPermissions,
+    roomAdminPermissionKeys,
+    roomAdminPermissionKeysTranslate
   };
 };

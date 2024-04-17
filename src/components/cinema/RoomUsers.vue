@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { onMounted, ref, computed } from "vue";
-import { ElMessage, ElMessageBox, ElNotification } from "element-plus";
+import { ref } from "vue";
+import { ElNotification } from "element-plus";
 import { Search } from "@element-plus/icons-vue";
 import { useLocalStorage } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
@@ -12,6 +12,7 @@ import {
   setAdminApi,
   setMemberApi
 } from "@/services/apis/room";
+import UserPermission from "./UserPermission.vue";
 
 const open = ref(false);
 const roomID = useRouteParams<string>("roomId");
@@ -21,6 +22,7 @@ const openDrawer = async () => {
   await getUserListApi();
 };
 
+const userPermissionDialog = ref<InstanceType<typeof UserPermission>>();
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
@@ -204,7 +206,18 @@ defineExpose({
         </el-table-column>
         <el-table-column prop="role" label="权限组" width="90">
           <template #default="scope">
-            {{ role[scope.row.role as ROLE] }}
+            <a
+              href="javascript:;"
+              @click="
+                userPermissionDialog?.openDialog(
+                  scope.row.userId,
+                  scope.row.permissions,
+                  scope.row.adminPermissions
+                )
+              "
+            >
+              {{ role[scope.row.role as ROLE] }}</a
+            >
           </template>
         </el-table-column>
         <el-table-column prop="role" label="状态" width="90">
@@ -293,4 +306,7 @@ defineExpose({
       </div>
     </template>
   </el-drawer>
+
+  <!-- 用户权限编辑对话框 -->
+  <UserPermission ref="userPermissionDialog" />
 </template>
