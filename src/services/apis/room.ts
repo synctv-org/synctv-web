@@ -182,11 +182,12 @@ export const userListApi = useDefineApi<
       sort: "join" | "name";
       order: string;
 
-      status: string;
+      status?: string;
       role: string;
       search: "all" | "name" | "id";
       keyword: string;
     };
+    url: string;
   },
   {
     list: {
@@ -201,9 +202,7 @@ export const userListApi = useDefineApi<
     }[];
     total: number;
   }
->({
-  url: "/api/room/admin/members"
-});
+>({});
 
 // 封禁用户
 export const banUserApi = useDefineApi<

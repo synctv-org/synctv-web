@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { ElNotification } from "element-plus";
 import { Search } from "@element-plus/icons-vue";
 import { useLocalStorage } from "@vueuse/core";
@@ -12,6 +12,7 @@ import {
   setAdminApi,
   setMemberApi
 } from "@/services/apis/room";
+import { useRoomApi, RoomAdminPermission, useRoomPermission } from "@/hooks/useRoom";
 import UserPermission from "./UserPermission.vue";
 
 const open = ref(false);
@@ -23,6 +24,25 @@ const openDrawer = async () => {
 };
 
 const userPermissionDialog = ref<InstanceType<typeof UserPermission>>();
+const { myInfo } = useRoomApi(roomID.value);
+const { hasAdminPermission } = useRoomPermission();
+const can = (p: RoomAdminPermission) => {
+  if (!myInfo.value) return;
+  const myP = myInfo.value.adminPermissions;
+  return hasAdminPermission(myP, p);
+};
+
+const rolesFilter = computed(() => {
+  const v = Object.values(role);
+  return v.filter((r) => r !== role[ROLE.Unknown]);
+});
+
+const memberStatusFilter = computed(() => {
+  const v = Object.values(memberStatus);
+  return v.filter((r) => r !== memberStatus[MEMBER_STATUS.Unknown]);
+});
+
+const isAdmin = computed(() => myInfo.value!.role >= ROLE.Admin);
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
@@ -35,6 +55,7 @@ const status_ = ref("");
 const { state, execute: reqUserListApi, isLoading: userListLoading } = userListApi();
 const getUserListApi = async () => {
   try {
+    const url = isAdmin.value ? "/api/room/admin/members" : "/api/room/members";
     await reqUserListApi({
       headers: {
         Authorization: roomToken.value
@@ -50,7 +71,7 @@ const getUserListApi = async () => {
         search: search.value,
         keyword: keyword.value
       },
-      url: "/api/room/admin/members"
+      url
     });
     if (state.value) {
       totalItems.value = state.value.total;
@@ -144,10 +165,10 @@ defineExpose({
             @change="getUserListApi()"
           >
             <el-option label="ALL" value="" />
-            <el-option v-for="r in role" :label="r" :value="r.toLowerCase()" />
+            <el-option v-for="r in rolesFilter" :label="r" :value="r.toLowerCase()" />
           </el-select>
         </el-tooltip>
-        <el-tooltip effect="dark" content="状态" placement="top">
+        <el-tooltip v-if="isAdmin" effect="dark" content="状态" placement="top">
           <el-select
             v-model="status_"
             class="max-lg:mb-2 max-lg:w-full"
@@ -156,7 +177,7 @@ defineExpose({
             @change="getUserListApi()"
           >
             <el-option label="ALL" value="" />
-            <el-option v-for="r in memberStatus" :label="r" :value="r.toLowerCase()" />
+            <el-option v-for="r in memberStatusFilter" :label="r" :value="r.toLowerCase()" />
           </el-select>
         </el-tooltip>
 
@@ -207,11 +228,12 @@ defineExpose({
             <a
               href="javascript:;"
               @click="
-                userPermissionDialog?.openDialog(
-                  scope.row.userId,
-                  scope.row.permissions,
-                  scope.row.adminPermissions
-                )
+                can(RoomAdminPermission.PermissionSetUserPermission) &&
+                  userPermissionDialog?.openDialog(
+                    scope.row.userId,
+                    scope.row.permissions,
+                    scope.row.adminPermissions
+                  )
               "
             >
               {{ role[scope.row.role as ROLE] }}</a
@@ -229,13 +251,22 @@ defineExpose({
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作">
-          <template #default="scope">
-            <el-button v-if="scope.row.status === MEMBER_STATUS.Pending" type="success">
+          <template #default="scope" v-if="isAdmin">
+            <el-button
+              v-if="
+                can(RoomAdminPermission.PermissionApprovePendingMember) &&
+                scope.row.status === MEMBER_STATUS.Pending
+              "
+              type="success"
+            >
               允许加入
             </el-button>
             <div v-else>
               <el-button
-                v-if="scope.row.status === MEMBER_STATUS.Banned"
+                v-if="
+                  can(RoomAdminPermission.PermissionBanRoomMember) &&
+                  scope.row.status === MEMBER_STATUS.Banned
+                "
                 type="warning"
                 @click="banUser(scope.row.userId, false)"
               >
@@ -243,7 +274,16 @@ defineExpose({
               </el-button>
 
               <div v-else class="phone-button">
-                <el-button type="danger" plain @click="banUser(scope.row.userId, true)">
+                <el-button
+                  v-if="
+                    can(RoomAdminPermission.PermissionBanRoomMember) &&
+                    scope.row.role !== ROLE.Creator &&
+                    scope.row.userId !== myInfo?.userId
+                  "
+                  type="danger"
+                  plain
+                  @click="banUser(scope.row.userId, true)"
+                >
                   封禁
                 </el-button>
 
@@ -255,7 +295,11 @@ defineExpose({
                   设为管理
                 </el-button>
                 <el-button
-                  v-else-if="scope.row.role !== ROLE.Creator"
+                  v-else-if="
+                    scope.row.role === ROLE.Admin &&
+                    scope.row.role !== ROLE.Creator &&
+                    myInfo?.role === ROLE.Creator
+                  "
                   type="warning"
                   @click="setAdmin(scope.row.userId, false)"
                 >
