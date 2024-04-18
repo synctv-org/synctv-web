@@ -193,7 +193,7 @@ const closeLoginDialog = () => {
       <input
         class="l-input block w-full m-0 my-4"
         placeholder="密码"
-        type="password"
+        type="new-password"
         v-model.lazy="emby.password"
         @keyup.enter="embyLogin"
       />
