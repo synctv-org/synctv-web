@@ -41,6 +41,19 @@ const menuLinks = computed(() => {
       to: "/auth/register"
     });
 
+  if (!isLogin.value && settings?.guestEnable) {
+    basicLinks.push({
+      name: "加入房间",
+      to: "/joinRoom"
+    });
+
+    route.path.startsWith("/cinema") &&
+      basicLinks.push({
+        name: "影厅",
+        to: "/cinema/" + route.params.roomId
+      });
+  }
+
   if (isLogin.value) {
     const loginLinks = route.path.startsWith("/cinema")
       ? [

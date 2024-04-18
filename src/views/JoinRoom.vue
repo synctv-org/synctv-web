@@ -3,6 +3,11 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useRouteParams, useRouteQuery } from "@vueuse/router";
 import { useRoomApi } from "@/hooks/useRoom";
+import { indexStore } from "@/stores";
+import { userStore } from "@/stores/user";
+
+const { settings } = indexStore();
+const { isLogin } = userStore();
 const route = useRoute();
 const roomID = useRouteParams("roomId");
 const pwd = useRouteQuery("pwd");
@@ -28,7 +33,7 @@ const formData = ref<{
 });
 if (props.item) formData.value = props.item;
 
-const { checkRoom, joinRoom } = useRoomApi(formData.value.roomId);
+const { checkRoom, joinRoom, guestJoinRoom } = useRoomApi(formData.value.roomId);
 
 onMounted(() => {
   if (formData.value.roomId) checkRoom(pwd.value as string);
@@ -55,7 +60,15 @@ onMounted(() => {
         autocomplete="new-password"
       />
       <br />
-      <button class="btn m-[10px]" @click="joinRoom(formData)">加入</button>
+
+      <button
+        v-if="settings?.guestEnable && !isLogin"
+        class="btn btn-success my-[10px]"
+        @click="guestJoinRoom(formData)"
+      >
+        以访客身份加入
+      </button>
+      <button v-else class="btn my-[10px]" @click="joinRoom(formData)">加入</button>
       <div class="text-sm">
         <b>注意：</b>所有输入框最大只可输入32个字符
         <br />

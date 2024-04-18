@@ -3,6 +3,7 @@ import { ref, onUnmounted } from "vue";
 import { ElNotification } from "element-plus";
 import type { RoomList } from "@/types/Room";
 import JoinRoom from "./JoinRoom.vue";
+import { indexStore } from "@/stores";
 import { userStore } from "@/stores/user";
 import { useTimeAgo } from "@vueuse/core";
 import { useRouter } from "vue-router";
@@ -21,9 +22,10 @@ const formData = ref<{
 const { totalItems, currentPage, pageSize, keyword, search, getRoomList, roomList, joinRoom } =
   useRoomApi(formData.value.roomId);
 
+const { settings } = indexStore();
 const JoinRoomDialog = ref(false);
 const openJoinRoomDialog = async (item: RoomList) => {
-  if (!isLogin.value) {
+  if (!settings?.guestEnable && isLogin.value) {
     ElNotification({
       title: "错误",
       message: "请先登录",

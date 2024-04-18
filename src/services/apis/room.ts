@@ -84,6 +84,25 @@ export const joinRoomApi = useDefineApi<
   method: "POST"
 });
 
+// 加入房间（访客）
+export const guestJoinRoomApi = useDefineApi<
+  // request
+  {
+    data: {
+      roomId: string;
+      password: string;
+    };
+  },
+  // response
+  {
+    roomId: string;
+    token: string;
+  }
+>({
+  url: "/api/room/guest",
+  method: "POST"
+});
+
 // 删除房间
 export const delRoomApi = useDefineApi<
   {

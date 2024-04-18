@@ -5,7 +5,14 @@ import { roomStore } from "@/stores/room";
 import router from "@/router";
 import { myRoomListApi } from "@/services/apis/user";
 import { userRoomListApi } from "@/services/apis/admin";
-import { joinRoomApi, checkRoomApi, roomListApi, hotRoom, myInfoApi } from "@/services/apis/room";
+import {
+  joinRoomApi,
+  checkRoomApi,
+  roomListApi,
+  hotRoom,
+  myInfoApi,
+  guestJoinRoomApi
+} from "@/services/apis/room";
 import { strLengthLimit } from "@/utils";
 import { storeToRefs } from "pinia";
 import { RoomMemberPermission, RoomAdminPermission } from "@/types/Room";
@@ -82,6 +89,54 @@ export const useRoomApi = (roomId: string) => {
       });
 
       router.replace(`/cinema/${joinRoomInfo.value.roomId}`);
+    } catch (err: any) {
+      console.error(err);
+      ElNotification({
+        title: "错误",
+        message: err.response.data.error || err.message,
+        type: "error"
+      });
+    }
+  };
+
+  // 加入房间（访客）
+  const { state: guestJoinRoomInfo, execute: reqGuestJoinRoomApi } = guestJoinRoomApi();
+  const guestJoinRoom = async (formData: { roomId: string; password: string }) => {
+    if (!formData.roomId) {
+      ElNotification({
+        title: "错误",
+        message: "请填写表单完整",
+        type: "error"
+      });
+      return;
+    }
+    for (const key in formData) {
+      strLengthLimit(key, 32);
+    }
+    try {
+      await reqGuestJoinRoomApi({
+        data: formData
+      });
+      if (!guestJoinRoomInfo.value)
+        return ElNotification({
+          title: "错误",
+          message: "服务器并未返回token",
+          type: "error"
+        });
+      localStorage.setItem(
+        `room-${guestJoinRoomInfo.value.roomId}-token`,
+        guestJoinRoomInfo.value?.token
+      );
+      if (formData.password)
+        localStorage.setItem(`room-${guestJoinRoomInfo.value.roomId}-pwd`, formData.password);
+
+      await getMyInfo(guestJoinRoomInfo.value.token);
+      ElNotification({
+        title: "加入成功",
+        type: "success"
+      });
+
+      router.replace(`/cinema/${guestJoinRoomInfo.value.roomId}`);
     } catch (err: any) {
       console.error(err);
       ElNotification({
@@ -297,7 +352,10 @@ export const useRoomApi = (roomId: string) => {
     hotRoomList,
 
     getMyInfo,
-    myInfo
+    myInfo,
+
+    guestJoinRoom,
+    guestJoinRoomInfo
   };
 };
 

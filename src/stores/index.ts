@@ -2,16 +2,12 @@ import { ref } from "vue";
 import { ElNotification } from "element-plus";
 import { getPublicSettings } from "@/services/apis/auth";
 import { defineStore } from "pinia";
+import type { PublicSettings } from "@/types";
 
 export const indexStore = defineStore("indexStore", () => {
   const { execute, state } = getPublicSettings();
 
-  const settings = ref<{
-    emailEnable: boolean;
-    emailDisableUserSignup: boolean;
-    emailWhitelistEnabled: boolean;
-    emailWhitelist: string[];
-  }>();
+  const settings = ref<PublicSettings>();
 
   const getSiteOptions = async () => {
     try {

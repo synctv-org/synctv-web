@@ -1,5 +1,5 @@
 import { useDefineApi } from "@/stores/useDefineApi";
-import type { RegForm, EmailRegForm } from "@/types";
+import type { RegForm, EmailRegForm, PublicSettings } from "@/types";
 
 // 注册
 export const RegisterApi = useDefineApi<
@@ -88,15 +88,7 @@ export const oAuth2Callback = useDefineApi<
 });
 
 // 获取站点配置信息
-export const getPublicSettings = useDefineApi<
-  any,
-  {
-    emailEnable: boolean;
-    emailDisableUserSignup: boolean;
-    emailWhitelistEnabled: boolean;
-    emailWhitelist: string[];
-  }
->({
+export const getPublicSettings = useDefineApi<any, PublicSettings>({
   url: "/api/public/settings",
   method: "GET"
 });
