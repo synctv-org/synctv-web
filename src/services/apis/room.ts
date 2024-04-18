@@ -235,6 +235,22 @@ export const unBanUserApi = useDefineApi<
   method: "POST"
 });
 
+// 允许加入
+export const approveUserApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/room/admin/members/approve",
+  method: "POST"
+});
+
 // 设置为管理员
 export const setAdminApi = useDefineApi<
   {

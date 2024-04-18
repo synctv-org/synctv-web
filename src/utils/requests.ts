@@ -11,7 +11,8 @@ axios.interceptors.response.use(
       if (
         error.config.url.startsWith("/api/movie") ||
         error.config.url.startsWith("/api/room/delete") ||
-        error.config.url.startsWith("/api/room/pwd")
+        error.config.url.startsWith("/api/room/pwd") ||
+        error.config.url.startsWith("/api/room/me")
       ) {
         const { r: roomId } = decodeJWT(error.config.headers.Authorization);
         router.push(`/joinRoom/${roomId}`);

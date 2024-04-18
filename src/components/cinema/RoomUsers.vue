@@ -10,7 +10,8 @@ import {
   banUserApi,
   unBanUserApi,
   setAdminApi,
-  setMemberApi
+  setMemberApi,
+  approveUserApi
 } from "@/services/apis/room";
 import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
 import { RoomAdminPermission, RoomMemberPermission } from "@/types/Room";
@@ -83,6 +84,33 @@ const getUserListApi = async () => {
       title: "获取用户列表失败",
       type: "error",
       message: err.response?.data.error || err.message
+    });
+  }
+};
+
+// 允许加入
+const { execute: reqApproveUserApi, isLoading: approveUserLoading } = approveUserApi();
+const approveUser = async (id: string) => {
+  try {
+    await reqApproveUserApi({
+      headers: {
+        Authorization: roomToken.value
+      },
+      data: {
+        id: id
+      }
+    });
+    ElNotification({
+      title: "设置成功",
+      type: "success"
+    });
+    await getUserListApi();
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "错误",
+      type: "error",
+      message: err.response.data.error || err.message
     });
   }
 };
@@ -277,6 +305,7 @@ defineExpose({
                 scope.row.status === MEMBER_STATUS.Pending
               "
               type="success"
+              @click="approveUser(scope.row.userId)"
             >
               允许加入
             </el-button>
