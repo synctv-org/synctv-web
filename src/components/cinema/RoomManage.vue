@@ -215,7 +215,7 @@ defineExpose({
           </el-form-item>
           <el-form-item label="房间密码">
             <el-input v-model.trim.lazy="password" show-password>
-              <template #append v-if="can(RoomAdminPermission.PermissionSetRoomSettings)">
+              <template #append v-if="can(RoomAdminPermission.PermissionSetRoomPassword)">
                 <el-popconfirm
                   width="220"
                   confirm-button-text="是"
