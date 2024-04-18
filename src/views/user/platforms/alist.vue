@@ -74,14 +74,17 @@ const {
 } = loginAListApi();
 const aListLogin = async () => {
   try {
-    aList.value.hashedPassword = hex.stringify(
-      sha256(aList.value.hashedPassword + "-https://github.com/alist-org/alist")
-    );
     await loginAList({
       headers: {
         Authorization: userToken.value
       },
-      data: aList.value
+      data: {
+        host: aList.value.host,
+        username: aList.value.username,
+        hashedPassword: hex.stringify(
+          sha256(aList.value.hashedPassword + "-https://github.com/alist-org/alist")
+        )
+      }
     });
     if (aListLoginReady.value) {
       ElMessage.success("绑定成功");
@@ -202,11 +205,12 @@ const closeLoginDialog = () => {
         class="l-input block w-full m-0 my-4"
         placeholder="用户名"
         v-model.lazy="aList.username"
+        type="text"
       />
       <input
         class="l-input block w-full m-0 my-4"
         placeholder="密码"
-        type="password"
+        type="new-password"
         v-model.lazy="aList.hashedPassword"
         @keyup.enter="aListLogin"
       />
