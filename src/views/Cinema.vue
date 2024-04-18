@@ -15,25 +15,18 @@ import { roomStore } from "@/stores/room";
 import { ElNotification, ElMessage } from "element-plus";
 import router from "@/router";
 import { useMovieApi } from "@/hooks/useMovie";
-import { RoomMemberPermission, useRoomApi, useRoomPermission } from "@/hooks/useRoom";
+import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
-import { strLengthLimit, blobToUint8Array } from "@/utils";
+import { strLengthLimit, blobToUint8Array, formatTime } from "@/utils";
 import { ElementMessage, ElementMessageType } from "@/proto/message";
 import type { options } from "@/components/Player.vue";
 import RoomInfo from "@/components/cinema/RoomInfo.vue";
 import MovieList from "@/components/cinema/MovieList.vue";
 import MoviePush from "@/components/cinema/MoviePush.vue";
 import type { Subtitles } from "@/types/Movie";
+import { RoomMemberPermission } from "@/types/Room";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
-
-// 获取时间
-const formatTime = (date: Date) => {
-  const hours = `0${date.getHours()}`.slice(-2);
-  const minutes = `0${date.getMinutes()}`.slice(-2);
-  const seconds = `0${date.getSeconds()}`.slice(-2);
-  return `${hours}:${minutes}:${seconds}`;
-};
 
 // 获取房间信息
 const room = roomStore();

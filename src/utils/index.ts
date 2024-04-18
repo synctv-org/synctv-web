@@ -1,3 +1,4 @@
+import { RoomAdminPermission, RoomMemberPermission } from "@/types/Room";
 import { ElMessage } from "element-plus";
 
 export const debounces = (delay: number): Function => {
@@ -54,4 +55,24 @@ export const getAppIcon = (appName: string): string => {
 
 export const getObjValue = <T extends object, K extends keyof T>(obj: T, key: K) => {
   return obj[key];
+};
+
+export const parsePermissions = (permissions: number, type: "member" | "admin") => {
+  let result: number[] = [];
+  const P = type === "member" ? RoomMemberPermission : RoomAdminPermission;
+  for (let permission in P) {
+    if (!isNaN(Number(permission))) {
+      if ((permissions & Number(permission)) !== 0) {
+        result.push(Number(permission));
+      }
+    }
+  }
+  return result;
+};
+
+export const formatTime = (date: Date) => {
+  const hours = `0${date.getHours()}`.slice(-2);
+  const minutes = `0${date.getMinutes()}`.slice(-2);
+  const seconds = `0${date.getSeconds()}`.slice(-2);
+  return `${hours}:${minutes}:${seconds}`;
 };

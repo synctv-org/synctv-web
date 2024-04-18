@@ -1,4 +1,4 @@
-import type { RoomAdminPermission, RoomMemberPermission } from "@/hooks/useRoom";
+// import type { RoomAdminPermission, RoomMemberPermission } from "@/hooks/useRoom";
 
 export interface RoomList {
   roomId: string;
@@ -9,6 +9,40 @@ export interface RoomList {
   createdAt: number;
   creatorId: string;
   status: number;
+}
+
+// 房间权限（默认用户）
+export enum RoomMemberPermission {
+  PermissionGetMovieList = 1 << 0,
+  PermissionAddMovie = 1 << 1,
+  PermissionDeleteMovie = 1 << 2,
+  PermissionEditMovie = 1 << 3,
+  PermissionSetCurrentMovie = 1 << 4,
+  PermissionSetCurrentStatus = 1 << 5,
+  PermissionSendChatMessage = 1 << 6,
+
+  // AllPermissions = (2 ^ 32) - 1,
+  NoPermission = 0
+  // DefaultPermissions = RoomMemberPermission.PermissionGetMovieList |
+  //   RoomMemberPermission.PermissionSendChatMessage
+}
+
+// 房间权限（管理员）
+export enum RoomAdminPermission {
+  PermissionApprovePendingMember = 1 << 0,
+  PermissionBanRoomMember = 1 << 1,
+  PermissionSetUserPermission = 1 << 2,
+  PermissionSetRoomSettings = 1 << 3,
+  PermissionSetRoomPassword = 1 << 4,
+  PermissionDeleteRoom = 1 << 5,
+
+  // AllAdminPermissions = (2 ^ 32) - 1,
+  NoAdminPermission = 0
+  // DefaultAdminPermissions = RoomAdminPermission.PermissionApprovePendingMember |
+  //   RoomAdminPermission.PermissionBanRoomMember |
+  //   RoomAdminPermission.PermissionSetUserPermission |
+  //   RoomAdminPermission.PermissionSetRoomSettings |
+  //   RoomAdminPermission.PermissionSetRoomPassword
 }
 
 export interface MyInfo {

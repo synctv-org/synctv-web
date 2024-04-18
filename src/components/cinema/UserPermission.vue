@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { computed, ref } from "vue";
 import { ElNotification } from "element-plus";
-import { RoomMemberPermission, RoomAdminPermission, useRoomPermission } from "@/hooks/useRoom";
+import { useRoomPermission } from "@/hooks/useRoom";
+import { RoomAdminPermission, RoomMemberPermission } from "@/types/Room";
 import { setMemberPermitApi, setAdminPermitApi } from "@/services/apis/room";
 import { useLocalStorage } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
+import { parsePermissions } from "@/utils";
 
 const open = ref(false);
 const mP = ref<number[]>([]);
@@ -32,19 +34,6 @@ const {
   roomAdminPermissionKeysTranslate
 } = useRoomPermission();
 const tabs = ref<"default" | "admin">("default");
-
-const parsePermissions = (permissions: number, type: "member" | "admin") => {
-  let result: number[] = [];
-  const P = type === "member" ? RoomMemberPermission : RoomAdminPermission;
-  for (let permission in P) {
-    if (!isNaN(Number(permission))) {
-      if ((permissions & Number(permission)) !== 0) {
-        result.push(Number(permission));
-      }
-    }
-  }
-  return result;
-};
 
 const memberPermissionKeys = roomMemberPermissionKeys.map((key) => ({
   key: key.value,

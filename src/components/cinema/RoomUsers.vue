@@ -12,12 +12,8 @@ import {
   setAdminApi,
   setMemberApi
 } from "@/services/apis/room";
-import {
-  useRoomApi,
-  RoomAdminPermission,
-  useRoomPermission,
-  RoomMemberPermission
-} from "@/hooks/useRoom";
+import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
+import { RoomAdminPermission, RoomMemberPermission } from "@/types/Room";
 import UserPermission from "./UserPermission.vue";
 
 const open = ref(false);

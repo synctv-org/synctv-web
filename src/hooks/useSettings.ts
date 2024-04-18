@@ -104,7 +104,7 @@ export const useSettings = () => {
     ["hidden", { value: false, name: "隐藏此房间" }],
     ["disable_join_new_user", { value: false, name: "禁止新用户加入" }],
     ["join_need_review", { value: false, name: "加入需要审核" }],
-    ["user_default_permissions", { value: 0, name: "用户默认权限" }],
+    // ["user_default_permissions", { value: 0, name: "用户默认权限" }],
     ["can_get_movie_list", { value: false, name: "允许用户获取影片列表" }],
     ["can_add_movie", { value: false, name: "允许用户添加影片" }],
     ["can_edit_movie", { value: false, name: "允许用户编辑影片" }],

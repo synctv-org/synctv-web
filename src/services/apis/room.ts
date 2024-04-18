@@ -152,7 +152,6 @@ export const roomSettingsApi = useDefineApi<
     can_send_chat_message: boolean;
   }
 >({
-  url: "/api/room/admin/settings",
   method: "GET"
 });
 

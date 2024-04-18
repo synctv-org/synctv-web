@@ -8,44 +8,11 @@ import { userRoomListApi } from "@/services/apis/admin";
 import { joinRoomApi, checkRoomApi, roomListApi, hotRoom, myInfoApi } from "@/services/apis/room";
 import { strLengthLimit } from "@/utils";
 import { storeToRefs } from "pinia";
+import { RoomMemberPermission, RoomAdminPermission } from "@/types/Room";
 
 // 获取用户信息
 const { info, token } = userStore();
 const { myInfo } = storeToRefs(roomStore());
-
-// 房间权限（默认用户）
-export enum RoomMemberPermission {
-  PermissionGetMovieList = 1 << 0,
-  PermissionAddMovie = 1 << 1,
-  PermissionDeleteMovie = 1 << 2,
-  PermissionEditMovie = 1 << 3,
-  PermissionSetCurrentMovie = 1 << 4,
-  PermissionSetCurrentStatus = 1 << 5,
-  PermissionSendChatMessage = 1 << 6,
-
-  // AllPermissions = (2 ^ 32) - 1,
-  NoPermission = 0
-  // DefaultPermissions = RoomMemberPermission.PermissionGetMovieList |
-  //   RoomMemberPermission.PermissionSendChatMessage
-}
-
-// 房间权限（管理员）
-export enum RoomAdminPermission {
-  PermissionApprovePendingMember = 1 << 0,
-  PermissionBanRoomMember = 1 << 1,
-  PermissionSetUserPermission = 1 << 2,
-  PermissionSetRoomSettings = 1 << 3,
-  PermissionSetRoomPassword = 1 << 4,
-  PermissionDeleteRoom = 1 << 5,
-
-  // AllAdminPermissions = (2 ^ 32) - 1,
-  NoAdminPermission = 0
-  // DefaultAdminPermissions = RoomAdminPermission.PermissionApprovePendingMember |
-  //   RoomAdminPermission.PermissionBanRoomMember |
-  //   RoomAdminPermission.PermissionSetUserPermission |
-  //   RoomAdminPermission.PermissionSetRoomSettings |
-  //   RoomAdminPermission.PermissionSetRoomPassword
-}
 
 export const useRoomApi = (roomId: string) => {
   // 检查房间状态

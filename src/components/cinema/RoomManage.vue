@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { ElNotification } from "element-plus";
 import { roomSettingsApi } from "@/services/apis/room";
 import { updateRoomPasswordApi, delRoomApi } from "@/services/apis/room";
@@ -7,7 +7,9 @@ import { useLocalStorage } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
 import { useSettings, type settingType } from "@/hooks/useSettings";
 import { useUpdateSettings } from "@/hooks/useUpdateSettings";
-import { strLengthLimit } from "@/utils";
+import { parsePermissions, strLengthLimit } from "@/utils";
+import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
+import { ROLE, RoomAdminPermission, RoomMemberPermission } from "@/types/Room";
 
 const open = ref(false);
 const roomID = useRouteParams<string>("roomId");
@@ -21,28 +23,41 @@ const openDrawer = async () => {
   await getRoomSettings();
 };
 
+const { myInfo } = useRoomApi(roomID.value);
+const { hasAdminPermission, roomMemberPermissionKeys, roomMemberPermissionKeysTranslate } =
+  useRoomPermission();
+const can = (p: RoomAdminPermission) => {
+  if (!myInfo.value) return;
+  const myP = myInfo.value.adminPermissions;
+  return hasAdminPermission(myP, p);
+};
+const isAdmin = computed(() => myInfo.value!.role >= ROLE.Admin);
+
 const { state, execute, isReady } = roomSettingsApi();
 const getRoomSettings = async () => {
   try {
+    const url = isAdmin.value ? "/api/room/admin/settings" : "/api/room/settings";
     await execute({
       headers: {
         Authorization: roomToken.value
-      }
+      },
+      url
     });
     if (!state.value) return;
-
+    userDefaultPermissions.value = parsePermissions(state.value.user_default_permissions, "member");
     for (const setting in state.value) {
       if (settings.value.has(setting)) {
         settings.value.set(setting, {
           value: (state.value as any)[setting],
           name: settings.value.get(setting)!.name
         });
-      } else {
-        settings.value.set(setting, {
-          value: (state.value as any)[setting],
-          name: setting
-        });
       }
+      // else {
+      //   settings.value.set(setting, {
+      //     value: (state.value as any)[setting],
+      //     name: setting
+      //   });
+      // }
     }
 
     // 删除state中不存在的设置
@@ -128,6 +143,11 @@ const deleteRoom = async () => {
   }
 };
 
+const userDefaultPermissions = ref<number[]>([]);
+const computedUserDefaultPermissions = computed(() =>
+  userDefaultPermissions.value.reduce((total, permission) => total | permission, 0)
+);
+
 defineExpose({
   openDrawer
 });
@@ -154,22 +174,48 @@ defineExpose({
             <el-switch
               v-if="typeof setting[1].value === 'boolean'"
               v-model="setting[1].value"
+              :disabled="!can(RoomAdminPermission.PermissionSetRoomSettings)"
               @click="updateSet(setting[0], setting[1].value)"
             />
             <el-input
               v-else
               v-model.trim.lazy="setting[1].value"
               :placeholder="setting[1].placeholder"
-              :disabled="setting[1].disabled"
+              :disabled="!can(RoomAdminPermission.PermissionSetRoomSettings) && setting[1].disabled"
               :type="setting[1].isTextarea ? 'textarea' : 'text'"
               @change="updateSet(setting[0], setting[1].value)"
             >
               <template #append v-if="setting[1].append">{{ setting[1].append }}</template>
             </el-input>
           </el-form-item>
+          <el-form-item label="用户默认权限">
+            <div class="flex">
+              <el-select
+                v-model="userDefaultPermissions"
+                multiple
+                collapse-tags
+                collapse-tags-tooltip
+                :disabled="!isAdmin && !can(RoomAdminPermission.PermissionSetRoomSettings)"
+              >
+                <el-option
+                  v-for="(item, i) in roomMemberPermissionKeys"
+                  :key="i"
+                  :label="
+                    roomMemberPermissionKeysTranslate[item.value as unknown as RoomMemberPermission]
+                  "
+                  :value="item.value"
+                />
+              </el-select>
+              <el-button
+                v-if="isAdmin && can(RoomAdminPermission.PermissionSetRoomSettings)"
+                @click="updateSet('user_default_permissions', computedUserDefaultPermissions)"
+                >更新</el-button
+              >
+            </div>
+          </el-form-item>
           <el-form-item label="房间密码">
             <el-input v-model.trim.lazy="password" show-password>
-              <template #append>
+              <template #append v-if="can(RoomAdminPermission.PermissionSetRoomSettings)">
                 <el-popconfirm
                   width="220"
                   confirm-button-text="是"
@@ -187,7 +233,7 @@ defineExpose({
         </el-form>
       </div>
     </template>
-    <template #footer>
+    <template #footer v-if="can(RoomAdminPermission.PermissionDeleteRoom)">
       <div style="flex: auto">
         <el-popconfirm
           width="220"
