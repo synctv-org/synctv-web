@@ -118,9 +118,12 @@ defineExpose({
     </el-tabs>
 
     <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="open = false">关闭</el-button>
-        <el-button type="primary" @click="setPermit" :loading="saveBtnLoading"> 保存 </el-button>
+      <div class="flex flex-wrap items-center justify-between">
+        <p><b>注意：</b>每次保存只能修改一种权限</p>
+        <div>
+          <el-button @click="open = false">关闭</el-button>
+          <el-button type="primary" @click="setPermit" :loading="saveBtnLoading"> 保存 </el-button>
+        </div>
       </div>
     </template>
   </el-dialog>

@@ -12,7 +12,12 @@ import {
   setAdminApi,
   setMemberApi
 } from "@/services/apis/room";
-import { useRoomApi, RoomAdminPermission, useRoomPermission } from "@/hooks/useRoom";
+import {
+  useRoomApi,
+  RoomAdminPermission,
+  useRoomPermission,
+  RoomMemberPermission
+} from "@/hooks/useRoom";
 import UserPermission from "./UserPermission.vue";
 
 const open = ref(false);
@@ -114,7 +119,12 @@ const banUser = async (id: string, is: boolean) => {
 };
 
 // 设管理
-const setAdmin = async (id: string, is: boolean) => {
+const setAdmin = async (
+  id: string,
+  mP: RoomMemberPermission,
+  aP: RoomAdminPermission,
+  is: boolean
+) => {
   try {
     const config = {
       headers: {
@@ -122,9 +132,19 @@ const setAdmin = async (id: string, is: boolean) => {
       },
       data: {
         id: id
+      } as {
+        id: string;
+        adminPermissions?: RoomAdminPermission;
+        permissions?: RoomMemberPermission;
       }
     };
-    is ? await setAdminApi().execute(config) : await setMemberApi().execute(config);
+    if (is) {
+      config.data.adminPermissions = aP;
+      await setAdminApi().execute(config);
+    } else {
+      config.data.permissions = mP;
+      await setMemberApi().execute(config);
+    }
     ElNotification({
       title: "设置成功",
       type: "success"
@@ -290,7 +310,14 @@ defineExpose({
                 <el-button
                   v-if="scope.row.role < ROLE.Admin"
                   type="primary"
-                  @click="setAdmin(scope.row.userId, true)"
+                  @click="
+                    setAdmin(
+                      scope.row.userId,
+                      scope.row.permissions,
+                      scope.row.adminPermissions,
+                      true
+                    )
+                  "
                 >
                   设为管理
                 </el-button>
@@ -301,7 +328,14 @@ defineExpose({
                     myInfo?.role === ROLE.Creator
                   "
                   type="warning"
-                  @click="setAdmin(scope.row.userId, false)"
+                  @click="
+                    setAdmin(
+                      scope.row.userId,
+                      scope.row.permissions,
+                      scope.row.adminPermissions,
+                      false
+                    )
+                  "
                 >
                   取消管理
                 </el-button>
