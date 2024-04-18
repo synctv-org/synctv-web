@@ -34,7 +34,7 @@
     "qrcode-vue3": "^1.6.8",
     "ts-proto": "^1.161.1",
     "vue": "^3.3.4",
-    "vue-router": "^4.2.4"
+    "vue-router": "^4.3.2"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.3.2",
