@@ -194,7 +194,7 @@ export const userListApi = useDefineApi<
       username: string;
       role: ROLE;
       joinAt: number;
-      isOnline: boolean;
+      onlineCount: number;
       roomId: string;
       permissions: number;
       adminPermissions: number;

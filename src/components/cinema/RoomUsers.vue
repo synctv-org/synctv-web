@@ -235,7 +235,10 @@ defineExpose({
         </el-table-column>
         <el-table-column prop="role" label="在线状态" width="90">
           <template #default="scope">
-            <el-tag v-if="scope.row.isOnline" type="success"> 在线 </el-tag>
+            <el-tooltip v-if="scope.row.onlineCount > 0" content="在线设备数" placement="left">
+              <el-tag type="success"> 在线 ({{ scope.row.onlineCount }}) </el-tag>
+            </el-tooltip>
+
             <el-tag v-else type="error"> 离线 </el-tag>
           </template>
         </el-table-column>
