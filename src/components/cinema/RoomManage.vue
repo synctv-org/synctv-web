@@ -175,7 +175,7 @@ defineExpose({
               v-if="typeof setting[1].value === 'boolean'"
               v-model="setting[1].value"
               :disabled="!can(RoomAdminPermission.PermissionSetRoomSettings)"
-              @click="updateSet(setting[0], setting[1].value)"
+              @change="updateSet(setting[0], setting[1].value)"
             />
             <el-input
               v-else
