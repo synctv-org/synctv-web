@@ -26,7 +26,8 @@ const {
   OAuth2SettingGroup,
   rtmpSettingsGroup,
   userSettingsGroup,
-  emailSettingGroup
+  emailSettingGroup,
+  serverSettingsGroup
 } = useSettings();
 
 const settingsGroups: Record<
@@ -40,6 +41,7 @@ const settingsGroups: Record<
   rtmp: rtmpSettingsGroup,
   user: userSettingsGroup,
   email: emailSettingGroup,
+  server: serverSettingsGroup,
   all: [
     ...roomSettingsGroup,
     ...rtmpSettingsGroup,

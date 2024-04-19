@@ -18,7 +18,8 @@ export type settingGroupName =
   | "rtmp"
   | "user"
   | "oauth2"
-  | "email";
+  | "email"
+  | "server";
 
 export interface settingGroup {
   name?: string;
@@ -114,6 +115,21 @@ export const useSettings = () => {
     ["can_set_current_movie", { value: false, name: "允许用户切换影片" }],
     ["can_set_current_status", { value: false, name: "是否可以上报进度" }],
     ["can_send_chat_message", { value: false, name: "是否允许聊天 / 发送弹幕" }]
+  ]);
+
+  const defaultServerSettings: Map<string, settingType> = new Map([
+    ["host", { value: false, name: "host" }],
+    ["version", { value: false, name: "版本", disabled: true }]
+  ]);
+
+  const serverSettingsGroup: Map<settingGroupName, settingGroup> = new Map([
+    [
+      "server",
+      {
+        name: "系统设置",
+        value: defaultServerSettings
+      }
+    ]
   ]);
 
   const databaseSettingsGroup: Map<settingGroupName, settingGroup> = new Map([
@@ -265,11 +281,13 @@ export const useSettings = () => {
     userSettingsGroup,
     OAuth2SettingGroup,
     emailSettingGroup,
+    serverSettingsGroup,
     defaultCinemaSettings,
     defaultDatabaseSettings,
     defaultRoomSettings,
     defaultProxySettings,
     defaultRtmpSettings,
-    defaultUserSettings
+    defaultUserSettings,
+    defaultServerSettings
   };
 };

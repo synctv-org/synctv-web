@@ -76,6 +76,12 @@ const tabs: Tabs[] = [
     showType: "email"
   },
   {
+    name: "系统设置",
+    icon: "🛢️",
+    component: SiteSetting,
+    showType: "server"
+  },
+  {
     name: "所有设置",
     icon: "🔧",
     component: SiteSetting,
