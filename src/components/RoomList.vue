@@ -71,7 +71,7 @@ const openJoinRoomDialog = () => {
   JoinRoomDialog.value = true;
 };
 const joinThisRoom = async (item: RoomList) => {
-  if (!settings?.guestEnable && isLogin.value) {
+  if (!settings?.guestEnable && !isLogin.value) {
     ElNotification({
       title: "错误",
       message: "请先登录",

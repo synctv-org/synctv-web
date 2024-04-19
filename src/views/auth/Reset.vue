@@ -87,7 +87,6 @@ const toReset = async () => {
         captcha: formData.value.captcha
       }
     });
-    console.log(userToken.value);
     if (!userToken.value)
       return ElNotification({
         title: "错误",

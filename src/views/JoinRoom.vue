@@ -35,7 +35,6 @@ const formData = ref<{
 const { joinRoom, guestJoinRoom } = useRoomApi(formData.value.roomId);
 
 const init = () => {
-  console.log(props.item);
   if (props.item) formData.value = props.item;
   else {
     if (roomID) formData.value.roomId = roomID.value as string;

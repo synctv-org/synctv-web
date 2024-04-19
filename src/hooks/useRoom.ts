@@ -28,8 +28,6 @@ export const useRoomApi = (roomId: string) => {
   // 检查房间状态
   const { state: thisRoomInfo, execute: reqCheckRoomApi } = checkRoomApi();
   const checkRoom = async (pwd: string) => {
-    console.log(roomId, pwd);
-
     try {
       await reqCheckRoomApi({
         params: {
