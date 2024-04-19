@@ -49,7 +49,8 @@ const settingsGroups: Record<
     ...userSettingsGroup,
     ...OAuth2SettingGroup,
     ...databaseSettingsGroup,
-    ...emailSettingGroup
+    ...emailSettingGroup,
+    ...serverSettingsGroup
   ]
 };
 
