@@ -10,7 +10,6 @@ import { useTimeAgo } from "@vueuse/core";
 import { useRouter } from "vue-router";
 import { useRoomApi } from "@/hooks/useRoom";
 import { getObjValue } from "@/utils";
-import { guestJoinRoomApi } from "@/services/apis/room";
 
 const router = useRouter();
 const props = defineProps<{
@@ -66,6 +65,11 @@ const getRoomList = async (showMsg = false) => {
 };
 
 const JoinRoomDialog = ref(false);
+const JoinRoomC = ref<InstanceType<typeof JoinRoom>>();
+const openJoinRoomDialog = () => {
+  JoinRoomC.value?.init();
+  JoinRoomDialog.value = true;
+};
 const joinThisRoom = async (item: RoomList) => {
   if (!settings?.guestEnable && isLogin.value) {
     ElNotification({
@@ -86,10 +90,10 @@ const joinThisRoom = async (item: RoomList) => {
   return isLogin.value
     ? info.value?.username === item.creator || !item.needPassword
       ? await joinRoom(formData.value)
-      : (JoinRoomDialog.value = true)
+      : openJoinRoomDialog()
     : settings?.guestEnable && !item.needPassword
       ? await guestJoinRoom(formData.value)
-      : (JoinRoomDialog.value = true);
+      : openJoinRoomDialog();
 };
 
 onMounted(() => {
@@ -238,6 +242,6 @@ onMounted(() => {
         <span class="truncate">加入房间</span>
       </div>
     </template>
-    <JoinRoom :item="formData" />
+    <JoinRoom :item="formData" ref="joinRoomC" />
   </el-dialog>
 </template>

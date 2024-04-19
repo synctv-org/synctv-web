@@ -31,12 +31,24 @@ const formData = ref<{
   roomId: (roomID.value as string) ?? "",
   password: pwd.value as string
 });
-if (props.item) formData.value = props.item;
 
-const { checkRoom, joinRoom, guestJoinRoom } = useRoomApi(formData.value.roomId);
+const { joinRoom, guestJoinRoom } = useRoomApi(formData.value.roomId);
+
+const init = () => {
+  console.log(props.item);
+  if (props.item) formData.value = props.item;
+  else {
+    if (roomID) formData.value.roomId = roomID.value as string;
+    if (pwd) formData.value.password = pwd.value as string;
+  }
+  const { checkRoom } = useRoomApi(formData.value.roomId);
+  if (formData.value.roomId) checkRoom(pwd.value as string);
+};
+
+defineExpose({ init });
 
 onMounted(() => {
-  if (formData.value.roomId) checkRoom(pwd.value as string);
+  init();
 });
 </script>
 

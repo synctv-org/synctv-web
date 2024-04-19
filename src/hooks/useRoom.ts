@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import { ElNotification } from "element-plus";
+import { indexStore } from "@/stores";
 import { userStore } from "@/stores/user";
 import { roomStore } from "@/stores/room";
 import router from "@/router";
@@ -17,35 +18,57 @@ import { strLengthLimit } from "@/utils";
 import { storeToRefs } from "pinia";
 import { RoomMemberPermission, RoomAdminPermission } from "@/types/Room";
 
+const { settings } = indexStore();
+
 // 获取用户信息
-const { info, token } = userStore();
+const { info, token, isLogin } = userStore();
 const { myInfo } = storeToRefs(roomStore());
 
 export const useRoomApi = (roomId: string) => {
   // 检查房间状态
   const { state: thisRoomInfo, execute: reqCheckRoomApi } = checkRoomApi();
   const checkRoom = async (pwd: string) => {
+    console.log(roomId, pwd);
+
     try {
       await reqCheckRoomApi({
         params: {
           roomId: roomId
         }
       });
-      if (thisRoomInfo.value) {
+      if (!thisRoomInfo.value) return;
+
+      if (isLogin.value) {
         if (info.value?.username === thisRoomInfo.value.creator) {
           return await joinRoom({ roomId, password: pwd });
         }
+
         if (thisRoomInfo.value.needPassword) {
           if (pwd) return await joinRoom({ roomId, password: pwd });
-        } else {
-          return await joinRoom({ roomId, password: pwd });
         }
+      } else if (settings?.guestEnable) {
+        if (thisRoomInfo.value.needPassword) {
+          if (pwd) return await guestJoinRoom({ roomId, password: pwd });
+        } else {
+          return await guestJoinRoom({
+            roomId,
+            password: pwd
+          });
+        }
+      } else {
+        router.replace({
+          name: "login",
+          query: {
+            redirect: router.currentRoute.value.fullPath
+          }
+        });
+        throw new Error("请先登录");
       }
     } catch (err: any) {
       console.error(err);
       ElNotification({
         title: "错误",
-        message: err.response.data.error || err.message,
+        message: err.response?.data.error || err.message,
         type: "error"
       });
     }
