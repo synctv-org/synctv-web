@@ -46,6 +46,7 @@ export const useSettings = () => {
     ["create_room_need_review", { value: false, name: "创建房间需要审核" }],
     ["disable_create_room", { value: false, name: "禁止创建房间" }],
     ["room_must_need_pwd", { value: false, name: "创建房间必须填写密码" }],
+    ["room_must_no_need_pwd", { value: false, name: "创建房间不能填写密码" }],
     [
       "room_ttl",
       {

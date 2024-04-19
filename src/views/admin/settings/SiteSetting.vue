@@ -176,7 +176,7 @@ onMounted(async () => {
               </template>
               <el-switch
                 v-if="typeof setting[1].value === 'boolean'"
-                @click="updateSet(setting[0], setting[1].value)"
+                @change="updateSet(setting[0], setting[1].value)"
                 v-model="setting[1].value"
               />
               <el-input
