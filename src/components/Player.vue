@@ -273,7 +273,7 @@ const newPlayerOption = (html: HTMLDivElement): Option => {
     plugins: Props.options.plugins,
     subtitle: {
       encoding: "utf-8",
-      escape: true
+      escape: false
     },
     moreVideoAttr: {
       controls: false,
