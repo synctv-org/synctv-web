@@ -171,6 +171,7 @@ const newLazyInitSubtitlePlugin = (subtitle: Subtitles) => {
     console.log("加载字幕插件中...");
     const subtitlePlugin = await subtitleP;
     art.controls.add(subtitlePlugin.newSubtitleControl(subtitle));
+    art.setting.add(subtitlePlugin.newSubtitleControl(subtitle));
   };
 };
 

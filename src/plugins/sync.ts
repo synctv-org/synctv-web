@@ -57,6 +57,22 @@ const newSyncControl = (art: Artplayer, publishStatus: (msg: ElementMessage) => 
       );
     }
   });
+  art.setting.add({
+    html: "同步状态",
+    selector: [
+      {
+        default: true,
+        html: "点击同步"
+      }
+    ],
+    onSelect: function () {
+      publishStatus(
+        ElementMessage.create({
+          type: ElementMessageType.SYNC_MOVIE_STATUS
+        })
+      );
+    }
+  });
 };
 
 export const newSyncPlugin = (
