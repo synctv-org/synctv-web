@@ -260,6 +260,13 @@ export const useSettings = () => {
         name: "飞书SSO",
         value: generateOAuth2SettingsMap("oauth2_feishu-sso")
       }
+    ],
+    [
+      "oauth2_discord",
+      {
+        name: "Discord",
+        value: generateOAuth2SettingsMap("oauth2_discord")
+      }
     ]
   ]);
 
