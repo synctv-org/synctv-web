@@ -34,6 +34,10 @@ const platforms: { [key: string]: { name: string; class: string } } = {
     name: "小米",
     class: "btn-white"
   },
+  discord: {
+      name: "Discord",
+      class: "btn-white"
+  },
   baidu: {
     name: "百度",
     class: "btn-white"
