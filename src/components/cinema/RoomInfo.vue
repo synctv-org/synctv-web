@@ -5,6 +5,7 @@ import { useRouteParams } from "@vueuse/router";
 import CopyButton from "../CopyButton.vue";
 import RoomManage from "@/components/cinema/RoomManage.vue";
 import RoomUsers from "@/components/cinema/RoomUsers.vue";
+import { userStore } from "@/stores/user";
 
 const props = defineProps<{
   status: WebSocketStatus;
@@ -13,6 +14,8 @@ const props = defineProps<{
 // 获取房间信息
 const roomID = useRouteParams<string>("roomId");
 const roomPwd = useLocalStorage(`room-${roomID.value}-pwd`, "");
+
+const { isLogin } = userStore();
 
 const shareURL = computed(() => {
   return `${window.location.origin}/web/joinRoom/${roomID.value}?pwd=${roomPwd.value}`;
@@ -60,7 +63,7 @@ const roomUsersDrawer = ref<InstanceType<typeof RoomUsers>>();
       </table>
     </div>
 
-    <div class="card-footer flex-wrap justify-between">
+    <div v-if="isLogin" class="card-footer flex-wrap justify-between">
       <button class="btn btn-success" @click="roomUsersDrawer?.openDrawer">用户列表</button>
       <button class="btn" @click="roomManageDrawer?.openDrawer">房间设置</button>
     </div>
