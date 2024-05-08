@@ -240,7 +240,6 @@ export const loginEmbyApi = useDefineApi<
       host: string;
       username: string;
       password: string;
-      apikey: string;
     };
   },
   any

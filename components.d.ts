@@ -9,7 +9,6 @@ declare module 'vue' {
   export interface GlobalComponents {
     Alist: typeof import('./src/components/fileList/alist.vue')['default']
     BilibiliParse: typeof import('./src/components/cinema/dialogs/bilibiliParse.vue')['default']
-    copy: typeof import('./src/components/cinema/RoomManage copy.vue')['default']
     CopyButton: typeof import('./src/components/CopyButton.vue')['default']
     CustomHeaders: typeof import('./src/components/cinema/dialogs/customHeaders.vue')['default']
     CustomSubtitles: typeof import('./src/components/cinema/dialogs/customSubtitles.vue')['default']
@@ -18,7 +17,6 @@ declare module 'vue' {
     EditVendor: typeof import('./src/components/admin/dialogs/editVendor.vue')['default']
     ElBreadcrumb: typeof import('element-plus/es')['ElBreadcrumb']
     ElBreadcrumbItem: typeof import('element-plus/es')['ElBreadcrumbItem']
-    ElBtn: typeof import('element-plus/es')['ElBtn']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCol: typeof import('element-plus/es')['ElCol']
     ElCollapse: typeof import('element-plus/es')['ElCollapse']
@@ -36,7 +34,6 @@ declare module 'vue' {
     ElOption: typeof import('element-plus/es')['ElOption']
     ElPagination: typeof import('element-plus/es')['ElPagination']
     ElPopconfirm: typeof import('element-plus/es')['ElPopconfirm']
-    ElRadio: typeof import('element-plus/es')['ElRadio']
     ElRow: typeof import('element-plus/es')['ElRow']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSkeleton: typeof import('element-plus/es')['ElSkeleton']

@@ -14,8 +14,7 @@ const infoDialog = ref(false);
 const emby = ref({
   host: "",
   username: "",
-  password: "",
-  apikey: ""
+  password: ""
 });
 
 // 获取已经绑定的账号
@@ -112,7 +111,6 @@ const closeLoginDialog = () => {
   emby.value.password = "";
   emby.value.username = "";
   emby.value.host = "";
-  emby.value.apikey = "";
 };
 </script>
 
@@ -195,13 +193,6 @@ const closeLoginDialog = () => {
         placeholder="密码"
         type="new-password"
         v-model.lazy="emby.password"
-        @keyup.enter="embyLogin"
-      />
-      <input
-        class="l-input block w-full m-0 my-4"
-        placeholder="APIKEY"
-        type="text"
-        v-model.lazy="emby.apikey"
         @keyup.enter="embyLogin"
       />
 
