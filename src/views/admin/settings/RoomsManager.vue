@@ -3,7 +3,13 @@ import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 import { Search } from "@element-plus/icons-vue";
 import { userStore } from "@/stores/user";
-import { roomListApi, banRoomApi, unBanRoomApi, approveRoomApi } from "@/services/apis/admin";
+import {
+  roomListApi,
+  banRoomApi,
+  unBanRoomApi,
+  approveRoomApi,
+  delRoomApi
+} from "@/services/apis/admin";
 import CopyButton from "@/components/CopyButton.vue";
 import { RoomStatus, roomStatus } from "@/types/Room";
 import { useTimeAgo } from "@vueuse/core";
@@ -104,6 +110,35 @@ const approveCreate = async (id: string) => {
       title: "错误",
       type: "error",
       message: err.response.data.error || err.message
+    });
+  }
+};
+
+// 删除房间
+const { execute: reqDelRoomApi, isLoading: delRoomBtnLoading } = delRoomApi();
+const deleteRoom = async (roomID: string) => {
+  try {
+    await reqDelRoomApi({
+      data: {
+        id: roomID
+      },
+      headers: { Authorization: token.value }
+    });
+
+    ElNotification({
+      title: "删除成功",
+      type: "success"
+    });
+    localStorage.removeItem(`room-${roomID}-token`);
+    localStorage.removeItem(`room-${roomID}-pwd`);
+
+    getRoomListApi();
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "删除失败",
+      message: err.response?.data.error || err.message,
+      type: "error"
     });
   }
 };
@@ -242,6 +277,17 @@ onMounted(async () => {
             >
               允许创建
             </el-button>
+            <el-popconfirm
+              width="220"
+              confirm-button-text="是"
+              cancel-button-text="否"
+              title="你确定要删除这个房间吗？!"
+              @confirm="deleteRoom(scope.row.roomId)"
+            >
+              <template #reference>
+                <el-button plain type="danger" :loading="delRoomBtnLoading">删除房间</el-button>
+              </template>
+            </el-popconfirm>
           </template>
         </el-table-column>
       </el-table>

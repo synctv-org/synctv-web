@@ -321,6 +321,22 @@ export const approveRoomApi = useDefineApi<
   method: "POST"
 });
 
+// 删除房间
+export const delRoomApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/admin/room/delete",
+  method: "POST"
+});
+
 // 获取 OAuth2 设置
 export const oAuth2SettingsApi = useDefineApi<
   {

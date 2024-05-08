@@ -70,10 +70,10 @@ const roomUsersDrawer = ref<InstanceType<typeof RoomUsers>>();
   </div>
 
   <!-- 用户列表 -->
-  <RoomUsers ref="roomUsersDrawer" />
+  <RoomUsers v-if="isLogin" ref="roomUsersDrawer" />
 
   <!-- 房间设置 -->
-  <RoomManage ref="roomManageDrawer" />
+  <RoomManage v-if="isLogin" ref="roomManageDrawer" />
 </template>
 
 <style lang="less" scoped>
