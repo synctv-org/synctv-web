@@ -101,6 +101,9 @@ const confirmCancelPlayback = async () => {
           <b class="block text-base font-semibold" :title="`ID: ${item.id}`">
             <el-tag class="mr-1" size="small" v-if="item.base!.live"> 直播流 </el-tag>
             <el-tag class="mr-1" size="small" type="success" v-if="item.base!.proxy"> 代理 </el-tag>
+            <el-tag class="mr-1" size="small" v-if="item.base!.vendorInfo?.bilibili?.shared">
+              分享
+            </el-tag>
             <img
               v-if="item.base?.vendorInfo?.vendor === 'bilibili'"
               class="inline leading-3 w-4"
