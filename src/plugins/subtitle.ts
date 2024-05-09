@@ -1,5 +1,7 @@
 import type Artplayer from "artplayer";
 import type { ComponentOption } from "artplayer/types/component";
+import type { Events } from "artplayer/types/events";
+import { ElMessage } from "element-plus";
 
 const newSubtitleHtml = (name: string): HTMLElement => {
   const SubtitleHtml = document.createElement("span");
@@ -39,10 +41,19 @@ export const newSubtitleControl = (
       };
     }),
     onSelect(this: Artplayer, selector: any) {
-      console.log("切换字幕：", selector);
       if (selector.html === "关闭") {
         this.subtitle.show = false;
+        this.emit("artplayer-plugin-ass:visible" as keyof Events, false);
+      } else if (selector.type.toLowerCase() === "ass") {
+        let newUrl;
+        if (selector.url.startsWith("/api/movie/proxy/")) {
+          newUrl + window.location.origin + selector.url;
+        } else if (!selector.url.startsWith("http")) return ElMessage.error("无效的字幕地址");
+        newUrl = selector.url;
+        this.subtitle.show = false;
+        this.emit("artplayer-plugin-ass:switch" as keyof Events, newUrl);
       } else {
+        this.emit("artplayer-plugin-ass:visible" as keyof Events, false);
         this.subtitle.switch(selector.url, { type: selector.type });
         this.subtitle.show = true;
       }

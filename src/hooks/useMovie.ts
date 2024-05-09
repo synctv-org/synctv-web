@@ -56,12 +56,28 @@ export const useMovieApi = (roomToken: string) => {
         headers: { Authorization: roomToken }
       });
 
-      if (currentMovie.value) {
-        console.log(currentMovie.value);
-        room.currentMovie = currentMovie.value.movie;
-        room.currentStatus = currentMovie.value.status;
-        room.currentExpireId = currentMovie.value.expireId;
+      if (!currentMovie.value) return;
+
+      room.currentMovie = currentMovie.value.movie;
+      room.currentStatus = currentMovie.value.status;
+      room.currentExpireId = currentMovie.value.expireId;
+
+      const url = currentMovie.value.movie.base.url;
+      // when cross origin, add token to headers and query
+      if (url.startsWith(window.location.origin) || url.startsWith("/api/movie")) {
+        room.currentMovie.base.url = url.includes("?")
+          ? `${url}&token=${roomToken}`
+          : `${url}?token=${roomToken}`;
       }
+
+      const defaultSubtitle = currentMovie.value.movie.base.subtitles;
+      for (let key in defaultSubtitle) {
+        if (defaultSubtitle[key].url.includes("token=")) continue;
+        defaultSubtitle[key].url.includes("?")
+          ? (defaultSubtitle[key].url = `${defaultSubtitle[key].url}&token=${roomToken}`)
+          : (defaultSubtitle[key].url = `${defaultSubtitle[key].url}?token=${roomToken}`);
+      }
+      room.currentMovie.base.subtitles = defaultSubtitle;
     } catch (err: any) {
       console.log(err);
       ElNotification({

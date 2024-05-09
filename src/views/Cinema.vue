@@ -25,6 +25,7 @@ import MovieList from "@/components/cinema/MovieList.vue";
 import MoviePush from "@/components/cinema/MoviePush.vue";
 import type { Subtitles } from "@/types/Movie";
 import { RoomMemberPermission } from "@/types/Room";
+import artplayerPluginAss from "@/plugins/artplayer-plugin-ass";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
@@ -139,18 +140,50 @@ const playerOption = computed<options>(() => {
       newLazyInitSyncPlugin(room.currentExpireId)
     ]
   };
-  // when cross origin, add token to headers and query
-  if (option.url.startsWith(window.location.origin) || option.url.startsWith("/api/movie")) {
-    // option.headers = {
-    //   ...option.headers,
-    //   Authorization: roomToken.value
-    // };
-    option.url = option.url.includes("?")
-      ? `${option.url}&token=${roomToken.value}`
-      : `${option.url}?token=${roomToken.value}`;
-  }
+
   if (room.currentMovie.base!.subtitles) {
+    let defaultUrl;
+    let useAssPlugin = false;
+
+    const defaultSubtitle = room.currentMovie.base!.subtitles;
+
+    for (let key in defaultSubtitle) {
+      if (defaultSubtitle[key].hasOwnProperty("url")) {
+        if (defaultSubtitle[key].type === "ass") {
+          if (defaultSubtitle[key].url.startsWith("/api/movie/proxy/")) {
+            defaultUrl = window.location.origin + room.currentMovie.base!.subtitles[key].url;
+            useAssPlugin = true;
+            break;
+          }
+
+          if (defaultSubtitle[key].url.startsWith("http")) {
+            defaultUrl = room.currentMovie.base!.subtitles[key].url;
+            useAssPlugin = true;
+            break;
+          }
+
+          ElNotification.error({
+            title: "错误",
+            message: "字幕文件地址错误！ASS字幕解析将失效！"
+          });
+          useAssPlugin = false;
+          break;
+        } else {
+          useAssPlugin = false;
+          break;
+        }
+      } else break;
+    }
+
     option.plugins!.push(newLazyInitSubtitlePlugin(room.currentMovie.base!.subtitles));
+    // return;
+    useAssPlugin &&
+      option.plugins!.push(
+        artplayerPluginAss({
+          // debug: true,
+          subUrl: defaultUrl
+        })
+      );
   }
 
   return option;

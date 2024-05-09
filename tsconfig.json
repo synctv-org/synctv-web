@@ -11,6 +11,7 @@
   "compilerOptions": {
     "target": "ES2016",
     "noImplicitAny": true,
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "allowJs": true,
   }
 }
