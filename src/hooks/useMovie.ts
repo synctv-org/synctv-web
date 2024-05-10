@@ -66,6 +66,13 @@ export const useMovieApi = (roomToken: string) => {
         currentMovie.value.movie.base.url = `${window.location.origin}${currentMovie.value.movie.base.url}`;
       }
 
+      for (let key in currentMovie.value.movie.base.moreSource) {
+        if (currentMovie.value.movie.base.moreSource[key].startsWith("/")) {
+          currentMovie.value.movie.base.moreSource[key] =
+            `${window.location.origin}${currentMovie.value.movie.base.moreSource[key]}`;
+        }
+      }
+
       for (let key in currentMovie.value.movie.base.subtitles) {
         if (currentMovie.value.movie.base.subtitles[key].url.startsWith("/")) {
           currentMovie.value.movie.base.subtitles[key].url =

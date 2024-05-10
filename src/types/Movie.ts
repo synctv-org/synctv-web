@@ -22,6 +22,9 @@ export interface Subtitles {
 
 export interface BaseMovieInfo {
   url: string;
+  moreSource?: {
+    [key: string]: string;
+  };
   name: string;
   live: boolean;
   proxy: boolean;

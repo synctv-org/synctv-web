@@ -144,6 +144,22 @@ const playerOption = computed<options>(() => {
     ]
   };
 
+  if (room.currentMovie.base!.moreSource) {
+    const obj = room.currentMovie.base!.moreSource;
+    option.plugins!.push(
+      artplayPluginSource([
+        {
+          url: option.url,
+          html: "默认"
+        },
+        ...Object.keys(obj).map((key) => ({
+          url: obj[key],
+          html: key
+        }))
+      ])
+    );
+  }
+
   if (room.currentMovie.base!.subtitles) {
     let defaultUrl;
     let useAssPlugin = false;
