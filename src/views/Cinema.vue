@@ -164,15 +164,18 @@ const playerOption = computed<options>(() => {
     let defaultUrl;
     let useAssPlugin = false;
 
-    for (let key in room.currentMovie.base!.subtitles) {
-      if (room.currentMovie.base!.subtitles[key].type === "ass") {
+    // deep copy
+    const subtitle = Object.assign({}, room.currentMovie.base!.subtitles);
+
+    for (let key in subtitle) {
+      if (subtitle[key].type === "ass") {
         useAssPlugin = true;
-        defaultUrl = room.currentMovie.base!.subtitles[key].url;
+        defaultUrl = subtitle[key].url;
         break;
       }
     }
 
-    option.plugins!.push(newLazyInitSubtitlePlugin(room.currentMovie.base!.subtitles));
+    option.plugins!.push(newLazyInitSubtitlePlugin(subtitle));
     // return;
     useAssPlugin &&
       option.plugins!.push(
