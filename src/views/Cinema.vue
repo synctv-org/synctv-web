@@ -27,6 +27,7 @@ import MoviePush from "@/components/cinema/MoviePush.vue";
 import type { Subtitles } from "@/types/Movie";
 import { RoomMemberPermission } from "@/types/Room";
 import artplayerPluginAss from "@/plugins/artplayer-plugin-ass";
+import { newSyncPlugin } from "@/plugins/sync";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
@@ -138,7 +139,7 @@ const playerOption = computed<options>(() => {
         danmuku: [],
         speed: 4
       }),
-      newLazyInitSyncPlugin()
+      newSyncPlugin(sendElement, room.currentStatus, () => room.currentExpireId)
     ]
   };
 
@@ -168,17 +169,6 @@ const playerOption = computed<options>(() => {
   return option;
 });
 
-const newLazyInitSyncPlugin = () => {
-  const syncP = import("@/plugins/sync");
-  return async (art: Artplayer) => {
-    console.log("加载进度同步插件中...");
-    const sync = await syncP;
-    art.plugins.add(
-      sync.newSyncPlugin(sendElement, room.currentStatus, () => room.currentExpireId)
-    );
-  };
-};
-
 const newLazyInitSubtitlePlugin = (subtitle: Subtitles) => {
   const subtitleP = import("@/plugins/subtitle");
   return async (art: Artplayer) => {
@@ -186,6 +176,9 @@ const newLazyInitSubtitlePlugin = (subtitle: Subtitles) => {
     const subtitlePlugin = await subtitleP;
     art.controls.add(subtitlePlugin.newSubtitleControl(subtitle));
     art.setting.add(subtitlePlugin.newSubtitleControl(subtitle));
+    return {
+      name: "subtitle"
+    };
   };
 };
 
