@@ -62,22 +62,17 @@ export const useMovieApi = (roomToken: string) => {
       room.currentStatus = currentMovie.value.status;
       room.currentExpireId = currentMovie.value.expireId;
 
-      const url = currentMovie.value.movie.base.url;
-      // when cross origin, add token to headers and query
-      if (url.startsWith(window.location.origin) || url.startsWith("/api/movie")) {
-        room.currentMovie.base.url = url.includes("?")
-          ? `${url}&token=${roomToken}`
-          : `${url}?token=${roomToken}`;
+      if (currentMovie.value.movie.base.url.startsWith("/")) {
+        currentMovie.value.movie.base.url = `${window.location.origin}${currentMovie.value.movie.base.url}`;
       }
 
-      const defaultSubtitle = currentMovie.value.movie.base.subtitles;
-      for (let key in defaultSubtitle) {
-        if (defaultSubtitle[key].url.includes("token=")) continue;
-        defaultSubtitle[key].url.includes("?")
-          ? (defaultSubtitle[key].url = `${defaultSubtitle[key].url}&token=${roomToken}`)
-          : (defaultSubtitle[key].url = `${defaultSubtitle[key].url}?token=${roomToken}`);
+      for (let key in currentMovie.value.movie.base.subtitles) {
+        if (currentMovie.value.movie.base.subtitles[key].url.startsWith("/")) {
+          currentMovie.value.movie.base.subtitles[key].url =
+            `${window.location.origin}${currentMovie.value.movie.base.subtitles[key].url}`;
+        }
       }
-      room.currentMovie.base.subtitles = defaultSubtitle;
+      room.currentMovie.base.subtitles = currentMovie.value.movie.base.subtitles;
     } catch (err: any) {
       console.log(err);
       ElNotification({

@@ -146,34 +146,12 @@ const playerOption = computed<options>(() => {
     let defaultUrl;
     let useAssPlugin = false;
 
-    const defaultSubtitle = room.currentMovie.base!.subtitles;
-
-    for (let key in defaultSubtitle) {
-      if (defaultSubtitle[key].hasOwnProperty("url")) {
-        if (defaultSubtitle[key].type === "ass") {
-          if (defaultSubtitle[key].url.startsWith("/api/movie/proxy/")) {
-            defaultUrl = window.location.origin + room.currentMovie.base!.subtitles[key].url;
-            useAssPlugin = true;
-            break;
-          }
-
-          if (defaultSubtitle[key].url.startsWith("http")) {
-            defaultUrl = room.currentMovie.base!.subtitles[key].url;
-            useAssPlugin = true;
-            break;
-          }
-
-          ElNotification.error({
-            title: "错误",
-            message: "字幕文件地址错误！ASS字幕解析将失效！"
-          });
-          useAssPlugin = false;
-          break;
-        } else {
-          useAssPlugin = false;
-          break;
-        }
-      } else break;
+    for (let key in room.currentMovie.base!.subtitles) {
+      if (room.currentMovie.base!.subtitles[key].type === "ass") {
+        useAssPlugin = true;
+        defaultUrl = room.currentMovie.base!.subtitles[key].url;
+        break;
+      }
     }
 
     option.plugins!.push(newLazyInitSubtitlePlugin(room.currentMovie.base!.subtitles));
@@ -224,16 +202,12 @@ const switchCurrentMovie = async () => {
 
     if (!currentMovie.value) return;
 
-    let url = currentMovie.value.movie.base.url;
-    // when cross origin, add token to headers and query
-    if (url.startsWith(window.location.origin) || url.startsWith("/api/movie")) {
-      url = url.includes("?")
-        ? `${url}&token=${roomToken.value}`
-        : `${url}?token=${roomToken.value}`;
+    if (currentMovie.value.movie.base.url.startsWith("/")) {
+      currentMovie.value.movie.base.url = `${window.location.origin}${currentMovie.value.movie.base.url}`;
     }
 
     if (!player) return;
-    player.url = url;
+    player.url = currentMovie.value.movie.base.url;
     const currentExpireId = currentMovie.value.expireId;
     const currentStatus = currentMovie.value.status;
     room.currentExpireId = currentExpireId;
