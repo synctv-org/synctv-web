@@ -195,7 +195,9 @@ const newLazyInitSyncPlugin = () => {
   return async (art: Artplayer) => {
     console.log("加载进度同步插件中...");
     const sync = await syncP;
-    art.plugins.add(sync.newSyncPlugin(sendElement, room.currentStatus, room.currentExpireId));
+    art.plugins.add(
+      sync.newSyncPlugin(sendElement, room.currentStatus, () => room.currentExpireId)
+    );
   };
 };
 

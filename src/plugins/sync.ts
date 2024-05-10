@@ -78,7 +78,7 @@ const newSyncControl = (art: Artplayer, publishStatus: (msg: ElementMessage) => 
 export const newSyncPlugin = (
   publishStatus: (msg: ElementMessage) => boolean,
   dynamicStatus: MovieStatus,
-  expireId: number
+  dynamicExpireId: () => number
 ) => {
   return (art: Artplayer): syncPlugin => {
     const playingStatusDebounce = debounces(debounceTime);
@@ -196,7 +196,7 @@ export const newSyncPlugin = (
                 seek: art.currentTime,
                 rate: art.playbackRate
               },
-              expireId
+              expireId: dynamicExpireId()
             }
           })
         );
