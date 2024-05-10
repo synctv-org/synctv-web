@@ -10,7 +10,7 @@ export enum ElementMessageType {
   CHAT_MESSAGE = 2,
   PLAY = 3,
   PAUSE = 4,
-  CHECK = 5,
+  CHECK_STATUS = 5,
   TOO_FAST = 6,
   TOO_SLOW = 7,
   CHANGE_RATE = 8,
@@ -20,6 +20,7 @@ export enum ElementMessageType {
   PEOPLE_CHANGED = 12,
   SYNC_MOVIE_STATUS = 13,
   CURRENT_EXPIRED = 14,
+  CHECK_EXPIRED = 15,
   UNRECOGNIZED = -1,
 }
 
@@ -41,8 +42,8 @@ export function elementMessageTypeFromJSON(object: any): ElementMessageType {
     case "PAUSE":
       return ElementMessageType.PAUSE;
     case 5:
-    case "CHECK":
-      return ElementMessageType.CHECK;
+    case "CHECK_STATUS":
+      return ElementMessageType.CHECK_STATUS;
     case 6:
     case "TOO_FAST":
       return ElementMessageType.TOO_FAST;
@@ -70,6 +71,9 @@ export function elementMessageTypeFromJSON(object: any): ElementMessageType {
     case 14:
     case "CURRENT_EXPIRED":
       return ElementMessageType.CURRENT_EXPIRED;
+    case 15:
+    case "CHECK_EXPIRED":
+      return ElementMessageType.CHECK_EXPIRED;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -89,8 +93,8 @@ export function elementMessageTypeToJSON(object: ElementMessageType): string {
       return "PLAY";
     case ElementMessageType.PAUSE:
       return "PAUSE";
-    case ElementMessageType.CHECK:
-      return "CHECK";
+    case ElementMessageType.CHECK_STATUS:
+      return "CHECK_STATUS";
     case ElementMessageType.TOO_FAST:
       return "TOO_FAST";
     case ElementMessageType.TOO_SLOW:
@@ -109,6 +113,8 @@ export function elementMessageTypeToJSON(object: ElementMessageType): string {
       return "SYNC_MOVIE_STATUS";
     case ElementMessageType.CURRENT_EXPIRED:
       return "CURRENT_EXPIRED";
+    case ElementMessageType.CHECK_EXPIRED:
+      return "CHECK_EXPIRED";
     case ElementMessageType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -136,11 +142,6 @@ export interface MovieStatusChanged {
   status: MovieStatus | undefined;
 }
 
-export interface CheckReq {
-  status: MovieStatus | undefined;
-  expireId: number;
-}
-
 export interface ElementMessage {
   type: ElementMessageType;
   time: number;
@@ -150,7 +151,8 @@ export interface ElementMessage {
   changeMovieStatusReq: MovieStatus | undefined;
   movieStatusChanged: MovieStatusChanged | undefined;
   changeSeekReq: number;
-  checkReq: CheckReq | undefined;
+  checkStatusReq: MovieStatus | undefined;
+  expireId: number;
   peopleChanged: number;
   moviesChanged: Sender | undefined;
   currentChanged: Sender | undefined;
@@ -473,82 +475,6 @@ export const MovieStatusChanged = {
   },
 };
 
-function createBaseCheckReq(): CheckReq {
-  return { status: undefined, expireId: 0 };
-}
-
-export const CheckReq = {
-  encode(message: CheckReq, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.status !== undefined) {
-      MovieStatus.encode(message.status, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.expireId !== 0) {
-      writer.uint32(16).uint64(message.expireId);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): CheckReq {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCheckReq();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.status = MovieStatus.decode(reader, reader.uint32());
-          continue;
-        case 2:
-          if (tag !== 16) {
-            break;
-          }
-
-          message.expireId = longToNumber(reader.uint64() as Long);
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): CheckReq {
-    return {
-      status: isSet(object.status) ? MovieStatus.fromJSON(object.status) : undefined,
-      expireId: isSet(object.expireId) ? globalThis.Number(object.expireId) : 0,
-    };
-  },
-
-  toJSON(message: CheckReq): unknown {
-    const obj: any = {};
-    if (message.status !== undefined) {
-      obj.status = MovieStatus.toJSON(message.status);
-    }
-    if (message.expireId !== 0) {
-      obj.expireId = Math.round(message.expireId);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<CheckReq>, I>>(base?: I): CheckReq {
-    return CheckReq.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<CheckReq>, I>>(object: I): CheckReq {
-    const message = createBaseCheckReq();
-    message.status = (object.status !== undefined && object.status !== null)
-      ? MovieStatus.fromPartial(object.status)
-      : undefined;
-    message.expireId = object.expireId ?? 0;
-    return message;
-  },
-};
-
 function createBaseElementMessage(): ElementMessage {
   return {
     type: 0,
@@ -559,7 +485,8 @@ function createBaseElementMessage(): ElementMessage {
     changeMovieStatusReq: undefined,
     movieStatusChanged: undefined,
     changeSeekReq: 0,
-    checkReq: undefined,
+    checkStatusReq: undefined,
+    expireId: 0,
     peopleChanged: 0,
     moviesChanged: undefined,
     currentChanged: undefined,
@@ -592,8 +519,11 @@ export const ElementMessage = {
     if (message.changeSeekReq !== 0) {
       writer.uint32(65).double(message.changeSeekReq);
     }
-    if (message.checkReq !== undefined) {
-      CheckReq.encode(message.checkReq, writer.uint32(74).fork()).ldelim();
+    if (message.checkStatusReq !== undefined) {
+      MovieStatus.encode(message.checkStatusReq, writer.uint32(74).fork()).ldelim();
+    }
+    if (message.expireId !== 0) {
+      writer.uint32(80).uint64(message.expireId);
     }
     if (message.peopleChanged !== 0) {
       writer.uint32(88).int64(message.peopleChanged);
@@ -675,7 +605,14 @@ export const ElementMessage = {
             break;
           }
 
-          message.checkReq = CheckReq.decode(reader, reader.uint32());
+          message.checkStatusReq = MovieStatus.decode(reader, reader.uint32());
+          continue;
+        case 10:
+          if (tag !== 80) {
+            break;
+          }
+
+          message.expireId = longToNumber(reader.uint64() as Long);
           continue;
         case 11:
           if (tag !== 88) {
@@ -721,7 +658,8 @@ export const ElementMessage = {
         ? MovieStatusChanged.fromJSON(object.movieStatusChanged)
         : undefined,
       changeSeekReq: isSet(object.changeSeekReq) ? globalThis.Number(object.changeSeekReq) : 0,
-      checkReq: isSet(object.checkReq) ? CheckReq.fromJSON(object.checkReq) : undefined,
+      checkStatusReq: isSet(object.checkStatusReq) ? MovieStatus.fromJSON(object.checkStatusReq) : undefined,
+      expireId: isSet(object.expireId) ? globalThis.Number(object.expireId) : 0,
       peopleChanged: isSet(object.peopleChanged) ? globalThis.Number(object.peopleChanged) : 0,
       moviesChanged: isSet(object.moviesChanged) ? Sender.fromJSON(object.moviesChanged) : undefined,
       currentChanged: isSet(object.currentChanged) ? Sender.fromJSON(object.currentChanged) : undefined,
@@ -754,8 +692,11 @@ export const ElementMessage = {
     if (message.changeSeekReq !== 0) {
       obj.changeSeekReq = message.changeSeekReq;
     }
-    if (message.checkReq !== undefined) {
-      obj.checkReq = CheckReq.toJSON(message.checkReq);
+    if (message.checkStatusReq !== undefined) {
+      obj.checkStatusReq = MovieStatus.toJSON(message.checkStatusReq);
+    }
+    if (message.expireId !== 0) {
+      obj.expireId = Math.round(message.expireId);
     }
     if (message.peopleChanged !== 0) {
       obj.peopleChanged = Math.round(message.peopleChanged);
@@ -788,9 +729,10 @@ export const ElementMessage = {
       ? MovieStatusChanged.fromPartial(object.movieStatusChanged)
       : undefined;
     message.changeSeekReq = object.changeSeekReq ?? 0;
-    message.checkReq = (object.checkReq !== undefined && object.checkReq !== null)
-      ? CheckReq.fromPartial(object.checkReq)
+    message.checkStatusReq = (object.checkStatusReq !== undefined && object.checkStatusReq !== null)
+      ? MovieStatus.fromPartial(object.checkStatusReq)
       : undefined;
+    message.expireId = object.expireId ?? 0;
     message.peopleChanged = object.peopleChanged ?? 0;
     message.moviesChanged = (object.moviesChanged !== undefined && object.moviesChanged !== null)
       ? Sender.fromPartial(object.moviesChanged)

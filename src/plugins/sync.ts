@@ -79,8 +79,8 @@ const newSyncControl = (art: Artplayer, publishStatus: (msg: ElementMessage) => 
 
 export const newSyncPlugin = (
   publishStatus: (msg: ElementMessage) => boolean,
-  dynamicStatus: MovieStatus,
-  dynamicExpireId: () => number
+  initStatus: MovieStatus,
+  dynamicCurrentExpireId: () => number
 ) => {
   return (art: Artplayer): syncPlugin => {
     const playingStatusDebounce = debounces(debounceTime);
@@ -134,7 +134,7 @@ export const newSyncPlugin = (
     const publishPlayDebounce = playingStatusDebounce(publishPlay);
 
     const setAndNoPublishPlay = async () => {
-      if (art.option.isLive || art.playing) return;
+      if (art.playing) return;
       await artPlay(art);
     };
 
@@ -156,7 +156,7 @@ export const newSyncPlugin = (
     const publishPauseDebounce = playingStatusDebounce(publishPause);
 
     const setAndNoPublishPause = () => {
-      if (art.option.isLive || !art.playing) return;
+      if (!art.playing) return;
       art.video.pause();
     };
 
@@ -184,24 +184,31 @@ export const newSyncPlugin = (
       art.playbackRate = rate;
     };
 
-    const checkSeek = () => {
+    const checkStatus = () => {
       // 距离上一次seek超过10s后才会检查seek
       if (Date.now() - lastestSeek < 10000 || art.option.isLive) return;
       art.duration - art.currentTime > 5 &&
         publishStatus(
           ElementMessage.create({
-            type: ElementMessageType.CHECK,
+            type: ElementMessageType.CHECK_STATUS,
             time: Date.now(),
-            checkReq: {
-              status: {
-                playing: art.playing,
-                seek: art.currentTime,
-                rate: art.playbackRate
-              },
-              expireId: dynamicExpireId()
+            checkStatusReq: {
+              playing: art.playing,
+              seek: art.currentTime,
+              rate: art.playbackRate
             }
           })
         );
+    };
+
+    const checkExpire = () => {
+      publishStatus(
+        ElementMessage.create({
+          type: ElementMessageType.CHECK_EXPIRED,
+          time: Date.now(),
+          expireId: dynamicCurrentExpireId()
+        })
+      );
     };
 
     const setAndNoPublishStatus = async (status: MovieStatus) => {
@@ -220,31 +227,28 @@ export const newSyncPlugin = (
       };
     };
 
+    const intervals: number[] = [];
+    const watchers: WatchStopHandle[] = [];
+    art.on("destroy", () => {
+      intervals.forEach((interval) => {
+        clearInterval(interval);
+      });
+      watchers.forEach((watcher) => {
+        watcher();
+      });
+    });
+
     if (!art.option.isLive) {
       art.once("ready", async () => {
         console.log("同步进度中...");
-        art.currentTime = dynamicStatus.seek;
-        art.playbackRate = dynamicStatus.rate;
-        if (dynamicStatus.playing) {
+        art.currentTime = initStatus.seek;
+        art.playbackRate = initStatus.rate;
+        if (initStatus.playing) {
           await artPlay(art);
         }
 
-        const intervals: number[] = [];
-        const watchers: WatchStopHandle[] = [];
-
-        intervals.push(setInterval(checkSeek, 10000));
-        watchers.push(
-          watch(
-            dynamicStatus,
-            async (newStatus) => {
-              console.log("同步进度中...");
-              setAndNoPublishRate(newStatus.rate);
-              setAndNoPublishSeek(newStatus.seek);
-              newStatus.playing ? await setAndNoPublishPlay() : setAndNoPublishPause();
-            },
-            { deep: true }
-          )
-        );
+        intervals.push(setInterval(checkStatus, 10000));
+        intervals.push(setInterval(checkExpire, 10000));
 
         newSyncControl(art, publishStatus);
 
@@ -260,12 +264,6 @@ export const newSyncPlugin = (
         art.on("video:ratechange", publishRate);
 
         art.on("destroy", () => {
-          intervals.forEach((interval) => {
-            clearInterval(interval);
-          });
-          watchers.forEach((watcher) => {
-            watcher();
-          });
           art.off("play", publishPlayDebounce);
           art.off("pause", publishPauseDebounce);
           art.off("seek", publishSeekDebounce);
@@ -274,7 +272,8 @@ export const newSyncPlugin = (
       });
     } else {
       art.once("ready", () => {
-        artPlay(art);
+        setAndNoPublishPlay();
+        intervals.push(setInterval(checkExpire, 10000));
       });
     }
 

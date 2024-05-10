@@ -19,7 +19,7 @@ import { useMovieApi } from "@/hooks/useMovie";
 import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUint8Array, formatTime } from "@/utils";
-import { ElementMessage, ElementMessageType } from "@/proto/message";
+import { ElementMessage, ElementMessageType, MovieStatus } from "@/proto/message";
 import type { options } from "@/components/Player.vue";
 import RoomInfo from "@/components/cinema/RoomInfo.vue";
 import MovieList from "@/components/cinema/MovieList.vue";
@@ -140,6 +140,7 @@ const playerOption = computed<options>(() => {
         danmuku: [],
         speed: 4
       }),
+      // WARN: room.currentStatus 变了会导致重载
       newSyncPlugin(sendElement, room.currentStatus, () => room.currentExpireId)
     ]
   };
@@ -206,6 +207,11 @@ const getPlayerInstance = (art: Artplayer) => {
   player = art;
 };
 
+const setPlayerStatus = (status: MovieStatus) => {
+  if (!player) return;
+  player.plugins["syncPlugin"].setAndNoPublishStatus(status);
+};
+
 const { state: currentMovie, execute: reqCurrentMovieApi } = currentMovieApi();
 const switchCurrentMovie = async () => {
   try {
@@ -226,9 +232,7 @@ const switchCurrentMovie = async () => {
     room.currentExpireId = currentExpireId;
     player.once("video:canplay", () => {
       if (room.currentExpireId != currentExpireId) return;
-      room.currentStatus.playing = currentStatus.playing;
-      room.currentStatus.seek = currentStatus.seek;
-      room.currentStatus.rate = currentStatus.rate;
+      setPlayerStatus(currentStatus);
     });
   } catch (err: any) {
     console.log(err);
@@ -297,13 +301,11 @@ const handleElementMessage = (msg: ElementMessage) => {
           });
           break;
       }
-      room.currentStatus.playing = msg.movieStatusChanged!.status!.playing;
-      room.currentStatus.seek = msg.movieStatusChanged!.status!.seek;
-      room.currentStatus.rate = msg.movieStatusChanged!.status!.rate;
+      setPlayerStatus(msg.movieStatusChanged!.status!);
       break;
     }
 
-    case ElementMessageType.CHECK: {
+    case ElementMessageType.CHECK_STATUS: {
       break;
     }
 
