@@ -28,6 +28,7 @@ import type { Subtitles } from "@/types/Movie";
 import { RoomMemberPermission } from "@/types/Room";
 import artplayerPluginAss from "@/plugins/artplayer-plugin-ass";
 import { newSyncPlugin } from "@/plugins/sync";
+import { artplayPluginSource } from "@/plugins/source";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 

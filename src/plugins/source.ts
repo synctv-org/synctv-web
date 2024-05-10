@@ -5,28 +5,23 @@ interface artplayPluginSource {
   html: string;
 }
 
-function artplayPluginSource(option: [artplayPluginSource]) {
+export function artplayPluginSource(option: artplayPluginSource[]) {
   return (art: Artplayer) => {
-    const storageSource = art.storage.get("source");
     art.controls.add({
       position: "right",
-      html: storageSource || "源",
+      html: "源",
       selector: option,
       onSelect: function (item: artplayPluginSource) {
-        art.switchQuality(item.url);
-        art.storage.set("source", item.html);
-        return item.html;
+        const status = art.plugins["syncPlugin"].currentStatus();
+        art.once("video:canplay", () => {
+          art.plugins["syncPlugin"].setAndNoPublishStatus(status);
+        });
+        art.url = item.url;
+        return "源";
       }
     });
-    if (storageSource) {
-      const source = option.find((item) => item.html === storageSource);
-      if (source) {
-        art.url = source.url;
-      } else {
-        art.url = option[0].url;
-      }
-    } else {
-      art.url = option[0].url;
-    }
+    return {
+      name: "source"
+    };
   };
 }

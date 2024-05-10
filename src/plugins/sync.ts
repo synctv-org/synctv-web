@@ -37,6 +37,8 @@ interface syncPlugin {
   setAndNoPublishPlay: () => void;
   setAndNoPublishPause: () => void;
   setAndNoPublishRate: (rate: number) => void;
+  setAndNoPublishStatus: (status: MovieStatus) => void;
+  currentStatus: () => MovieStatus;
 }
 
 const debounceTime = 500;
@@ -202,6 +204,22 @@ export const newSyncPlugin = (
         );
     };
 
+    const setAndNoPublishStatus = async (status: MovieStatus) => {
+      if (!art.option.isLive) {
+        setAndNoPublishRate(status.rate);
+        setAndNoPublishSeek(status.seek);
+      }
+      status.playing ? await setAndNoPublishPlay() : setAndNoPublishPause();
+    };
+
+    const currentStatus = (): MovieStatus => {
+      return {
+        playing: art.playing,
+        seek: art.currentTime,
+        rate: art.playbackRate
+      };
+    };
+
     if (!art.option.isLive) {
       art.once("ready", async () => {
         console.log("同步进度中...");
@@ -265,7 +283,9 @@ export const newSyncPlugin = (
       setAndNoPublishSeek,
       setAndNoPublishPlay,
       setAndNoPublishPause,
-      setAndNoPublishRate
+      setAndNoPublishRate,
+      setAndNoPublishStatus,
+      currentStatus
     };
   };
 };
