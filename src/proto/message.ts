@@ -19,6 +19,7 @@ export enum ElementMessageType {
   MOVIES_CHANGED = 11,
   PEOPLE_CHANGED = 12,
   SYNC_MOVIE_STATUS = 13,
+  CURRENT_EXPIRED = 14,
   UNRECOGNIZED = -1,
 }
 
@@ -66,6 +67,9 @@ export function elementMessageTypeFromJSON(object: any): ElementMessageType {
     case 13:
     case "SYNC_MOVIE_STATUS":
       return ElementMessageType.SYNC_MOVIE_STATUS;
+    case 14:
+    case "CURRENT_EXPIRED":
+      return ElementMessageType.CURRENT_EXPIRED;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -103,6 +107,8 @@ export function elementMessageTypeToJSON(object: ElementMessageType): string {
       return "PEOPLE_CHANGED";
     case ElementMessageType.SYNC_MOVIE_STATUS:
       return "SYNC_MOVIE_STATUS";
+    case ElementMessageType.CURRENT_EXPIRED:
+      return "CURRENT_EXPIRED";
     case ElementMessageType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";

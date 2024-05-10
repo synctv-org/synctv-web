@@ -8,6 +8,7 @@ import {
   defineAsyncComponent,
   nextTick
 } from "vue";
+import { currentMovieApi } from "@/services/apis/movie";
 import type { WatchStopHandle } from "vue";
 import { useWebSocket, useResizeObserver, useLocalStorage } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
@@ -137,7 +138,7 @@ const playerOption = computed<options>(() => {
         danmuku: [],
         speed: 4
       }),
-      newLazyInitSyncPlugin(room.currentExpireId)
+      newLazyInitSyncPlugin()
     ]
   };
 
@@ -189,12 +190,12 @@ const playerOption = computed<options>(() => {
   return option;
 });
 
-const newLazyInitSyncPlugin = (expireId: number) => {
+const newLazyInitSyncPlugin = () => {
   const syncP = import("@/plugins/sync");
   return async (art: Artplayer) => {
     console.log("加载进度同步插件中...");
     const sync = await syncP;
-    art.plugins.add(sync.newSyncPlugin(sendElement, room.currentStatus, expireId));
+    art.plugins.add(sync.newSyncPlugin(sendElement, room.currentStatus, room.currentExpireId));
   };
 };
 
@@ -210,6 +211,44 @@ const newLazyInitSubtitlePlugin = (subtitle: Subtitles) => {
 
 const getPlayerInstance = (art: Artplayer) => {
   player = art;
+};
+
+const { state: currentMovie, execute: reqCurrentMovieApi } = currentMovieApi();
+const switchCurrentMovie = async () => {
+  try {
+    await reqCurrentMovieApi({
+      headers: { Authorization: roomToken.value }
+    });
+
+    if (!currentMovie.value) return;
+
+    let url = currentMovie.value.movie.base.url;
+    // when cross origin, add token to headers and query
+    if (url.startsWith(window.location.origin) || url.startsWith("/api/movie")) {
+      url = url.includes("?")
+        ? `${url}&token=${roomToken.value}`
+        : `${url}?token=${roomToken.value}`;
+    }
+
+    if (!player) return;
+    player.url = url;
+    const currentExpireId = currentMovie.value.expireId;
+    const currentStatus = currentMovie.value.status;
+    room.currentExpireId = currentExpireId;
+    player.once("video:canplay", () => {
+      if (room.currentExpireId != currentExpireId) return;
+      room.currentStatus.playing = currentStatus.playing;
+      room.currentStatus.seek = currentStatus.seek;
+      room.currentStatus.rate = currentStatus.rate;
+    });
+  } catch (err: any) {
+    console.log(err);
+    ElNotification({
+      title: "获取影片列表失败",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
 };
 
 const handleElementMessage = (msg: ElementMessage) => {
@@ -282,6 +321,11 @@ const handleElementMessage = (msg: ElementMessage) => {
     // 设置正在播放的影片
     case ElementMessageType.CURRENT_CHANGED: {
       getCurrentMovie();
+      break;
+    }
+
+    case ElementMessageType.CURRENT_EXPIRED: {
+      switchCurrentMovie();
       break;
     }
 
