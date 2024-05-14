@@ -1,6 +1,8 @@
 import { ref, computed, reactive } from "vue";
 import { defineStore } from "pinia";
 import { useStorage } from "@vueuse/core";
+import { useRouteParams } from "@vueuse/router";
+import { useLocalStorage } from "@vueuse/core";
 import type { CurrentMovie, MovieInfo } from "@/types/Movie";
 import { userStore } from "@/stores/user";
 import type { MovieStatus } from "@/proto/message";
@@ -17,6 +19,15 @@ export const roomStore = defineStore("roomStore", () => {
 
   // 影片列表
   const movies = ref<MovieInfo[]>([]);
+
+  // roomID
+  const roomID = computed(() => {
+    return useRouteParams<string>("roomId");
+  });
+
+  const roomToken = computed(() => {
+    return useLocalStorage<string>(`room-${roomID.value}-token`, "");
+  });
 
   const totalMovies = ref(0);
 
@@ -57,6 +68,8 @@ export const roomStore = defineStore("roomStore", () => {
     play,
     peopleNum,
     login,
-    myInfo
+    myInfo,
+    roomID,
+    roomToken
   };
 });

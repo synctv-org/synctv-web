@@ -21,6 +21,7 @@ export const useMovieApi = (roomToken: string) => {
   // 获取影片列表和正在播放的影片
   const currentPage = ref(1);
   const pageSize = ref(10);
+  const subPath = ref("");
 
   // 获取影片列表
   const { state: movies, isLoading: moviesLoading, execute: reqMoviesApi } = moviesApi();
@@ -29,7 +30,8 @@ export const useMovieApi = (roomToken: string) => {
       await reqMoviesApi({
         params: {
           page: currentPage.value,
-          max: pageSize.value
+          max: pageSize.value,
+          subPath: subPath.value
         },
         headers: { Authorization: roomToken }
       });
@@ -282,6 +284,7 @@ export const useMovieApi = (roomToken: string) => {
   return {
     currentPage,
     pageSize,
+    subPath,
 
     getMovies,
     movies,

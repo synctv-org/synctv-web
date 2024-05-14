@@ -30,6 +30,7 @@ export const moviesApi = useDefineApi<
     params: {
       page: number;
       max: number;
+      subPath?: string;
     };
     headers: { Authorization: string };
   },
