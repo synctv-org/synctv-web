@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import type { FileList, FileItem } from "@/types/Vendor";
-import { ArrowRight, Folder, Document, Search } from "@element-plus/icons-vue";
+import { ArrowRight, Folder, Document, Search, Plus } from "@element-plus/icons-vue";
 
 const props = defineProps<{
   fileList: FileList | undefined;
@@ -46,8 +46,8 @@ const isSelect = (item: FileItem) => {
 const currentPage = ref(1);
 const pageSize = ref(10);
 
-const selectOrToDir = (item: FileItem) => {
-  if (item.isDir) {
+const selectOrToDir = (item: FileItem, select?: boolean) => {
+  if (item.isDir && !select) {
     toDir(item.path, true, true);
   } else {
     findItem(item) ? removeItem(item) : selectItem(item);
@@ -113,15 +113,25 @@ defineExpose({
       "
       v-for="(item, i) in fileList?.items"
       :key="i"
-      @click="selectOrToDir(item)"
+      @click="selectOrToDir(item, true)"
     >
-      <p
+      <div
         class="truncate overflow-hidden mr-auto max-w-[70%] xl:max-w-[40%] 2xl:max-w-[50%] flex items-center"
       >
-        <el-icon v-if="item.isDir" class="mr-2"><Folder /></el-icon>
-        <el-icon v-else class="mr-2"><Document /></el-icon>
-        {{ item.name }}
-      </p>
+        <div v-if="item.isDir" class="flex items-center">
+          <el-icon class="mr-2">
+            <Folder />
+          </el-icon>
+          <p class="hover:underline" @click.stop="selectOrToDir(item)">
+            {{ item.name }}
+          </p>
+        </div>
+
+        <div v-else class="flex items-center">
+          <el-icon class="mr-2"><Document /></el-icon>
+          <p @click.stop="selectOrToDir(item)">{{ item.name }}</p>
+        </div>
+      </div>
       <slot name="item" :item="item"></slot>
     </div>
   </div>

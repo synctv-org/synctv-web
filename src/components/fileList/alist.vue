@@ -71,7 +71,8 @@ const submit = async () => {
               alist: {
                 path: item.path
               }
-            }
+            },
+            isFolder: item.isDir
           }
       )
     });
@@ -121,7 +122,7 @@ defineExpose({
       <template #item="{ item }">
         <div class="w-4 mr-6 flex items-center">
           <input
-            v-if="!item.isDir && FileList?.findItem(item)"
+            v-if="FileList?.findItem(item)"
             type="checkbox"
             @click.stop=""
             @change="FileList?.setProxy(item)"
