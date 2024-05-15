@@ -281,7 +281,7 @@ export const useMovieApi = (roomToken: string) => {
           parentId: room.movieList[room.movieList.length - 1].id
         }
       });
-      await changeCurrentMovie("", false);
+
       ElNotification({
         title: "已清空",
         type: "success"
