@@ -5,6 +5,7 @@ export interface MovieInfo {
   base: BaseMovieInfo;
   createdAt: number;
   creator: string;
+  subPath: string;
 }
 
 export interface CurrentMovie {

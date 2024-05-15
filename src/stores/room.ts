@@ -43,7 +43,8 @@ export const roomStore = defineStore("roomStore", () => {
       headers: {}
     },
     createdAt: 0,
-    creator: ""
+    creator: "",
+    subPath: ""
   });
   const currentStatus = ref<MovieStatus>({
     playing: false,

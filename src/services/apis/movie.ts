@@ -31,6 +31,7 @@ export const moviesApi = useDefineApi<
       page: number;
       max: number;
       subPath?: string;
+      id?: string;
     };
     headers: { Authorization: string };
   },
@@ -129,6 +130,7 @@ export const changeCurrentMovieApi = useDefineApi<
     headers: { Authorization: string };
     data: {
       id: string;
+      subPath?: string;
     };
   },
   {}

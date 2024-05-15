@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { ElNotification } from "element-plus";
 import { roomStore } from "@/stores/room";
 import {
@@ -21,17 +21,58 @@ export const useMovieApi = (roomToken: string) => {
   // 获取影片列表和正在播放的影片
   const currentPage = ref(1);
   const pageSize = ref(10);
-  const subPath = ref("");
+
+  const movieList = ref<
+    {
+      label: string;
+      subPath: string;
+      id: string;
+    }[]
+  >([
+    {
+      label: "根目录",
+      subPath: "",
+      id: ""
+    }
+  ]);
+
+  const subPath = computed(() => {
+    return movieList.value && movieList.value[movieList.value.length - 1].subPath;
+  });
+
+  const switchDir = (id: string, subPath: string) => {
+    if (!movieList.value) return;
+
+    const file = movieList.value
+      .filter((item) => item.id === id)
+      .find((item) => item.subPath === subPath);
+
+    if (!file) {
+      const movie = room.movies
+        .filter((movie) => movie.id === id)
+        .find((movie) => movie.subPath === subPath);
+      movieList.value.push({
+        label: movie?.base.name || "",
+        subPath: movie?.subPath || "",
+        id: movie?.id || ""
+      });
+    } else {
+      movieList.value = movieList.value.slice(0, movieList.value.indexOf(file) + 1);
+    }
+    currentPage.value = 1;
+    return getMovies(id, subPath);
+  };
 
   // 获取影片列表
   const { state: movies, isLoading: moviesLoading, execute: reqMoviesApi } = moviesApi();
-  const getMovies = async () => {
+  const getMovies = async (id = "", subPath = "") => {
     try {
       await reqMoviesApi({
         params: {
           page: currentPage.value,
           max: pageSize.value,
-          subPath: subPath.value
+          subPath,
+          id
         },
         headers: { Authorization: roomToken }
       });
@@ -128,7 +169,8 @@ export const useMovieApi = (roomToken: string) => {
     try {
       await reqChangeCurrentMovieApi({
         data: {
-          id: id
+          id: id,
+          subPath: room.movies.find((movie) => movie.id === id)?.subPath
         },
         headers: { Authorization: roomToken }
       });
@@ -285,6 +327,7 @@ export const useMovieApi = (roomToken: string) => {
     currentPage,
     pageSize,
     subPath,
+    movieList,
 
     getMovies,
     movies,
@@ -312,6 +355,8 @@ export const useMovieApi = (roomToken: string) => {
     clearMovieListLoading,
 
     getLiveInfo,
-    liveInfo
+    liveInfo,
+
+    switchDir
   };
 };

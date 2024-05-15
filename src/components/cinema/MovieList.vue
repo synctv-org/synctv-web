@@ -10,6 +10,8 @@ import customHeaders from "@/components/cinema/dialogs/customHeaders.vue";
 import customSubtitles from "@/components/cinema/dialogs/customSubtitles.vue";
 import { RoomMemberPermission } from "@/types/Room";
 
+import { ArrowRight, FolderOpened } from "@element-plus/icons-vue";
+
 const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
 const customSubtitlesDialog = ref<InstanceType<typeof customSubtitles>>();
 
@@ -44,7 +46,10 @@ const {
   clearMovieList,
   clearMovieListLoading,
   getLiveInfo,
-  liveInfo
+  liveInfo,
+  subPath,
+  movieList,
+  switchDir
 } = useMovieApi(roomToken.value);
 
 // 打开编辑对话框
@@ -87,6 +92,14 @@ const confirmCancelPlayback = async () => {
     <div class="card-title">影片列表（{{ room.totalMovies }}）</div>
 
     <div class="card-body">
+      <el-breadcrumb :separator-icon="ArrowRight">
+        <el-breadcrumb-item v-for="item in movieList" :key="item.id">
+          <el-button link @click="switchDir(item.id, item.subPath)">
+            {{ item.label }}
+          </el-button>
+        </el-breadcrumb-item>
+      </el-breadcrumb>
+
       <el-skeleton v-if="moviesLoading" :rows="1" animated />
       <div
         v-else
@@ -131,7 +144,14 @@ const confirmCancelPlayback = async () => {
           <small class="truncate">{{ item.base!.url || item.id }}</small>
         </div>
 
-        <div class="m-auto p-2" v-if="room.currentMovie.id === item.id">
+        <div
+          class="m-auto p-2"
+          v-if="
+            room.currentMovie.id === item.id &&
+            !item.base?.isFolder &&
+            item.subPath === room.currentMovie.subPath
+          "
+        >
           <button
             class="btn btn-dense btn-success border-green-500 text-green-600 bg-green-100 dark:bg-green-950 dark:border-green-800 m-0 mr-5"
             disabled
@@ -158,13 +178,26 @@ const confirmCancelPlayback = async () => {
 
         <div class="m-auto p-2" v-else>
           <button
-            v-if="can(RoomMemberPermission.PermissionSetCurrentMovie)"
+            v-if="can(RoomMemberPermission.PermissionSetCurrentMovie) && !item.base?.isFolder"
             class="btn btn-dense m-0 mr-1"
             @click="changeCurrentMovie(item['id'])"
           >
             播放
             <PlayIcon class="inline-block" width="18px" />
           </button>
+
+          <button
+            v-if="can(RoomMemberPermission.PermissionSetCurrentMovie) && item.base?.isFolder"
+            class="btn btn-dense m-0 mr-1"
+            @click="switchDir(item['id'], item.subPath)"
+          >
+            进入
+            <el-icon width="18px">
+              <FolderOpened />
+            </el-icon>
+            <FolderOpenedIcon class="inline-block" width="18px" />
+          </button>
+
           <button
             v-if="can(RoomMemberPermission.PermissionEditMovie)"
             class="btn btn-dense btn-warning m-0 mr-1"
