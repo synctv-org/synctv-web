@@ -118,28 +118,25 @@ const submit = async () => {
     if (selectedItems.value.length === 0) return ElMessage.error("请选择视频");
     await reqPushMoviesApi({
       headers: { Authorization: Props.token },
-      data: {
-        ...selectedItems.value.map(
-          (item) =>
-            <BaseMovieInfo>{
-              name: item.name,
-              proxy: item.proxy,
-              live: item.live,
-              vendorInfo: {
-                vendor: "bilibili",
-                bilibili: {
-                  bvid: item.bvid,
-                  cid: item.cid,
-                  epid: item.epid,
-                  shared: item.shared
-                },
-                backend: Props.vendor
-              }
-            }
-        ),
-        id: room.movieList[room.movieList.length - 1].id,
-        subPath: room.movieList[room.movieList.length - 1].subPath
-      }
+      data: selectedItems.value.map(
+        (item) =>
+          <BaseMovieInfo>{
+            name: item.name,
+            proxy: item.proxy,
+            live: item.live,
+            vendorInfo: {
+              vendor: "bilibili",
+              bilibili: {
+                bvid: item.bvid,
+                cid: item.cid,
+                epid: item.epid,
+                shared: item.shared
+              },
+              backend: Props.vendor
+            },
+            parentId: room.movieList[room.movieList.length - 1].id
+          }
+      )
     });
     open.value = false;
     selectedItems.value = [];
