@@ -4,6 +4,7 @@ import { ElNotification, ElMessage } from "element-plus";
 import type { BaseMovieInfo, BilibiliVideoInfos } from "@/types/Movie";
 import { parseBiliBiliVideo } from "@/services/apis/vendor";
 import { pushMoviesApi } from "@/services/apis/movie";
+import { roomStore } from "@/stores/room";
 import { userStore } from "@/stores/user";
 
 const Props = defineProps<{
@@ -11,6 +12,8 @@ const Props = defineProps<{
   token: string;
   vendor: string;
 }>();
+
+const room = roomStore();
 
 // 获取房间信息
 const { token: userToken } = userStore();
@@ -115,24 +118,28 @@ const submit = async () => {
     if (selectedItems.value.length === 0) return ElMessage.error("请选择视频");
     await reqPushMoviesApi({
       headers: { Authorization: Props.token },
-      data: selectedItems.value.map(
-        (item) =>
-          <BaseMovieInfo>{
-            name: item.name,
-            proxy: item.proxy,
-            live: item.live,
-            vendorInfo: {
-              vendor: "bilibili",
-              bilibili: {
-                bvid: item.bvid,
-                cid: item.cid,
-                epid: item.epid,
-                shared: item.shared
-              },
-              backend: Props.vendor
+      data: {
+        ...selectedItems.value.map(
+          (item) =>
+            <BaseMovieInfo>{
+              name: item.name,
+              proxy: item.proxy,
+              live: item.live,
+              vendorInfo: {
+                vendor: "bilibili",
+                bilibili: {
+                  bvid: item.bvid,
+                  cid: item.cid,
+                  epid: item.epid,
+                  shared: item.shared
+                },
+                backend: Props.vendor
+              }
             }
-          }
-      )
+        ),
+        id: room.movieList[room.movieList.length - 1].id,
+        subPath: room.movieList[room.movieList.length - 1].subPath
+      }
     });
     open.value = false;
     selectedItems.value = [];

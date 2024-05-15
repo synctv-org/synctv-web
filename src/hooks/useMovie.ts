@@ -52,7 +52,9 @@ export const useMovieApi = (roomToken: string) => {
 
   // 获取影片列表
   const { state: movies, isLoading: moviesLoading, execute: reqMoviesApi } = moviesApi();
-  const getMovies = async (id = "", subPath = "") => {
+  const getMovies = async (id?: string, subPath?: string) => {
+    id = id || room.movieList[room.movieList.length - 1].id;
+    subPath = subPath || room.movieList[room.movieList.length - 1].subPath;
     try {
       await reqMoviesApi({
         params: {
