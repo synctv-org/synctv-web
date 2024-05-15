@@ -294,11 +294,11 @@ const confirmCancelPlayback = async () => {
           width="220"
           confirm-button-text="是"
           cancel-button-text="否"
-          title="你确定要清空影片列表吗？!"
+          title="你确定要清空当前目录吗？!"
           @confirm="confirmClear"
         >
           <template #reference>
-            <button class="btn btn-error mx-2">清空列表</button>
+            <button class="btn btn-error mx-2">清空当前目录</button>
           </template>
         </el-popconfirm>
         <button

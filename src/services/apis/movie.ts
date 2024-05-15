@@ -144,6 +144,9 @@ export const changeCurrentMovieApi = useDefineApi<
 export const clearMovieListApi = useDefineApi<
   {
     headers: { Authorization: string };
+    data?: {
+      parentId: string;
+    };
   },
   {}
 >({

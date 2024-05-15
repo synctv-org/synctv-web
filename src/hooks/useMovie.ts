@@ -276,7 +276,10 @@ export const useMovieApi = (roomToken: string) => {
   const clearMovieList = async () => {
     try {
       await reqClearMovieListApi({
-        headers: { Authorization: roomToken }
+        headers: { Authorization: roomToken },
+        data: {
+          parentId: room.movieList[room.movieList.length - 1].id
+        }
       });
       await changeCurrentMovie("", false);
       ElNotification({
