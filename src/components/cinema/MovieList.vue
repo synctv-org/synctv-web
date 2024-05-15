@@ -49,7 +49,8 @@ const {
   liveInfo,
   subPath,
   movieList,
-  switchDir
+  switchDir,
+  dynamic
 } = useMovieApi(roomToken.value);
 
 // 打开编辑对话框
@@ -108,7 +109,7 @@ const confirmCancelPlayback = async () => {
         class="flex justify-around mb-2 rounded-lg bg-zinc-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800"
       >
         <div class="m-auto pl-2">
-          <input v-model="selectMovies" type="checkbox" :value="item['id']" />
+          <input v-show="!dynamic" v-model="selectMovies" type="checkbox" :value="item['id']" />
         </div>
         <div class="overflow-hidden text-ellipsis mr-auto p-2 w-7/12">
           <b class="block text-base font-semibold" :title="`ID: ${item.id}`">
@@ -180,7 +181,7 @@ const confirmCancelPlayback = async () => {
           <button
             v-if="can(RoomMemberPermission.PermissionSetCurrentMovie) && !item.base?.isFolder"
             class="btn btn-dense m-0 mr-1"
-            @click="changeCurrentMovie(item['id'])"
+            @click="changeCurrentMovie(item['id'], true, item.subPath)"
           >
             播放
             <PlayIcon class="inline-block" width="18px" />
@@ -199,7 +200,7 @@ const confirmCancelPlayback = async () => {
           </button>
 
           <button
-            v-if="can(RoomMemberPermission.PermissionEditMovie)"
+            v-if="can(RoomMemberPermission.PermissionEditMovie) && !dynamic"
             class="btn btn-dense btn-warning m-0 mr-1"
             @click="openEditDialog(item)"
           >
@@ -207,7 +208,7 @@ const confirmCancelPlayback = async () => {
             <EditIcon class="inline-block" width="16px" height="16px" />
           </button>
           <el-popconfirm
-            v-if="can(RoomMemberPermission.PermissionDeleteMovie)"
+            v-if="can(RoomMemberPermission.PermissionDeleteMovie) && !dynamic"
             width="220"
             confirm-button-text="是"
             cancel-button-text="否"
@@ -256,8 +257,12 @@ const confirmCancelPlayback = async () => {
         :pager-count="5"
         layout="sizes, prev, pager, next, jumper"
         :total="room.totalMovies"
-        @size-change="getMovies()"
-        @current-change="getMovies()"
+        @size-change="
+          getMovies(movieList[movieList.length - 1].id, movieList[movieList.length - 1].subPath)
+        "
+        @current-change="
+          getMovies(movieList[movieList.length - 1].id, movieList[movieList.length - 1].subPath)
+        "
       />
 
       <div></div>
@@ -279,7 +284,7 @@ const confirmCancelPlayback = async () => {
           </template>
         </el-popconfirm>
         <el-popconfirm
-          v-if="can(RoomMemberPermission.PermissionDeleteMovie)"
+          v-if="can(RoomMemberPermission.PermissionDeleteMovie) && !dynamic"
           width="220"
           confirm-button-text="是"
           cancel-button-text="否"
@@ -290,7 +295,14 @@ const confirmCancelPlayback = async () => {
             <button class="btn btn-error mx-2">清空列表</button>
           </template>
         </el-popconfirm>
-        <button class="btn btn-success" @click="getMovies()">更新列表</button>
+        <button
+          class="btn btn-success"
+          @click="
+            getMovies(movieList[movieList.length - 1].id, movieList[movieList.length - 1].subPath)
+          "
+        >
+          更新列表
+        </button>
       </div>
     </div>
   </div>

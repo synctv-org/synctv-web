@@ -38,6 +38,7 @@ export const moviesApi = useDefineApi<
   {
     movies: MovieInfo[] | [];
     total: number;
+    dynamic: boolean;
   }
 >({
   url: "/api/movie/movies",

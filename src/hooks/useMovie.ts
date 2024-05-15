@@ -21,6 +21,7 @@ export const useMovieApi = (roomToken: string) => {
   // 获取影片列表和正在播放的影片
   const currentPage = ref(1);
   const pageSize = ref(10);
+  const dynamic = ref(false);
 
   const movieList = ref<
     {
@@ -81,6 +82,7 @@ export const useMovieApi = (roomToken: string) => {
         room.movies = movies.value.movies;
         room.totalMovies = movies.value.total;
       }
+      dynamic.value = movies.value?.dynamic || false;
     } catch (err: any) {
       console.log(err);
       ElNotification({
@@ -165,12 +167,12 @@ export const useMovieApi = (roomToken: string) => {
   // 设置当前正在播放的影片
   const { execute: reqChangeCurrentMovieApi, isLoading: changeCurrentMovieLoading } =
     changeCurrentMovieApi();
-  const changeCurrentMovie = async (id: string, showMsg = true) => {
+  const changeCurrentMovie = async (id: string, showMsg = true, subPath = "") => {
     try {
       await reqChangeCurrentMovieApi({
         data: {
           id: id,
-          subPath: room.movies.find((movie) => movie.id === id)?.subPath
+          subPath: subPath
         },
         headers: { Authorization: roomToken }
       });
@@ -357,6 +359,7 @@ export const useMovieApi = (roomToken: string) => {
     getLiveInfo,
     liveInfo,
 
-    switchDir
+    switchDir,
+    dynamic
   };
 };
