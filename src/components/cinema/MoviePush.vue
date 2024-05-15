@@ -285,7 +285,7 @@ const selectPushType = () => {
         url: newMovieInfo.value.url,
         name: newMovieInfo.value.name,
         type: movieTypeRecords.get(selectedMovieType.value)?.defaultType || "",
-        proxy: true,
+        proxy: false,
         live: false,
         rtmpSource: false,
         headers: {},
