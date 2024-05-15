@@ -37,6 +37,7 @@ export interface BaseMovieInfo {
   vendorInfo?: VendorInfo;
   subtitles?: Subtitles;
   isFolder?: boolean;
+  parentId?: string;
 }
 
 export interface EditMovieInfo extends BaseMovieInfo {

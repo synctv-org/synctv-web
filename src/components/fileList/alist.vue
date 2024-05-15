@@ -5,6 +5,7 @@ import index from "./index.vue";
 import { getAListFileList } from "@/services/apis/vendor";
 import { pushMoviesApi } from "@/services/apis/movie";
 import { userStore } from "@/stores/user";
+import { roomStore } from "@/stores/room";
 import type { BaseMovieInfo } from "@/types/Movie";
 import type { FileItem } from "@/types/Vendor";
 
@@ -16,6 +17,8 @@ interface AListItem extends FileItem {
 const props = defineProps<{
   roomToken: string;
 }>();
+
+const room = roomStore();
 
 const FileList = ref<InstanceType<typeof index>>();
 const { token: userToken } = userStore();
@@ -72,7 +75,8 @@ const submit = async () => {
                 path: item.path
               }
             },
-            isFolder: item.isDir
+            isFolder: item.isDir,
+            parentId: room.movieList[room.movieList.length - 1].id
           }
       )
     });

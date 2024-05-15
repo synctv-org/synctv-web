@@ -48,7 +48,7 @@ const {
   getLiveInfo,
   liveInfo,
   subPath,
-  movieList,
+  // movieList,
   switchDir,
   dynamic
 } = useMovieApi(roomToken.value);
@@ -94,7 +94,7 @@ const confirmCancelPlayback = async () => {
 
     <div class="card-body">
       <el-breadcrumb :separator-icon="ArrowRight">
-        <el-breadcrumb-item v-for="item in movieList" :key="item.id">
+        <el-breadcrumb-item v-for="item in room.movieList" :key="item.id">
           <el-button link @click="switchDir(item.id, item.subPath)">
             {{ item.label }}
           </el-button>
@@ -258,10 +258,16 @@ const confirmCancelPlayback = async () => {
         layout="sizes, prev, pager, next, jumper"
         :total="room.totalMovies"
         @size-change="
-          getMovies(movieList[movieList.length - 1].id, movieList[movieList.length - 1].subPath)
+          getMovies(
+            room.movieList[room.movieList.length - 1].id,
+            room.movieList[room.movieList.length - 1].subPath
+          )
         "
         @current-change="
-          getMovies(movieList[movieList.length - 1].id, movieList[movieList.length - 1].subPath)
+          getMovies(
+            room.movieList[room.movieList.length - 1].id,
+            room.movieList[room.movieList.length - 1].subPath
+          )
         "
       />
 
@@ -298,7 +304,10 @@ const confirmCancelPlayback = async () => {
         <button
           class="btn btn-success"
           @click="
-            getMovies(movieList[movieList.length - 1].id, movieList[movieList.length - 1].subPath)
+            getMovies(
+              room.movieList[room.movieList.length - 1].id,
+              room.movieList[room.movieList.length - 1].subPath
+            )
           "
         >
           更新列表

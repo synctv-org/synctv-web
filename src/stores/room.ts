@@ -59,6 +59,20 @@ export const roomStore = defineStore("roomStore", () => {
   // 在线人数
   const peopleNum = ref(1);
 
+  const movieList = ref<
+    {
+      label: string;
+      subPath: string;
+      id: string;
+    }[]
+  >([
+    {
+      label: "根目录",
+      subPath: "",
+      id: ""
+    }
+  ]);
+
   return {
     isDarkMode,
     movies,
@@ -71,6 +85,7 @@ export const roomStore = defineStore("roomStore", () => {
     login,
     myInfo,
     roomID,
-    roomToken
+    roomToken,
+    movieList
   };
 });

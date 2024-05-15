@@ -23,28 +23,14 @@ export const useMovieApi = (roomToken: string) => {
   const pageSize = ref(10);
   const dynamic = ref(false);
 
-  const movieList = ref<
-    {
-      label: string;
-      subPath: string;
-      id: string;
-    }[]
-  >([
-    {
-      label: "根目录",
-      subPath: "",
-      id: ""
-    }
-  ]);
-
   const subPath = computed(() => {
-    return movieList.value && movieList.value[movieList.value.length - 1].subPath;
+    return room.movieList && room.movieList[room.movieList.length - 1].subPath;
   });
 
   const switchDir = (id: string, subPath: string) => {
-    if (!movieList.value) return;
+    if (!room.movieList) return;
 
-    const file = movieList.value
+    const file = room.movieList
       .filter((item) => item.id === id)
       .find((item) => item.subPath === subPath);
 
@@ -52,13 +38,13 @@ export const useMovieApi = (roomToken: string) => {
       const movie = room.movies
         .filter((movie) => movie.id === id)
         .find((movie) => movie.subPath === subPath);
-      movieList.value.push({
+      room.movieList.push({
         label: movie?.base.name || "",
         subPath: movie?.subPath || "",
         id: movie?.id || ""
       });
     } else {
-      movieList.value = movieList.value.slice(0, movieList.value.indexOf(file) + 1);
+      room.movieList = room.movieList.slice(0, room.movieList.indexOf(file) + 1);
     }
     currentPage.value = 1;
     return getMovies(id, subPath);
@@ -329,7 +315,7 @@ export const useMovieApi = (roomToken: string) => {
     currentPage,
     pageSize,
     subPath,
-    movieList,
+    // movieList,
 
     getMovies,
     movies,
