@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { ElNotification } from "element-plus";
 import { roomStore } from "@/stores/room";
 import {
@@ -21,15 +21,47 @@ export const useMovieApi = (roomToken: string) => {
   // 获取影片列表和正在播放的影片
   const currentPage = ref(1);
   const pageSize = ref(10);
+  const dynamic = ref(false);
+
+  const subPath = computed(() => {
+    return room.movieList && room.movieList[room.movieList.length - 1].subPath;
+  });
+
+  const switchDir = (id: string, subPath: string) => {
+    if (!room.movieList) return;
+
+    const file = room.movieList
+      .filter((item) => item.id === id)
+      .find((item) => item.subPath === subPath);
+
+    if (!file) {
+      const movie = room.movies
+        .filter((movie) => movie.id === id)
+        .find((movie) => movie.subPath === subPath);
+      room.movieList.push({
+        label: movie?.base.name || "",
+        subPath: movie?.subPath || "",
+        id: movie?.id || ""
+      });
+    } else {
+      room.movieList = room.movieList.slice(0, room.movieList.indexOf(file) + 1);
+    }
+    currentPage.value = 1;
+    return getMovies(id, subPath);
+  };
 
   // 获取影片列表
   const { state: movies, isLoading: moviesLoading, execute: reqMoviesApi } = moviesApi();
-  const getMovies = async () => {
+  const getMovies = async (id?: string, subPath?: string) => {
+    id = id || room.movieList[room.movieList.length - 1].id;
+    subPath = subPath || room.movieList[room.movieList.length - 1].subPath;
     try {
       await reqMoviesApi({
         params: {
           page: currentPage.value,
-          max: pageSize.value
+          max: pageSize.value,
+          subPath,
+          id
         },
         headers: { Authorization: roomToken }
       });
@@ -38,6 +70,7 @@ export const useMovieApi = (roomToken: string) => {
         room.movies = movies.value.movies;
         room.totalMovies = movies.value.total;
       }
+      dynamic.value = movies.value?.dynamic || false;
     } catch (err: any) {
       console.log(err);
       ElNotification({
@@ -122,11 +155,12 @@ export const useMovieApi = (roomToken: string) => {
   // 设置当前正在播放的影片
   const { execute: reqChangeCurrentMovieApi, isLoading: changeCurrentMovieLoading } =
     changeCurrentMovieApi();
-  const changeCurrentMovie = async (id: string, showMsg = true) => {
+  const changeCurrentMovie = async (id: string, showMsg = true, subPath = "") => {
     try {
       await reqChangeCurrentMovieApi({
         data: {
-          id: id
+          id: id,
+          subPath: subPath
         },
         headers: { Authorization: roomToken }
       });
@@ -242,9 +276,12 @@ export const useMovieApi = (roomToken: string) => {
   const clearMovieList = async () => {
     try {
       await reqClearMovieListApi({
-        headers: { Authorization: roomToken }
+        headers: { Authorization: roomToken },
+        data: {
+          parentId: room.movieList[room.movieList.length - 1].id
+        }
       });
-      await changeCurrentMovie("", false);
+
       ElNotification({
         title: "已清空",
         type: "success"
@@ -282,6 +319,8 @@ export const useMovieApi = (roomToken: string) => {
   return {
     currentPage,
     pageSize,
+    subPath,
+    // movieList,
 
     getMovies,
     movies,
@@ -309,6 +348,9 @@ export const useMovieApi = (roomToken: string) => {
     clearMovieListLoading,
 
     getLiveInfo,
-    liveInfo
+    liveInfo,
+
+    switchDir,
+    dynamic
   };
 };

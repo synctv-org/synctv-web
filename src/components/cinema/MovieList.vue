@@ -10,6 +10,8 @@ import customHeaders from "@/components/cinema/dialogs/customHeaders.vue";
 import customSubtitles from "@/components/cinema/dialogs/customSubtitles.vue";
 import { RoomMemberPermission } from "@/types/Room";
 
+import { ArrowRight, FolderOpened } from "@element-plus/icons-vue";
+
 const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
 const customSubtitlesDialog = ref<InstanceType<typeof customSubtitles>>();
 
@@ -44,7 +46,11 @@ const {
   clearMovieList,
   clearMovieListLoading,
   getLiveInfo,
-  liveInfo
+  liveInfo,
+  subPath,
+  // movieList,
+  switchDir,
+  dynamic
 } = useMovieApi(roomToken.value);
 
 // 打开编辑对话框
@@ -87,6 +93,14 @@ const confirmCancelPlayback = async () => {
     <div class="card-title">影片列表（{{ room.totalMovies }}）</div>
 
     <div class="card-body">
+      <el-breadcrumb :separator-icon="ArrowRight">
+        <el-breadcrumb-item v-for="item in room.movieList" :key="item.id">
+          <el-button link @click="switchDir(item.id, item.subPath)">
+            {{ item.label }}
+          </el-button>
+        </el-breadcrumb-item>
+      </el-breadcrumb>
+
       <el-skeleton v-if="moviesLoading" :rows="1" animated />
       <div
         v-else
@@ -95,7 +109,7 @@ const confirmCancelPlayback = async () => {
         class="flex justify-around mb-2 rounded-lg bg-zinc-50 hover:bg-white transition-all dark:bg-zinc-800 hover:dark:bg-neutral-800"
       >
         <div class="m-auto pl-2">
-          <input v-model="selectMovies" type="checkbox" :value="item['id']" />
+          <input v-show="!dynamic" v-model="selectMovies" type="checkbox" :value="item['id']" />
         </div>
         <div class="overflow-hidden text-ellipsis mr-auto p-2 w-7/12">
           <b class="block text-base font-semibold" :title="`ID: ${item.id}`">
@@ -131,7 +145,14 @@ const confirmCancelPlayback = async () => {
           <small class="truncate">{{ item.base!.url || item.id }}</small>
         </div>
 
-        <div class="m-auto p-2" v-if="room.currentMovie.id === item.id">
+        <div
+          class="m-auto p-2"
+          v-if="
+            room.currentMovie.id === item.id &&
+            !item.base?.isFolder &&
+            item.subPath === room.currentMovie.subPath
+          "
+        >
           <button
             class="btn btn-dense btn-success border-green-500 text-green-600 bg-green-100 dark:bg-green-950 dark:border-green-800 m-0 mr-5"
             disabled
@@ -158,15 +179,28 @@ const confirmCancelPlayback = async () => {
 
         <div class="m-auto p-2" v-else>
           <button
-            v-if="can(RoomMemberPermission.PermissionSetCurrentMovie)"
+            v-if="can(RoomMemberPermission.PermissionSetCurrentMovie) && !item.base?.isFolder"
             class="btn btn-dense m-0 mr-1"
-            @click="changeCurrentMovie(item['id'])"
+            @click="changeCurrentMovie(item['id'], true, item.subPath)"
           >
             播放
             <PlayIcon class="inline-block" width="18px" />
           </button>
+
           <button
-            v-if="can(RoomMemberPermission.PermissionEditMovie)"
+            v-if="can(RoomMemberPermission.PermissionSetCurrentMovie) && item.base?.isFolder"
+            class="btn btn-dense m-0 mr-1"
+            @click="switchDir(item['id'], item.subPath)"
+          >
+            进入
+            <el-icon width="18px">
+              <FolderOpened />
+            </el-icon>
+            <FolderOpenedIcon class="inline-block" width="18px" />
+          </button>
+
+          <button
+            v-if="can(RoomMemberPermission.PermissionEditMovie) && !dynamic"
             class="btn btn-dense btn-warning m-0 mr-1"
             @click="openEditDialog(item)"
           >
@@ -174,7 +208,7 @@ const confirmCancelPlayback = async () => {
             <EditIcon class="inline-block" width="16px" height="16px" />
           </button>
           <el-popconfirm
-            v-if="can(RoomMemberPermission.PermissionDeleteMovie)"
+            v-if="can(RoomMemberPermission.PermissionDeleteMovie) && !dynamic"
             width="220"
             confirm-button-text="是"
             cancel-button-text="否"
@@ -223,8 +257,18 @@ const confirmCancelPlayback = async () => {
         :pager-count="5"
         layout="sizes, prev, pager, next, jumper"
         :total="room.totalMovies"
-        @size-change="getMovies()"
-        @current-change="getMovies()"
+        @size-change="
+          getMovies(
+            room.movieList[room.movieList.length - 1].id,
+            room.movieList[room.movieList.length - 1].subPath
+          )
+        "
+        @current-change="
+          getMovies(
+            room.movieList[room.movieList.length - 1].id,
+            room.movieList[room.movieList.length - 1].subPath
+          )
+        "
       />
 
       <div></div>
@@ -246,18 +290,28 @@ const confirmCancelPlayback = async () => {
           </template>
         </el-popconfirm>
         <el-popconfirm
-          v-if="can(RoomMemberPermission.PermissionDeleteMovie)"
+          v-if="can(RoomMemberPermission.PermissionDeleteMovie) && !dynamic"
           width="220"
           confirm-button-text="是"
           cancel-button-text="否"
-          title="你确定要清空影片列表吗？!"
+          title="你确定要清空当前目录吗？!"
           @confirm="confirmClear"
         >
           <template #reference>
-            <button class="btn btn-error mx-2">清空列表</button>
+            <button class="btn btn-error mx-2">清空当前目录</button>
           </template>
         </el-popconfirm>
-        <button class="btn btn-success" @click="getMovies()">更新列表</button>
+        <button
+          class="btn btn-success"
+          @click="
+            getMovies(
+              room.movieList[room.movieList.length - 1].id,
+              room.movieList[room.movieList.length - 1].subPath
+            )
+          "
+        >
+          更新列表
+        </button>
       </div>
     </div>
   </div>

@@ -4,6 +4,7 @@ import { ElNotification, ElMessage } from "element-plus";
 import type { BaseMovieInfo, BilibiliVideoInfos } from "@/types/Movie";
 import { parseBiliBiliVideo } from "@/services/apis/vendor";
 import { pushMoviesApi } from "@/services/apis/movie";
+import { roomStore } from "@/stores/room";
 import { userStore } from "@/stores/user";
 
 const Props = defineProps<{
@@ -11,6 +12,8 @@ const Props = defineProps<{
   token: string;
   vendor: string;
 }>();
+
+const room = roomStore();
 
 // 获取房间信息
 const { token: userToken } = userStore();
@@ -130,7 +133,8 @@ const submit = async () => {
                 shared: item.shared
               },
               backend: Props.vendor
-            }
+            },
+            parentId: room.movieList[room.movieList.length - 1].id
           }
       )
     });

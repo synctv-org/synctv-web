@@ -5,6 +5,7 @@ export interface MovieInfo {
   base: BaseMovieInfo;
   createdAt: number;
   creator: string;
+  subPath: string;
 }
 
 export interface CurrentMovie {
@@ -35,6 +36,8 @@ export interface BaseMovieInfo {
   };
   vendorInfo?: VendorInfo;
   subtitles?: Subtitles;
+  isFolder?: boolean;
+  parentId?: string;
 }
 
 export interface EditMovieInfo extends BaseMovieInfo {

@@ -322,7 +322,10 @@ const handleElementMessage = (msg: ElementMessage) => {
 
     // 播放列表更新
     case ElementMessageType.MOVIES_CHANGED: {
-      getMovies();
+      getMovies(
+        room.movieList[room.movieList.length - 1].id,
+        room.movieList[room.movieList.length - 1].subPath
+      );
       break;
     }
 
@@ -485,7 +488,15 @@ onMounted(async () => {
       :xs="24"
       class="mb-5 max-sm:mb-2"
     >
-      <MoviePush @getMovies="getMovies()" :token="roomToken" />
+      <MoviePush
+        @getMovies="
+          getMovies(
+            room.movieList[room.movieList.length - 1].id,
+            room.movieList[room.movieList.length - 1].subPath
+          )
+        "
+        :token="roomToken"
+      />
     </el-col>
   </el-row>
 </template>

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { ElNotification } from "element-plus";
 import type { BaseMovieInfo } from "@/types/Movie";
 import { strLengthLimit } from "@/utils";
 import { pushMovieApi } from "@/services/apis/movie";
+import { roomStore } from "@/stores/room";
 import { getVendorBackends as biliBiliBackends } from "@/services/apis/vendor";
 import customHeaders from "@/components/cinema/dialogs/customHeaders.vue";
 import customSubtitles from "@/components/cinema/dialogs/customSubtitles.vue";
@@ -23,6 +24,8 @@ const Props = defineProps<{
   token: string;
 }>();
 
+const room = roomStore();
+
 // 新影片信息
 const newMovieInfo = ref<BaseMovieInfo>({
   url: "",
@@ -31,11 +34,13 @@ const newMovieInfo = ref<BaseMovieInfo>({
   proxy: false,
   live: false,
   rtmpSource: false,
-  headers: {}
+  headers: {},
+  isFolder: false
 });
 
 enum pushType {
   MOVIE = 0,
+  DIR,
   LIVE,
   PROXY_LIVE,
   RTMP_SOURCE,
@@ -169,6 +174,17 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
       defaultType: "",
       allowedTypes: []
     }
+  ],
+  [
+    pushType.DIR,
+    {
+      name: "文件夹",
+      comment: "新建普通文件夹",
+      showProxy: false,
+      defaultType: "",
+      allowedTypes: [],
+      isFolder: true
+    }
   ]
 ]);
 
@@ -264,6 +280,18 @@ const selectPushType = () => {
         }
       };
       break;
+    case pushType.DIR:
+      newMovieInfo.value = {
+        url: newMovieInfo.value.url,
+        name: newMovieInfo.value.name,
+        type: movieTypeRecords.get(selectedMovieType.value)?.defaultType || "",
+        proxy: false,
+        live: false,
+        rtmpSource: false,
+        headers: {},
+        isFolder: true
+      };
+      break;
   }
 
   newMovieInfo.value.type = movieTypeRecords.get(selectedMovieType.value)?.defaultType || "";
@@ -294,7 +322,7 @@ const biliParse = () => {
 // 把视频链接添加到列表
 const { execute: reqPushMovieApi } = pushMovieApi();
 const pushMovie = async () => {
-  if (newMovieInfo.value.live) {
+  if (newMovieInfo.value.live || newMovieInfo.value.isFolder) {
     if (newMovieInfo.value.name === "")
       return ElNotification({
         title: "添加失败",
@@ -319,7 +347,10 @@ const pushMovie = async () => {
       strLengthLimit(key, 32);
     }
     await reqPushMovieApi({
-      data: newMovieInfo.value,
+      data: {
+        ...newMovieInfo.value,
+        parentId: room.movieList[room.movieList.length - 1].id
+      },
       headers: { Authorization: Props.token }
     });
 
@@ -410,6 +441,16 @@ const getBiliBiliVendors = async () => {
           v-model="newMovieInfo.url"
         />
       </div>
+
+      <div class="w-full" v-if="selectedMovieType === pushType.DIR">
+        <input
+          type="text"
+          placeholder="文件夹名"
+          class="l-input-slate mb-2 w-full"
+          v-model="newMovieInfo.name"
+        />
+      </div>
+
       <div class="w-full" v-if="selectedMovieType === pushType.RTMP_SOURCE">
         <input
           type="text"
@@ -437,7 +478,7 @@ const getBiliBiliVendors = async () => {
         </div>
       </div>
     </div>
-    <div class="mx-5" v-if="!newMovieInfo.vendorInfo?.vendor">
+    <div class="mx-5" v-if="!newMovieInfo.vendorInfo?.vendor && selectedMovieType != pushType.DIR">
       <el-collapse @change="" class="bg-transparent" style="background: #aaa0 !important">
         <el-collapse-item>
           <template #title><div class="text-base font-medium">高级选项</div></template>

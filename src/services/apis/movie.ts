@@ -30,12 +30,15 @@ export const moviesApi = useDefineApi<
     params: {
       page: number;
       max: number;
+      subPath?: string;
+      id?: string;
     };
     headers: { Authorization: string };
   },
   {
     movies: MovieInfo[] | [];
     total: number;
+    dynamic: boolean;
   }
 >({
   url: "/api/movie/movies",
@@ -128,6 +131,7 @@ export const changeCurrentMovieApi = useDefineApi<
     headers: { Authorization: string };
     data: {
       id: string;
+      subPath?: string;
     };
   },
   {}
@@ -140,6 +144,9 @@ export const changeCurrentMovieApi = useDefineApi<
 export const clearMovieListApi = useDefineApi<
   {
     headers: { Authorization: string };
+    data?: {
+      parentId: string;
+    };
   },
   {}
 >({
