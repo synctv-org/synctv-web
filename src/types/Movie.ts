@@ -21,11 +21,15 @@ export interface Subtitles {
   };
 }
 
+export interface MoreSource {
+  name: string;
+  url: string;
+  type: string;
+}
+
 export interface BaseMovieInfo {
   url: string;
-  moreSource?: {
-    [key: string]: string;
-  };
+  moreSources?: MoreSource[];
   name: string;
   live: boolean;
   proxy: boolean;

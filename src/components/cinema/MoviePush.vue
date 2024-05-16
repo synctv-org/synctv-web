@@ -52,6 +52,7 @@ enum pushType {
 interface movieTypeRecord {
   name: string;
   comment: string;
+  advanced: boolean;
   showProxy: boolean;
   defaultType: string;
   allowedTypes: Array<{ name: string; value: string }>;
@@ -63,6 +64,7 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
     {
       name: "视频直链",
       comment: "",
+      advanced: true,
       showProxy: true,
       defaultType: "",
       allowedTypes: [
@@ -98,6 +100,7 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
     {
       name: "直播流",
       comment: "",
+      advanced: true,
       showProxy: false,
       defaultType: "",
       allowedTypes: [
@@ -121,6 +124,7 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
     {
       name: "代理直播流",
       comment: "仅支持rtmp和flv代理",
+      advanced: true,
       showProxy: false,
       defaultType: "",
       allowedTypes: []
@@ -131,18 +135,10 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
     {
       name: "创建直播",
       comment: "用户可自行推流",
+      advanced: false,
       showProxy: false,
       defaultType: "flv",
-      allowedTypes: [
-        {
-          name: "flv",
-          value: "flv"
-        },
-        {
-          name: "m3u8",
-          value: "m3u8"
-        }
-      ]
+      allowedTypes: []
     }
   ],
   [
@@ -150,6 +146,7 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
     {
       name: "哔哩哔哩",
       comment: "解析Bilibili视频",
+      advanced: false,
       showProxy: false,
       defaultType: "",
       allowedTypes: []
@@ -160,6 +157,7 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
     {
       name: "AList",
       comment: "解析 AList 视频",
+      advanced: false,
       showProxy: false,
       defaultType: "",
       allowedTypes: []
@@ -170,6 +168,7 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
     {
       name: "Emby",
       comment: "解析 Emby 视频",
+      advanced: false,
       showProxy: false,
       defaultType: "",
       allowedTypes: []
@@ -179,7 +178,8 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
     pushType.DIR,
     {
       name: "文件夹",
-      comment: "新建普通文件夹",
+      comment: "新建文件夹",
+      advanced: false,
       showProxy: false,
       defaultType: "",
       allowedTypes: [],
@@ -235,6 +235,7 @@ const selectPushType = () => {
         rtmpSource: false,
         headers: {}
       };
+      break;
     case pushType.BILIBILI:
       newMovieInfo.value = {
         url: newMovieInfo.value.url,
@@ -478,7 +479,7 @@ const getBiliBiliVendors = async () => {
         </div>
       </div>
     </div>
-    <div class="mx-5" v-if="!newMovieInfo.vendorInfo?.vendor && selectedMovieType != pushType.DIR">
+    <div class="mx-5" v-if="movieTypeRecords.get(selectedMovieType)?.advanced">
       <el-collapse @change="" class="bg-transparent" style="background: #aaa0 !important">
         <el-collapse-item>
           <template #title><div class="text-base font-medium">高级选项</div></template>

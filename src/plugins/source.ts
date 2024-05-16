@@ -1,8 +1,9 @@
 import type Artplayer from "artplayer";
 
 interface artplayPluginSource {
-  url: string;
   html: string;
+  url: string;
+  type: string;
 }
 
 export function artplayPluginSource(option: artplayPluginSource[]) {
@@ -16,6 +17,7 @@ export function artplayPluginSource(option: artplayPluginSource[]) {
         art.once("video:canplay", () => {
           art.plugins["syncPlugin"].setAndNoPublishStatus(status);
         });
+        art.option.type = item.type;
         art.url = item.url;
         return "源";
       }

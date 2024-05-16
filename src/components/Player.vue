@@ -67,7 +67,7 @@ const Props = defineProps({
 
 const Emits = defineEmits(["get-instance"]);
 
-const playMpd = async (player: HTMLMediaElement, url: string, art: any) => {
+const playMpd = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
   const dashjs = await import("dashjs");
 
   if (!dashjs.supportsMediaSource()) {
@@ -75,13 +75,13 @@ const playMpd = async (player: HTMLMediaElement, url: string, art: any) => {
     return;
   }
 
-  if (art.dash) art.dash.destroy();
+  if (art.mpd) art.mpd.destroy();
 
   if (!art.plugins.artplayerPluginDashQuality) art.plugins.add(newDashQualityPlugin());
 
   const d = dashjs.MediaPlayer().create();
   d.initialize(player, url, false);
-  art.dash = d;
+  art.mpd = d;
   art.on("destroy", d.destroy);
 };
 

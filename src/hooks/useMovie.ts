@@ -91,7 +91,6 @@ export const useMovieApi = (roomToken: string) => {
 
       if (!currentMovie.value) return;
 
-      room.currentMovie = currentMovie.value.movie;
       room.currentStatus = currentMovie.value.status;
       room.currentExpireId = currentMovie.value.expireId;
 
@@ -99,10 +98,16 @@ export const useMovieApi = (roomToken: string) => {
         currentMovie.value.movie.base.url = `${window.location.origin}${currentMovie.value.movie.base.url}`;
       }
 
-      for (let key in currentMovie.value.movie.base.moreSource) {
-        if (currentMovie.value.movie.base.moreSource[key].startsWith("/")) {
-          currentMovie.value.movie.base.moreSource[key] =
-            `${window.location.origin}${currentMovie.value.movie.base.moreSource[key]}`;
+      // 遍历currentMovie.value.movie.base.moreSources，moreSources是数组，而不是对象
+      if (
+        currentMovie.value.movie.base.moreSources &&
+        currentMovie.value.movie.base.moreSources.length > 0
+      ) {
+        for (let i = 0; i < currentMovie.value.movie.base.moreSources.length; i++) {
+          if (currentMovie.value.movie.base.moreSources[i].url.startsWith("/")) {
+            currentMovie.value.movie.base.moreSources[i].url =
+              `${window.location.origin}${currentMovie.value.movie.base.moreSources[i].url}`;
+          }
         }
       }
 
@@ -112,7 +117,7 @@ export const useMovieApi = (roomToken: string) => {
             `${window.location.origin}${currentMovie.value.movie.base.subtitles[key].url}`;
         }
       }
-      room.currentMovie.base.subtitles = currentMovie.value.movie.base.subtitles;
+      room.currentMovie = currentMovie.value.movie;
     } catch (err: any) {
       console.log(err);
       ElNotification({

@@ -145,17 +145,19 @@ const playerOption = computed<options>(() => {
     ]
   };
 
-  if (room.currentMovie.base!.moreSource) {
-    const obj = room.currentMovie.base!.moreSource;
+  if (room.currentMovie.base!.moreSources) {
+    const obj = room.currentMovie.base!.moreSources;
     option.plugins!.push(
       artplayPluginSource([
         {
           url: option.url,
-          html: "默认"
+          html: "默认",
+          type: option.type || ""
         },
-        ...Object.keys(obj).map((key) => ({
-          url: obj[key],
-          html: key
+        ...obj.map((item) => ({
+          url: item.url,
+          html: item.name,
+          type: item.type
         }))
       ])
     );
@@ -226,10 +228,11 @@ const switchCurrentMovie = async () => {
     }
 
     if (!player) return;
-    player.url = currentMovie.value.movie.base.url;
     const currentExpireId = currentMovie.value.expireId;
     const currentStatus = currentMovie.value.status;
     room.currentExpireId = currentExpireId;
+    player.option.type = currentMovie.value.movie.base.type;
+    player.url = currentMovie.value.movie.base.url;
     player.once("video:canplay", () => {
       if (room.currentExpireId != currentExpireId) return;
       setPlayerStatus(currentStatus);
