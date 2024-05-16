@@ -16,6 +16,7 @@ export function artplayPluginSource(option: artplayPluginSource[]) {
         const status = art.plugins["syncPlugin"].currentStatus();
         art.once("video:canplay", () => {
           art.plugins["syncPlugin"].setAndNoPublishStatus(status);
+          art.emit("restart", item.url);
         });
         art.option.type = item.type;
         art.url = item.url;
