@@ -162,6 +162,7 @@ export const roomSettingsApi = useDefineApi<
     disable_join_new_user: boolean;
     join_need_review: boolean;
     user_default_permissions: number;
+    guest_permissions: number;
     can_get_movie_list: boolean;
     can_add_movie: boolean;
     can_delete_movie: boolean;

@@ -45,6 +45,7 @@ const getRoomSettings = async () => {
     });
     if (!state.value) return;
     userDefaultPermissions.value = parsePermissions(state.value.user_default_permissions, "member");
+    guestPermissions.value = parsePermissions(state.value.guest_permissions, "member");
     for (const setting in state.value) {
       if (settings.value.has(setting)) {
         settings.value.set(setting, {
@@ -148,6 +149,11 @@ const computedUserDefaultPermissions = computed(() =>
   userDefaultPermissions.value.reduce((total, permission) => total | permission, 0)
 );
 
+const guestPermissions = ref<number[]>([]);
+const computedGuestPermissions = computed(() =>
+  guestPermissions.value.reduce((total, permission) => total | permission, 0)
+);
+
 defineExpose({
   openDrawer
 });
@@ -209,6 +215,31 @@ defineExpose({
               <el-button
                 v-if="isAdmin && can(RoomAdminPermission.PermissionSetRoomSettings)"
                 @click="updateSet('user_default_permissions', computedUserDefaultPermissions)"
+                >更新</el-button
+              >
+            </div>
+          </el-form-item>
+          <el-form-item label="访客权限">
+            <div class="flex">
+              <el-select
+                v-model="guestPermissions"
+                multiple
+                collapse-tags
+                collapse-tags-tooltip
+                :disabled="!isAdmin && !can(RoomAdminPermission.PermissionSetRoomSettings)"
+              >
+                <el-option
+                  v-for="(item, i) in roomMemberPermissionKeys"
+                  :key="i"
+                  :label="
+                    roomMemberPermissionKeysTranslate[item.value as unknown as RoomMemberPermission]
+                  "
+                  :value="item.value"
+                />
+              </el-select>
+              <el-button
+                v-if="isAdmin && can(RoomAdminPermission.PermissionSetRoomSettings)"
+                @click="updateSet('guest_permissions', computedGuestPermissions)"
                 >更新</el-button
               >
             </div>
