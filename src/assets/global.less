@@ -189,10 +189,6 @@ a {
   height: 100% !important;
 }
 
-.art-danmuku-emitter,
-.art-layer-danmuku-emitter {
-  display: none !important;
-}
 .art-video-player {
   margin-bottom: 0 !important;
 }
@@ -242,6 +238,17 @@ a {
 
 .menu-drawer {
   z-index: 800;
+}
+
+@media screen and (min-width: 992px) and (max-width: 1160px), (max-width: 875px) {
+  .artplayer-plugin-danmuku {
+    justify-content: end !important;
+
+    .apd-config,
+    .apd-emitter {
+      display: none !important;
+    }
+  }
 }
 
 @media (max-width: 768px) {
