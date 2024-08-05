@@ -60,8 +60,8 @@ export const useSettings = () => {
 
   const defaultProxySettings: Map<string, settingType> = new Map([
     ["allow_proxy_to_local", { value: false, name: "允许代理到本机地址" }],
-    ["live_proxy", { value: false, name: "代理直播流" }],
-    ["movie_proxy", { value: false, name: "代理普通视频" }]
+    ["live_proxy", { value: false, name: "允许代理直播流" }],
+    ["movie_proxy", { value: false, name: "允许代理普通视频" }]
   ]);
 
   const defaultRtmpSettings: Map<string, settingType> = new Map([
