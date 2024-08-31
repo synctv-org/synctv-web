@@ -115,6 +115,8 @@ const sendMsg = (msg: string) => {
     if (msgList.value.length > MAX_MESSAGE_COUNT) {
       msgList.value.splice(0, msgList.value.length - MAX_MESSAGE_COUNT);
     }
+    // 将新消息存储到 sessionStorage
+    sessionStorage.setItem(`chatMessages-${roomID}`, JSON.stringify(msgList.value));
   });
 
   // 确保聊天区域滚动到底部
@@ -271,10 +273,6 @@ const handleElementMessage = (msg: ElementMessage) => {
       // 添加消息到消息列表
       sendMsg(messageWithTime);
       sendDanmuku(msg.chatResp!.message);
-
-      // 自动滚动到最底部
-      if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
-
       break;
     }
     case ElementMessageType.PLAY:
@@ -380,7 +378,7 @@ onMounted(async () => {
   if (!myInfo.value) await getMyInfo(roomToken.value);
 
   // 从 sessionStorage 获取存储的聊天消息
-  const storedMessages = sessionStorage.getItem("chatMessages");
+  const storedMessages = sessionStorage.getItem(`chatMessages-${roomID}`);
   if (storedMessages) {
     msgList.value = JSON.parse(storedMessages);
   }
@@ -396,8 +394,6 @@ onMounted(async () => {
         try {
           const arr = await blobToUint8Array(data.value);
           handleElementMessage(ElementMessage.decode(arr));
-          // 将新消息存储到 sessionStorage
-          sessionStorage.setItem("chatMessages", JSON.stringify(msgList.value));
         } catch (err: any) {
           console.error(err);
           ElMessage.error(err.message);
