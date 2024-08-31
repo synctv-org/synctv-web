@@ -8,7 +8,6 @@ import {
   defineAsyncComponent,
   nextTick
 } from "vue";
-import { currentMovieApi } from "@/services/apis/movie";
 import type { WatchStopHandle } from "vue";
 import { useWebSocket, useResizeObserver, useLocalStorage } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
@@ -232,39 +231,6 @@ const setPlayerStatus = (status: MovieStatus) => {
   player.plugins["syncPlugin"].setAndNoPublishStatus(status);
 };
 
-const { state: currentMovie, execute: reqCurrentMovieApi } = currentMovieApi();
-const switchCurrentMovie = async () => {
-  try {
-    await reqCurrentMovieApi({
-      headers: { Authorization: roomToken.value }
-    });
-
-    if (!currentMovie.value) return;
-
-    if (currentMovie.value.movie.base.url.startsWith("/")) {
-      currentMovie.value.movie.base.url = `${window.location.origin}${currentMovie.value.movie.base.url}`;
-    }
-
-    if (!player) return;
-    const currentExpireId = currentMovie.value.expireId;
-    const currentStatus = currentMovie.value.status;
-    room.currentExpireId = currentExpireId;
-    player.option.type = currentMovie.value.movie.base.type;
-    player.url = currentMovie.value.movie.base.url;
-    player.once("video:canplay", () => {
-      if (room.currentExpireId != currentExpireId) return;
-      setPlayerStatus(currentStatus);
-    });
-  } catch (err: any) {
-    console.log(err);
-    ElNotification({
-      title: "获取影片列表失败",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  }
-};
-
 const handleElementMessage = (msg: ElementMessage) => {
   console.log(`-----Ws Message Start-----`);
   console.log(msg);
@@ -330,13 +296,14 @@ const handleElementMessage = (msg: ElementMessage) => {
     }
 
     // 设置正在播放的影片
+    case ElementMessageType.CURRENT_EXPIRED: {
+      ElNotification({
+        title: "链接过期,刷新中",
+        type: "info"
+      });
+    }
     case ElementMessageType.CURRENT_CHANGED: {
       getCurrentMovie();
-      break;
-    }
-
-    case ElementMessageType.CURRENT_EXPIRED: {
-      switchCurrentMovie();
       break;
     }
 

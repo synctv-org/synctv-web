@@ -272,8 +272,8 @@ const mountPlayer = () => {
   art.on("destroy", () => {
     destroyOldCustomPlayLib(art);
   });
-  Emits("get-instance", art);
   addKeyEvnet(art);
+  Emits("get-instance", art);
 };
 
 // 全局快捷键
