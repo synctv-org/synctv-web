@@ -28,6 +28,7 @@ import type { Subtitles } from "@/types/Movie";
 import { RoomMemberPermission } from "@/types/Room";
 import artplayerPluginAss from "@/plugins/artplayer-plugin-ass";
 import { newSyncPlugin } from "@/plugins/sync";
+import artplayerPluginQuality from "@/plugins/quality";
 import { artplayPluginSource } from "@/plugins/source";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
@@ -156,7 +157,9 @@ const playerOption = computed<options>(() => {
         }
       }),
       // WARN: room.currentStatus 变了会导致重载
-      newSyncPlugin(sendElement, room.currentStatus, () => room.currentExpireId)
+      newSyncPlugin(sendElement, room.currentStatus, () => room.currentExpireId),
+      // 画质
+      artplayerPluginQuality()
     ]
   };
 

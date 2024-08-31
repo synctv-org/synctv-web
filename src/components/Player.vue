@@ -1,41 +1,10 @@
 <script setup lang="ts">
 import Artplayer from "artplayer";
-import artplayerPluginDashQuality from "artplayer-plugin-dash-quality";
-import artplayerPluginHlsQuality from "artplayer-plugin-hls-quality";
 import type { HlsConfig, FragmentLoaderConstructor, FragmentLoaderContext } from "hls.js";
 import type { Option } from "artplayer/types/option";
 import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import type { PropType, WatchStopHandle } from "vue";
-
-function newDashQualityPlugin(): (art: Artplayer) => {
-  name: "artplayerPluginDashQuality";
-} {
-  return artplayerPluginDashQuality({
-    control: true,
-    setting: true,
-    getResolution: (level) => (level.height ? level.height + "P" : "自动"),
-    title: "画质",
-    auto: "自动"
-  });
-}
-
-function newHlsQualityPlugin(): (art: Artplayer) => {
-  name: "artplayerPluginHlsQuality";
-} {
-  return artplayerPluginHlsQuality({
-    control: true,
-    setting: true,
-    getResolution: (level) => {
-      // console.log(level);
-      if (level.name) {
-        return level.name;
-      }
-      return level.height ? level.height + "P" : "自动";
-    },
-    title: "画质",
-    auto: "自动"
-  });
-}
+import { destroyOldCustomPlayLib } from "@/utils";
 
 const watchers: WatchStopHandle[] = [];
 
@@ -75,15 +44,12 @@ const playMpd = async (player: HTMLMediaElement, url: string, art: any) => {
     return;
   }
 
-  if (art.dash) art.dash.destroy();
-
-  if (!art.plugins.artplayerPluginDashQuality) art.plugins.add(newDashQualityPlugin());
+  destroyOldCustomPlayLib(art);
 
   const d = dashjs.MediaPlayer().create();
   d.initialize(player, url, false);
   art.dash = d;
   art.mpd = d;
-  art.on("destroy", d.destroy);
 };
 
 const playFlv = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
@@ -94,7 +60,7 @@ const playFlv = async (player: HTMLMediaElement, url: string, art: Artplayer) =>
     return;
   }
 
-  if (art.flv) art.flv.destroy();
+  destroyOldCustomPlayLib(art);
 
   const Config: Record<string, any> = {};
 
@@ -104,7 +70,6 @@ const playFlv = async (player: HTMLMediaElement, url: string, art: Artplayer) =>
   flv.attachMediaElement(player);
   flv.load();
   art.flv = flv;
-  art.on("destroy", () => flv.destroy());
 };
 
 const playMse = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
@@ -115,7 +80,7 @@ const playMse = async (player: HTMLMediaElement, url: string, art: Artplayer) =>
     return;
   }
 
-  if (art.flv) art.flv.destroy();
+  destroyOldCustomPlayLib(art);
 
   const Config: Record<string, any> = {};
 
@@ -126,7 +91,6 @@ const playMse = async (player: HTMLMediaElement, url: string, art: Artplayer) =>
   mes.attachMediaElement(player);
   mes.load();
   art.flv = mes;
-  art.on("destroy", () => mes.destroy());
 };
 
 const playMpegts = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
@@ -137,7 +101,7 @@ const playMpegts = async (player: HTMLMediaElement, url: string, art: Artplayer)
     return;
   }
 
-  if (art.flv) art.flv.destroy();
+  destroyOldCustomPlayLib(art);
 
   const Config: Record<string, any> = {};
 
@@ -147,8 +111,7 @@ const playMpegts = async (player: HTMLMediaElement, url: string, art: Artplayer)
 
   ts.attachMediaElement(player);
   ts.load();
-  art.flv = ts;
-  art.on("destroy", () => ts.destroy());
+  art.ts = ts;
 };
 
 const playM2ts = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
@@ -159,7 +122,7 @@ const playM2ts = async (player: HTMLMediaElement, url: string, art: Artplayer) =
     return;
   }
 
-  if (art.flv) art.flv.destroy();
+  destroyOldCustomPlayLib(art);
 
   const Config: Record<string, any> = {};
 
@@ -170,7 +133,6 @@ const playM2ts = async (player: HTMLMediaElement, url: string, art: Artplayer) =
   m2ts.attachMediaElement(player);
   m2ts.load();
   art.flv = m2ts;
-  art.on("destroy", () => m2ts.destroy());
 };
 
 const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
@@ -185,9 +147,7 @@ const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) =
     return;
   }
 
-  if (art.hls) art.hls.destroy();
-
-  if (!art.plugins.artplayerPluginHlsQuality) art.plugins.add(newHlsQualityPlugin());
+  destroyOldCustomPlayLib(art);
 
   class fLoader extends (Hls.DefaultConfig.loader as FragmentLoaderConstructor) {
     constructor(config: HlsConfig) {
@@ -239,7 +199,6 @@ const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) =
   hls.loadSource(url);
   hls.attachMedia(player);
   art.hls = hls;
-  art.on("destroy", () => hls.destroy());
 };
 
 const newPlayerOption = (html: HTMLDivElement): Option => {
@@ -310,6 +269,9 @@ const mountPlayer = () => {
   }
   father.value!.appendChild(newDiv);
   art = new Artplayer(newPlayerOption(newDiv));
+  art.on("destroy", () => {
+    destroyOldCustomPlayLib(art);
+  });
   Emits("get-instance", art);
   addKeyEvnet(art);
 };

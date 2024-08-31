@@ -1,4 +1,5 @@
 import type Artplayer from "artplayer";
+import { destroyOldCustomPlayLib } from "@/utils";
 
 interface artplayPluginSource {
   html: string;
@@ -18,6 +19,9 @@ export function artplayPluginSource(option: artplayPluginSource[]) {
           art.plugins["syncPlugin"].setAndNoPublishStatus(status);
           art.emit("restart", item.url);
         });
+        if (art.controls["quality"]) art.controls.remove("quality");
+        if (art.setting.find("quality")) art.setting.remove("quality");
+        destroyOldCustomPlayLib(art);
         art.option.type = item.type;
         art.url = item.url;
         return "源";

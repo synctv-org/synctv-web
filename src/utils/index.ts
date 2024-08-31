@@ -76,3 +76,12 @@ export const formatTime = (date: Date) => {
   const seconds = `0${date.getSeconds()}`.slice(-2);
   return `${hours}:${minutes}:${seconds}`;
 };
+
+export const destroyOldCustomPlayLib = (art: any) => {
+  for (const key of ["dash", "m3u8", "hls", "ts", "mpd", "torrent"]) {
+    if (art[key]) {
+      art[key].destroy();
+      art[key] = undefined;
+    }
+  }
+};
