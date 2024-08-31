@@ -51,6 +51,7 @@ let player: Artplayer;
 const sendDanmuku = (msg: string) => {
   if (!player || !player.plugins.artplayerPluginDanmuku) return;
   player.plugins.artplayerPluginDanmuku.emit({
+    direct: true,
     text: msg, // 弹幕文本
     color: "#fff", // 弹幕局部颜色
     border: false // 是否显示描边
@@ -86,37 +87,42 @@ const sendElement = (msg: ElementMessage) => {
 };
 
 // 消息列表
-const msgList = ref<string[]>([]);
-const sendText_ = ref("");
-const sendText = () => {
-  if (sendText_.value.length === 0) {
-    return ElMessage({
+const chatMsgList = ref<string[]>([]);
+const sendChatText = (msg: string, onSuccess?: () => any, onFailed?: () => any) => {
+  if (msg.length === 0) {
+    ElMessage({
       message: "发送的消息不能为空",
       type: "warning"
     });
+    if (onFailed) onFailed();
+    return;
   }
 
-  strLengthLimit(sendText_.value, 4096);
+  strLengthLimit(msg, 4096);
   sendElement(
     ElementMessage.create({
       type: ElementMessageType.CHAT_MESSAGE,
-      chatReq: sendText_.value
+      chatReq: msg
     })
   );
-  sendText_.value = "";
-  if (chatArea.value) chatArea.value.scrollTop = chatArea.value.scrollHeight;
+  if (onSuccess) onSuccess();
+};
+
+const sendChatMsg_ = ref("");
+const onSendSuccess = () => {
+  sendChatMsg_.value = "";
 };
 
 const MAX_MESSAGE_COUNT = 64; // 设定聊天记录的最大长度
 const sendMsg = (msg: string) => {
-  msgList.value.push(msg);
+  chatMsgList.value.push(msg);
   // 如果超过聊天记录最大长度，则从前面开始删除多余的消息
   nextTick(() => {
-    if (msgList.value.length > MAX_MESSAGE_COUNT) {
-      msgList.value.splice(0, msgList.value.length - MAX_MESSAGE_COUNT);
+    if (chatMsgList.value.length > MAX_MESSAGE_COUNT) {
+      chatMsgList.value.splice(0, chatMsgList.value.length - MAX_MESSAGE_COUNT);
     }
     // 将新消息存储到 sessionStorage
-    sessionStorage.setItem(`chatMessages-${roomID}`, JSON.stringify(msgList.value));
+    sessionStorage.setItem(`chatMessages-${roomID}`, JSON.stringify(chatMsgList.value));
   });
 
   // 确保聊天区域滚动到底部
@@ -140,7 +146,14 @@ const playerOption = computed<options>(() => {
       // 弹幕
       artplayerPluginDanmuku({
         danmuku: [],
-        speed: 4
+        speed: 8,
+        async beforeEmit(danmu: any) {
+          if (danmu.direct) {
+            return true;
+          }
+          sendChatText(danmu.text);
+          return false;
+        }
       }),
       // WARN: room.currentStatus 变了会导致重载
       newSyncPlugin(sendElement, room.currentStatus, () => room.currentExpireId)
@@ -266,13 +279,16 @@ const handleElementMessage = (msg: ElementMessage) => {
 
     // 聊天消息
     case ElementMessageType.CHAT_MESSAGE: {
+      if (!msg.chatResp) {
+        return;
+      }
       const currentTime = formatTime(new Date()); // 格式化时间
-      const senderName = msg.chatResp!.sender?.username;
-      const messageContent = msg.chatResp!.message;
-      const messageWithTime = `${senderName}：${messageContent} <small>[${currentTime}]</small>`;
+      const senderName = msg.chatResp.sender?.username;
+      const messageContent = `${senderName}: ${msg.chatResp.message}`;
+      const messageWithTime = `${messageContent} <small>[${currentTime}]</small>`;
       // 添加消息到消息列表
       sendMsg(messageWithTime);
-      sendDanmuku(msg.chatResp!.message);
+      sendDanmuku(messageContent);
       break;
     }
     case ElementMessageType.PLAY:
@@ -380,7 +396,7 @@ onMounted(async () => {
   // 从 sessionStorage 获取存储的聊天消息
   const storedMessages = sessionStorage.getItem(`chatMessages-${roomID}`);
   if (storedMessages) {
-    msgList.value = JSON.parse(storedMessages);
+    chatMsgList.value = JSON.parse(storedMessages);
   }
 
   // 启动websocket连接
@@ -437,7 +453,7 @@ onMounted(async () => {
         <div class="card-title">在线聊天</div>
         <div class="card-body mb-2">
           <div class="chatArea" ref="chatArea">
-            <div class="message" v-for="item in msgList" :key="item">
+            <div class="message" v-for="item in chatMsgList" :key="item">
               <div v-html="item"></div>
             </div>
           </div>
@@ -449,13 +465,18 @@ onMounted(async () => {
         >
           <input
             type="text"
-            @keyup.enter="sendText()"
-            v-model="sendText_"
+            @keyup.enter="() => sendChatText(sendChatMsg_, onSendSuccess)"
+            v-model="sendChatMsg_"
             placeholder="按 Enter 键即可发送..."
             class="l-input w-full bg-transparent"
             autocomplete="off"
           />
-          <button class="btn w-24 m-2.5 ml-0" @click="sendText()">发送</button>
+          <button
+            class="btn w-24 m-2.5 ml-0"
+            @click="() => sendChatText(sendChatMsg_, onSendSuccess)"
+          >
+            发送
+          </button>
         </div>
       </div>
     </el-col>
