@@ -9,7 +9,7 @@ import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 const env = loadEnv("", process.cwd());
 
 // https://vitejs.dev/config/
-const config: UserConfigFnObject = ({ command, mode, ssrBuild }): UserConfig => {
+const config: UserConfigFnObject = ({ command, mode }): UserConfig => {
   let c: UserConfig = {
     server: {
       host: true,
