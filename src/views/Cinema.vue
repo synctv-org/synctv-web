@@ -29,6 +29,7 @@ import artplayerPluginAss from "@/plugins/artplayer-plugin-ass";
 import { newSyncPlugin } from "@/plugins/sync";
 import artplayerPluginQuality from "@/plugins/quality";
 import { artplayPluginSource } from "@/plugins/source";
+import { currentMovieApi } from "@/services/apis/movie";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
@@ -163,7 +164,7 @@ const playerOption = computed<options>(() => {
   };
 
   if (room.currentMovie.base!.moreSources) {
-    const obj = room.currentMovie.base!.moreSources;
+    const obj = room.currentMovie.base!.moreSources || [];
     option.plugins!.push(
       artplayPluginSource([
         {
@@ -220,6 +221,52 @@ const newLazyInitSubtitlePlugin = (subtitle: Subtitles) => {
       name: "subtitle"
     };
   };
+};
+
+const { state: currentMovie, execute: reqCurrentMovieApi } = currentMovieApi();
+const updateSources = async () => {
+  try {
+    await reqCurrentMovieApi({
+      headers: { Authorization: roomToken.value }
+    });
+    if (!currentMovie.value) return;
+    if (currentMovie.value.movie.base.url.startsWith("/")) {
+      currentMovie.value.movie.base.url = `${window.location.origin}${currentMovie.value.movie.base.url}`;
+    }
+    if (
+      currentMovie.value.movie.base.moreSources &&
+      currentMovie.value.movie.base.moreSources.length > 0
+    ) {
+      for (let i = 0; i < currentMovie.value.movie.base.moreSources.length; i++) {
+        if (currentMovie.value.movie.base.moreSources[i].url.startsWith("/")) {
+          currentMovie.value.movie.base.moreSources[i].url =
+            `${window.location.origin}${currentMovie.value.movie.base.moreSources[i].url}`;
+        }
+      }
+    }
+    if (!player) return;
+    room.currentExpireId = currentMovie.value.expireId;
+    const moreSources = currentMovie.value.movie.base.moreSources || [];
+    player.plugins["source"].updateSources([
+      {
+        url: currentMovie.value.movie.base.url,
+        html: "默认",
+        type: currentMovie.value.movie.base.type || ""
+      },
+      ...moreSources.map((item) => ({
+        url: item.url,
+        html: item.name,
+        type: item.type
+      }))
+    ]);
+  } catch (err: any) {
+    console.log(err);
+    ElNotification({
+      title: "获取影片列表失败",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+  }
 };
 
 const getPlayerInstance = (art: Artplayer) => {
@@ -295,13 +342,16 @@ const handleElementMessage = (msg: ElementMessage) => {
       break;
     }
 
-    // 设置正在播放的影片
     case ElementMessageType.CURRENT_EXPIRED: {
       ElNotification({
         title: "链接过期,刷新中",
         type: "info"
       });
+      updateSources();
+      break;
     }
+
+    // 设置正在播放的影片
     case ElementMessageType.CURRENT_CHANGED: {
       getCurrentMovie();
       break;
