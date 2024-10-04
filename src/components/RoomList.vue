@@ -15,10 +15,8 @@ const router = useRouter();
 const props = defineProps<{
   isMyRoom: boolean;
   isHot: boolean;
-  userId?: string;
 }>();
 
-const { settings } = indexStore();
 const { isLogin, info } = userStore();
 const thisRoomList = ref<RoomList[]>([]);
 const formData = ref<{
@@ -47,8 +45,7 @@ const {
   getHotRoomList,
   hotRoomList,
 
-  joinRoom,
-  guestJoinRoom
+  joinRoom
 } = useRoomApi(formData.value.roomId);
 
 const getRoomList = async (showMsg = false) => {
@@ -71,29 +68,21 @@ const openJoinRoomDialog = () => {
   JoinRoomDialog.value = true;
 };
 const joinThisRoom = async (item: RoomList) => {
-  if (!settings?.guestEnable && !isLogin.value) {
-    ElNotification({
-      title: "错误",
-      message: "请先登录",
-      type: "error"
-    });
-    router.replace({
-      name: "login",
-      query: {
-        redirect: router.currentRoute.value.fullPath
-      }
-    });
-    return;
-  }
   formData.value.roomId = item.roomId;
 
-  return isLogin.value
-    ? info.value?.username === item.creator || !item.needPassword
-      ? await joinRoom(formData.value)
-      : openJoinRoomDialog()
-    : settings?.guestEnable && !item.needPassword
-      ? await guestJoinRoom(formData.value)
-      : openJoinRoomDialog();
+  try {
+    await joinRoom(formData.value.roomId, formData.value.password);
+  } catch (error) {
+    if (JoinRoomDialog.value) {
+      ElNotification({
+        title: "错误",
+        message: error as string,
+        type: "error"
+      });
+    } else {
+      openJoinRoomDialog();
+    }
+  }
 };
 
 onMounted(() => {

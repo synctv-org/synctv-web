@@ -100,7 +100,7 @@ export const banUserApi = useDefineApi<
 });
 
 // 解封用户
-export const unBanUserApi = useDefineApi<
+export const unbanUserApi = useDefineApi<
   {
     headers: {
       Authorization: string;
@@ -290,7 +290,7 @@ export const banRoomApi = useDefineApi<
 });
 
 // 解封房间
-export const unBanRoomApi = useDefineApi<
+export const unbanRoomApi = useDefineApi<
   {
     headers: {
       Authorization: string;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useRouteParams, useRouteQuery } from "@vueuse/router";
 import { useRoomApi } from "@/hooks/useRoom";
 import { indexStore } from "@/stores";
@@ -9,6 +9,7 @@ import { userStore } from "@/stores/user";
 const { settings } = indexStore();
 const { isLogin } = userStore();
 const route = useRoute();
+const router = useRouter();
 const roomID = useRouteParams("roomId");
 const pwd = useRouteQuery("pwd");
 
@@ -32,7 +33,7 @@ const formData = ref<{
   password: pwd.value as string
 });
 
-const { joinRoom, guestJoinRoom } = useRoomApi(formData.value.roomId);
+const { joinRoom } = useRoomApi(formData.value.roomId);
 
 const init = () => {
   if (props.item) formData.value = props.item;
@@ -40,8 +41,15 @@ const init = () => {
     if (roomID) formData.value.roomId = roomID.value as string;
     if (pwd) formData.value.password = pwd.value as string;
   }
-  const { checkRoom } = useRoomApi(formData.value.roomId);
-  if (formData.value.roomId) checkRoom(pwd.value as string);
+  if (formData.value.roomId) joinRoom(formData.value.roomId, formData.value.password);
+};
+
+const handleJoinRoom = () => {
+  if (!settings?.guestEnable && !isLogin) {
+    router.push("/login");
+  } else {
+    joinRoom(formData.value.roomId, formData.value.password);
+  }
 };
 
 defineExpose({ init });
@@ -53,7 +61,7 @@ onMounted(() => {
 
 <template>
   <div :class="isModal ? 'room-dialog' : 'room'">
-    <form @submit.prevent="" :class="!isModal && 'sm:w-96 ' + 'w-full'">
+    <form @submit.prevent="handleJoinRoom" :class="!isModal && 'sm:w-96 ' + 'w-full'">
       <input
         class="l-input"
         type="text"
@@ -72,14 +80,9 @@ onMounted(() => {
       />
       <br />
 
-      <button
-        v-if="settings?.guestEnable && !isLogin"
-        class="btn btn-success my-[10px]"
-        @click="guestJoinRoom(formData)"
-      >
-        以访客身份加入
+      <button class="btn my-[10px]" type="submit">
+        {{ settings?.guestEnable && !isLogin ? "以访客身份加入" : "加入" }}
       </button>
-      <button v-else class="btn my-[10px]" @click="joinRoom(formData)">加入</button>
       <div class="text-sm">
         <b>注意：</b>所有输入框最大只可输入32个字符
         <br />

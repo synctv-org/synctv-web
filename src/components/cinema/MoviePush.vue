@@ -22,6 +22,7 @@ const embyDialog = ref<InstanceType<typeof emby>>();
 
 const Props = defineProps<{
   token: string;
+  roomId: string;
 }>();
 
 const room = roomStore();
@@ -352,7 +353,7 @@ const pushMovie = async () => {
         ...newMovieInfo.value,
         parentId: room.movieList[room.movieList.length - 1].id
       },
-      headers: { Authorization: Props.token }
+      headers: { Authorization: Props.token, "X-Room-Id": Props.roomId }
     });
 
     ElNotification({

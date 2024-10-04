@@ -6,7 +6,7 @@ import { userStore } from "@/stores/user";
 import {
   roomListApi,
   banRoomApi,
-  unBanRoomApi,
+  unbanRoomApi,
   approveRoomApi,
   delRoomApi
 } from "@/services/apis/admin";
@@ -61,7 +61,7 @@ const getRoomListApi = async () => {
 
 // 封禁 / 解封 房间
 const { execute: ban, isLoading: banLoading } = banRoomApi();
-const { execute: unBan, isLoading: unBanLoading } = unBanRoomApi();
+const { execute: unBan, isLoading: unbanLoading } = unbanRoomApi();
 const banRoom = async (id: string, is: boolean) => {
   try {
     const config = {
@@ -129,7 +129,6 @@ const deleteRoom = async (roomID: string) => {
       title: "删除成功",
       type: "success"
     });
-    localStorage.removeItem(`room-${roomID}-token`);
     localStorage.removeItem(`room-${roomID}-pwd`);
 
     getRoomListApi();
@@ -264,7 +263,7 @@ onMounted(async () => {
             <el-button
               v-else
               type="warning"
-              :loading="unBanLoading"
+              :loading="unbanLoading"
               @click="banRoom(scope.row.roomId, false)"
             >
               解封

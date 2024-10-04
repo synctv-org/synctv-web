@@ -30,20 +30,21 @@ import { newSyncPlugin } from "@/plugins/sync";
 import artplayerPluginQuality from "@/plugins/quality";
 import { artplayPluginSource } from "@/plugins/source";
 import { currentMovieApi } from "@/services/apis/movie";
+import { userStore } from "@/stores/user";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
+const { info, token, isLogin } = userStore();
 // 获取房间信息
 const room = roomStore();
 const roomID = useRouteParams<string>("roomId");
-const roomToken = useLocalStorage<string>(`room-${roomID.value}-token`, "");
 
 const watchers: WatchStopHandle[] = [];
 onBeforeUnmount(() => {
   watchers.forEach((w) => w());
 });
 
-const { getMovies, getCurrentMovie } = useMovieApi(roomToken.value);
+const { getMovies, getCurrentMovie } = useMovieApi(token.value, roomID.value);
 const { getMyInfo, myInfo } = useRoomApi(roomID.value);
 const { hasMemberPermission } = useRoomPermission();
 
@@ -62,9 +63,8 @@ const sendDanmuku = (msg: string) => {
 
 const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
 const { status, data, send, open } = useWebSocket(
-  `${wsProtocol}//${window.location.host}/api/room/ws`,
+  `${wsProtocol}//${window.location.host}/api/room/ws?roomId=${roomID.value}`,
   {
-    protocols: [roomToken.value],
     autoReconnect: {
       retries: 3,
       delay: 1000,
@@ -84,7 +84,7 @@ const sendElement = (msg: ElementMessage) => {
   console.log(`-----Ws Send Start-----`);
   console.log(msg);
   console.log(`-----Ws Send End-----`);
-  return send(ElementMessage.encode(msg).finish());
+  return send(ElementMessage.encode(msg).finish().toString());
 };
 
 // 消息列表
@@ -227,7 +227,7 @@ const { state: currentMovie, execute: reqCurrentMovieApi } = currentMovieApi();
 const updateSources = async () => {
   try {
     await reqCurrentMovieApi({
-      headers: { Authorization: roomToken.value }
+      headers: { Authorization: token.value, "X-Room-Id": roomID.value }
     });
     if (!currentMovie.value) return;
     if (currentMovie.value.movie.base.url.startsWith("/")) {
@@ -400,18 +400,8 @@ const p = async () => {
 };
 
 onMounted(async () => {
-  if (roomToken.value === "") {
-    router.push({
-      name: "joinRoom",
-      params: {
-        roomId: roomID.value
-      }
-    });
-    return;
-  }
-
   // 获取用户信息
-  if (!myInfo.value) await getMyInfo(roomToken.value);
+  if (!myInfo.value) await getMyInfo();
 
   // 从 sessionStorage 获取存储的聊天消息
   const storedMessages = sessionStorage.getItem(`chatMessages-${roomID}`);
@@ -517,7 +507,7 @@ onMounted(async () => {
       :xs="24"
       class="mb-5 max-sm:mb-2"
     >
-      <MovieList @send-msg="sendMsg" />
+      <MovieList @send-msg="sendMsg" :token="token" :roomId="roomID" />
     </el-col>
 
     <!-- 添加影片 -->
@@ -535,7 +525,8 @@ onMounted(async () => {
             room.movieList[room.movieList.length - 1].subPath
           )
         "
-        :token="roomToken"
+        :token="token"
+        :roomId="roomID"
       />
     </el-col>
   </el-row>

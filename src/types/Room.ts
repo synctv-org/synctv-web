@@ -50,6 +50,7 @@ export interface MyInfo {
   roomId: string;
   joinAt: number;
   role: ROLE;
+  status: MEMBER_STATUS;
   permissions: RoomMemberPermission;
   adminPermissions: RoomAdminPermission;
 }
@@ -81,14 +82,14 @@ export const role: Record<ROLE, string> = {
 };
 
 export enum MEMBER_STATUS {
-  Unknown = 0,
+  NotJoined = 0,
   Banned = 1,
   Pending = 2,
   Active = 3
 }
 
 export const memberStatus: Record<MEMBER_STATUS, string> = {
-  [MEMBER_STATUS.Unknown]: "Unknown",
+  [MEMBER_STATUS.NotJoined]: "NotJoined",
   [MEMBER_STATUS.Banned]: "Banned",
   [MEMBER_STATUS.Pending]: "Pending",
   [MEMBER_STATUS.Active]: "Active"

@@ -18,15 +18,17 @@ import { RoomAdminPermission, RoomMemberPermission } from "@/types/Room";
 import UserPermission from "./UserPermission.vue";
 
 const open = ref(false);
-const roomID = useRouteParams<string>("roomId");
-const roomToken = useLocalStorage(`room-${roomID.value}-token`, "");
+const Props = defineProps<{
+  token: string;
+  roomId: string;
+}>();
 const openDrawer = async () => {
   open.value = true;
   await getUserListApi();
 };
 
 const userPermissionDialog = ref<InstanceType<typeof UserPermission>>();
-const { myInfo } = useRoomApi(roomID.value);
+const { myInfo } = useRoomApi(Props.roomId);
 const { hasAdminPermission } = useRoomPermission();
 const can = (p: RoomAdminPermission) => {
   if (!myInfo.value) return;
@@ -41,7 +43,7 @@ const rolesFilter = computed(() => {
 
 const memberStatusFilter = computed(() => {
   const v = Object.values(memberStatus);
-  return v.filter((r) => r !== memberStatus[MEMBER_STATUS.Unknown]);
+  return v.filter((r) => r !== memberStatus[MEMBER_STATUS.NotJoined]);
 });
 
 const isAdmin = computed(() => myInfo.value!.role >= ROLE.Admin);
@@ -60,7 +62,8 @@ const getUserListApi = async () => {
     const url = isAdmin.value ? "/api/room/admin/members" : "/api/room/members";
     await reqUserListApi({
       headers: {
-        Authorization: roomToken.value
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
       },
       params: {
         page: currentPage.value,
@@ -94,7 +97,8 @@ const approveUser = async (id: string) => {
   try {
     await reqApproveUserApi({
       headers: {
-        Authorization: roomToken.value
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
       },
       data: {
         id: id
@@ -120,7 +124,8 @@ const banUser = async (id: string, is: boolean) => {
   try {
     const config = {
       headers: {
-        Authorization: roomToken.value
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
       },
       data: {
         id: id
@@ -152,7 +157,8 @@ const setAdmin = async (
   try {
     const config = {
       headers: {
-        Authorization: roomToken.value
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
       },
       data: {
         id: id
@@ -412,5 +418,10 @@ defineExpose({
   </el-drawer>
 
   <!-- 用户权限编辑对话框 -->
-  <UserPermission ref="userPermissionDialog" @updateUserList="getUserListApi" />
+  <UserPermission
+    ref="userPermissionDialog"
+    @updateUserList="getUserListApi"
+    :token="token"
+    :roomId="roomId"
+  />
 </template>

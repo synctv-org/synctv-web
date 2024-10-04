@@ -1,5 +1,5 @@
 import { useDefineApi } from "@/stores/useDefineApi";
-import type { RoomList } from "@/types/Room";
+import type { MEMBER_STATUS, RoomList } from "@/types/Room";
 import type { BaseUserInfo } from "@/types/User";
 
 // 获取个人信息
@@ -172,4 +172,21 @@ export const unbindEmailApi = useDefineApi<
 >({
   url: "/api/user/unbind/email",
   method: "POST"
+});
+
+export const joinedRoomApi = useDefineApi<
+  {
+    data: {
+      id: string;
+    };
+    headers: {
+      Authorization: string;
+    };
+  },
+  {
+    joined: boolean;
+  }
+>({
+  url: "/api/user/room/joined",
+  method: "GET"
 });

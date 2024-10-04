@@ -6,14 +6,13 @@ import { updateRoomPasswordApi, delRoomApi } from "@/services/apis/room";
 import { useLocalStorage } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
 import { useSettings, type settingType } from "@/hooks/useSettings";
-import { useUpdateSettings } from "@/hooks/useUpdateSettings";
+import { useUpdateRoomSettings } from "@/hooks/useUpdateSettings";
 import { parsePermissions, strLengthLimit } from "@/utils";
 import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
 import { ROLE, RoomAdminPermission, RoomMemberPermission } from "@/types/Room";
 
 const open = ref(false);
 const roomID = useRouteParams<string>("roomId");
-const roomToken = useLocalStorage(`room-${roomID.value}-token`, "");
 const roomPwd = useLocalStorage(`room-${roomID.value}-pwd`, "");
 const { defaultCinemaSettings } = useSettings();
 const settings = ref<Map<string, settingType>>(defaultCinemaSettings);
@@ -23,7 +22,12 @@ const openDrawer = async () => {
   await getRoomSettings();
 };
 
-const { myInfo } = useRoomApi(roomID.value);
+const Props = defineProps<{
+  token: string;
+  roomId: string;
+}>();
+
+const { myInfo } = useRoomApi(Props.roomId);
 const { hasAdminPermission, roomMemberPermissionKeys, roomMemberPermissionKeysTranslate } =
   useRoomPermission();
 const can = (p: RoomAdminPermission) => {
@@ -39,7 +43,8 @@ const getRoomSettings = async () => {
     const url = isAdmin.value ? "/api/room/admin/settings" : "/api/room/settings";
     await execute({
       headers: {
-        Authorization: roomToken.value
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
       },
       url
     });
@@ -78,7 +83,7 @@ const getRoomSettings = async () => {
 };
 
 // 更新房间设置
-const { updateSet } = useUpdateSettings("room", roomToken.value);
+const { updateSet } = useUpdateRoomSettings(Props.token, Props.roomId);
 
 // 更新房间密码
 const password = ref("");
@@ -90,7 +95,10 @@ const changePassword = async () => {
       data: {
         password: password.value
       },
-      headers: { Authorization: roomToken.value }
+      headers: {
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
+      }
     });
 
     if (newToken.value) {
@@ -98,7 +106,6 @@ const changePassword = async () => {
         title: "更新成功",
         type: "success"
       });
-      roomToken.value = newToken.value.token;
       roomPwd.value = password.value;
       setTimeout(() => {
         window.location.reload();
@@ -122,14 +129,16 @@ const deleteRoom = async () => {
       data: {
         roomId: roomID.value
       },
-      headers: { Authorization: roomToken.value }
+      headers: {
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
+      }
     });
 
     ElNotification({
       title: "删除成功",
       type: "success"
     });
-    localStorage.removeItem(`room-${roomID.value}-token`);
     localStorage.removeItem(`room-${roomID.value}-pwd`);
     setTimeout(() => {
       window.location.href = window.location.origin;

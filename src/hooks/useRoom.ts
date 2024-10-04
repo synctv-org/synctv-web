@@ -1,33 +1,22 @@
 import { ref } from "vue";
 import { ElNotification } from "element-plus";
-import { indexStore } from "@/stores";
 import { userStore } from "@/stores/user";
 import { roomStore } from "@/stores/room";
 import router from "@/router";
-import { myRoomListApi } from "@/services/apis/user";
+import { myRoomListApi, joinedRoomApi } from "@/services/apis/user";
 import { userRoomListApi } from "@/services/apis/admin";
-import {
-  joinRoomApi,
-  checkRoomApi,
-  roomListApi,
-  hotRoom,
-  myInfoApi,
-  guestJoinRoomApi
-} from "@/services/apis/room";
+import { joinRoomApi, checkRoomApi, roomListApi, hotRoom, myInfoApi } from "@/services/apis/room";
 import { strLengthLimit } from "@/utils";
 import { storeToRefs } from "pinia";
-import { RoomMemberPermission, RoomAdminPermission } from "@/types/Room";
-
-const { settings } = indexStore();
+import { RoomMemberPermission, RoomAdminPermission, MEMBER_STATUS } from "@/types/Room";
 
 // 获取用户信息
 const { info, token, isLogin } = userStore();
 const { myInfo } = storeToRefs(roomStore());
 
 export const useRoomApi = (roomId: string) => {
-  // 检查房间状态
   const { state: thisRoomInfo, execute: reqCheckRoomApi } = checkRoomApi();
-  const checkRoom = async (pwd: string) => {
+  const joinRoom = async (roomId: string, pwd: string) => {
     try {
       await reqCheckRoomApi({
         params: {
@@ -37,22 +26,18 @@ export const useRoomApi = (roomId: string) => {
       if (!thisRoomInfo.value) return;
 
       if (isLogin.value) {
-        if (info.value?.username === thisRoomInfo.value.creator) {
-          return await joinRoom({ roomId, password: pwd });
+        if (
+          info.value?.username === thisRoomInfo.value.creator ||
+          thisRoomInfo.value.needPassword
+        ) {
+          router.replace(`/cinema/${roomId}`);
+          return;
         }
 
-        if (thisRoomInfo.value.needPassword) {
-          if (pwd) return await joinRoom({ roomId, password: pwd });
-        }
-      } else if (settings?.guestEnable) {
-        if (thisRoomInfo.value.needPassword) {
-          if (pwd) return await guestJoinRoom({ roomId, password: pwd });
-        } else {
-          return await guestJoinRoom({
-            roomId,
-            password: pwd
-          });
-        }
+        return await _joinRoom({ roomId, password: pwd });
+      } else if (thisRoomInfo.value.enableGuest) {
+        router.replace(`/cinema/${roomId}`);
+        return;
       } else {
         router.replace({
           name: "login",
@@ -74,7 +59,8 @@ export const useRoomApi = (roomId: string) => {
 
   // 加入房间
   const { state: joinRoomInfo, execute: reqJoinRoomApi } = joinRoomApi();
-  const joinRoom = async (formData: { roomId: string; password: string }) => {
+  const { state: joinedRoom, execute: reqJoinedRoomApi } = joinedRoomApi();
+  const _joinRoom = async (formData: { roomId: string; password: string }) => {
     if (!formData.roomId) {
       ElNotification({
         title: "错误",
@@ -87,77 +73,37 @@ export const useRoomApi = (roomId: string) => {
       strLengthLimit(key, 32);
     }
     try {
+      await reqJoinedRoomApi({
+        data: {
+          id: roomId
+        },
+        headers: {
+          Authorization: token.value
+        }
+      });
+      if (joinedRoom.value!.joined) {
+        ElNotification({
+          title: "加入成功",
+          type: "success"
+        });
+
+        router.replace(`/cinema/${roomId}`);
+        return;
+      }
       await reqJoinRoomApi({
         data: formData,
         headers: {
           Authorization: token.value
         }
       });
-      if (!joinRoomInfo.value)
-        return ElNotification({
-          title: "错误",
-          message: "服务器并未返回token",
-          type: "error"
-        });
-      localStorage.setItem(`room-${joinRoomInfo.value.roomId}-token`, joinRoomInfo.value?.token);
-      if (formData.password)
-        localStorage.setItem(`room-${joinRoomInfo.value.roomId}-pwd`, formData.password);
+      if (formData.password) localStorage.setItem(`room-${roomId}-pwd`, formData.password);
 
-      await getMyInfo(joinRoomInfo.value.token);
       ElNotification({
         title: "加入成功",
         type: "success"
       });
 
-      router.replace(`/cinema/${joinRoomInfo.value.roomId}`);
-    } catch (err: any) {
-      console.error(err);
-      ElNotification({
-        title: "错误",
-        message: err.response.data.error || err.message,
-        type: "error"
-      });
-    }
-  };
-
-  // 加入房间（访客）
-  const { state: guestJoinRoomInfo, execute: reqGuestJoinRoomApi } = guestJoinRoomApi();
-  const guestJoinRoom = async (formData: { roomId: string; password: string }) => {
-    if (!formData.roomId) {
-      ElNotification({
-        title: "错误",
-        message: "请填写表单完整",
-        type: "error"
-      });
-      return;
-    }
-    for (const key in formData) {
-      strLengthLimit(key, 32);
-    }
-    try {
-      await reqGuestJoinRoomApi({
-        data: formData
-      });
-      if (!guestJoinRoomInfo.value)
-        return ElNotification({
-          title: "错误",
-          message: "服务器并未返回token",
-          type: "error"
-        });
-      localStorage.setItem(
-        `room-${guestJoinRoomInfo.value.roomId}-token`,
-        guestJoinRoomInfo.value?.token
-      );
-      if (formData.password)
-        localStorage.setItem(`room-${guestJoinRoomInfo.value.roomId}-pwd`, formData.password);
-
-      await getMyInfo(guestJoinRoomInfo.value.token);
-      ElNotification({
-        title: "加入成功",
-        type: "success"
-      });
-
-      router.replace(`/cinema/${guestJoinRoomInfo.value.roomId}`);
+      router.replace(`/cinema/${roomId}`);
     } catch (err: any) {
       console.error(err);
       ElNotification({
@@ -323,11 +269,12 @@ export const useRoomApi = (roomId: string) => {
 
   // 我的信息
   const { state: _myInfo, execute: reqMyInfoApi } = myInfoApi();
-  const getMyInfo = async (roomToken: string) => {
+  const getMyInfo = async () => {
     try {
       await reqMyInfoApi({
         headers: {
-          Authorization: roomToken
+          Authorization: token.value,
+          "X-Room-Id": roomId
         }
       });
 
@@ -345,9 +292,7 @@ export const useRoomApi = (roomId: string) => {
   };
 
   return {
-    checkRoom,
     thisRoomInfo,
-
     joinRoom,
     joinRoomInfo,
 
@@ -373,10 +318,7 @@ export const useRoomApi = (roomId: string) => {
     hotRoomList,
 
     getMyInfo,
-    myInfo,
-
-    guestJoinRoom,
-    guestJoinRoomInfo
+    myInfo
   };
 };
 

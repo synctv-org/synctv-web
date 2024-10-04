@@ -17,7 +17,7 @@ import { strLengthLimit } from "@/utils";
 // 获取房间信息
 const room = roomStore();
 
-export const useMovieApi = (roomToken: string) => {
+export const useMovieApi = (token: string, roomId: string) => {
   // 获取影片列表和正在播放的影片
   const currentPage = ref(1);
   const pageSize = ref(10);
@@ -63,7 +63,10 @@ export const useMovieApi = (roomToken: string) => {
           subPath,
           id
         },
-        headers: { Authorization: roomToken }
+        headers: {
+          Authorization: token,
+          "X-Room-Id": roomId
+        }
       });
 
       if (movies.value) {
@@ -86,7 +89,10 @@ export const useMovieApi = (roomToken: string) => {
   const getCurrentMovie = async () => {
     try {
       await reqCurrentMovieApi({
-        headers: { Authorization: roomToken }
+        headers: {
+          Authorization: token,
+          "X-Room-Id": roomId
+        }
       });
 
       if (!currentMovie.value) return;
@@ -138,7 +144,10 @@ export const useMovieApi = (roomToken: string) => {
           id1: selectMovies.value[0],
           id2: selectMovies.value[1]
         },
-        headers: { Authorization: roomToken }
+        headers: {
+          Authorization: token,
+          "X-Room-Id": roomId
+        }
       });
 
       ElNotification({
@@ -167,7 +176,10 @@ export const useMovieApi = (roomToken: string) => {
           id: id,
           subPath: subPath
         },
-        headers: { Authorization: roomToken }
+        headers: {
+          Authorization: token,
+          "X-Room-Id": roomId
+        }
       });
 
       showMsg &&
@@ -228,7 +240,10 @@ export const useMovieApi = (roomToken: string) => {
       }
       await reqEditMovieInfoApi({
         data: cMovieInfo.value,
-        headers: { Authorization: roomToken }
+        headers: {
+          Authorization: token,
+          "X-Room-Id": roomId
+        }
       });
       ElNotification({
         title: "更新成功",
@@ -252,7 +267,10 @@ export const useMovieApi = (roomToken: string) => {
         data: {
           ids: ids
         },
-        headers: { Authorization: roomToken }
+        headers: {
+          Authorization: token,
+          "X-Room-Id": roomId
+        }
       });
       for (const id of ids) {
         room.movies.splice(
@@ -281,7 +299,10 @@ export const useMovieApi = (roomToken: string) => {
   const clearMovieList = async () => {
     try {
       await reqClearMovieListApi({
-        headers: { Authorization: roomToken },
+        headers: {
+          Authorization: token,
+          "X-Room-Id": roomId
+        },
         data: {
           parentId: room.movieList[room.movieList.length - 1].id
         }
@@ -309,7 +330,10 @@ export const useMovieApi = (roomToken: string) => {
         data: {
           id: id
         },
-        headers: { Authorization: roomToken }
+        headers: {
+          Authorization: token,
+          "X-Room-Id": roomId
+        }
       });
     } catch (err: any) {
       console.error(err);

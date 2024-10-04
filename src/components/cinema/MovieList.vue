@@ -15,11 +15,14 @@ import { ArrowRight, FolderOpened } from "@element-plus/icons-vue";
 const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
 const customSubtitlesDialog = ref<InstanceType<typeof customSubtitles>>();
 
+const Props = defineProps<{
+  token: string;
+  roomId: string;
+}>();
+
 // 获取房间信息
 const room = roomStore();
-const roomID = useRouteParams<string>("roomId");
-const roomToken = useLocalStorage<string>(`room-${roomID.value}-token`, "");
-const { myInfo } = useRoomApi(roomID.value);
+const { myInfo } = useRoomApi(Props.roomId);
 const { hasMemberPermission } = useRoomPermission();
 const can = (p: RoomMemberPermission) => {
   if (!myInfo.value) return;
@@ -51,7 +54,7 @@ const {
   // movieList,
   switchDir,
   dynamic
-} = useMovieApi(roomToken.value);
+} = useMovieApi(Props.token, Props.roomId);
 
 // 打开编辑对话框
 const editDialog = ref(false);
