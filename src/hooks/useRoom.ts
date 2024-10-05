@@ -35,7 +35,7 @@ export const useRoomApi = (roomId: string) => {
         }
 
         return await _joinRoom({ roomId, password: pwd });
-      } else if (thisRoomInfo.value.enableGuest) {
+      } else if (thisRoomInfo.value.enabledGuest) {
         router.replace(`/cinema/${roomId}`);
         return;
       } else {
@@ -82,12 +82,27 @@ export const useRoomApi = (roomId: string) => {
         }
       });
       if (joinedRoom.value!.joined) {
-        ElNotification({
-          title: "加入成功",
-          type: "success"
-        });
-
-        router.replace(`/cinema/${roomId}`);
+        switch (joinedRoom.value!.status) {
+          case MEMBER_STATUS.Pending:
+            ElNotification({
+              title: "等待管理员通过",
+              type: "success"
+            });
+            break;
+          case MEMBER_STATUS.Banned:
+            ElNotification({
+              title: "你已被管理员封禁",
+              type: "error"
+            });
+            break;
+          case MEMBER_STATUS.Active:
+            ElNotification({
+              title: "加入成功",
+              type: "success"
+            });
+            router.replace(`/cinema/${roomId}`);
+            break;
+        }
         return;
       }
       await reqJoinRoomApi({

@@ -57,7 +57,7 @@ export const checkRoomApi = useDefineApi<
     creator: string;
     needPassword: boolean;
     peopleNum: number;
-    enableGuest: boolean;
+    enabledGuest: boolean;
   }
 >({
   url: "/api/room/check"

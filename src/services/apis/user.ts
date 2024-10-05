@@ -185,6 +185,7 @@ export const joinedRoomApi = useDefineApi<
   },
   {
     joined: boolean;
+    status: MEMBER_STATUS;
   }
 >({
   url: "/api/user/room/joined",
