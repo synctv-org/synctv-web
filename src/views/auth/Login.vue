@@ -10,7 +10,7 @@ import { userStore } from "@/stores/user";
 import router from "@/router/index";
 import { oauth2Platforms } from "@/services/apis/auth";
 
-const { settings } = indexStore();
+const { settings, isAnySignupAllowed } = indexStore();
 
 const formData = ref({
   username: localStorage.getItem("uname") || "",
@@ -168,7 +168,7 @@ onMounted(async () => {
         >
       </div>
       <button type="submit" class="btn m-[10px]">登录</button>
-      <div v-if="settings?.emailEnable">
+      <div v-if="isAnySignupAllowed">
         还没有账号？<a class="ml-2" href="javascript:;" @click="router.push('/auth/register')"
           >立即注册</a
         >

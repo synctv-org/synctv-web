@@ -17,7 +17,13 @@ import {
 import { strLengthLimit, getAppIcon } from "@/utils";
 import type { EmailRegForm, RegForm } from "@/types";
 
-const { settings } = indexStore();
+const {
+  settings,
+  isPasswordSignupAllowed,
+  isEmailSignupAllowed,
+  isOAuth2SignupAllowed,
+  isAnySignupAllowed
+} = indexStore();
 const { getUserInfo: updateUserInfo, updateToken } = userStore();
 
 const { state: userToken, execute: emailRegisterApi } = useEmailRegisterApi();
@@ -42,15 +48,8 @@ const passwordFormData = ref<RegForm>({
 
 const emailProvider = ref(settings?.emailWhitelistEnabled && settings?.emailWhitelist[0]);
 const confirmPwd = ref("");
-
-const isPasswordSignupAllowed = computed(() => !settings?.passwordDisableSignup);
-const isEmailSignupAllowed = computed(() => settings?.emailEnable && !settings?.emailDisableSignup);
-const isOAuth2SignupAllowed = computed(() => !settings?.oauth2DisableSignup);
-const isAnySignupAllowed = computed(
-  () => isPasswordSignupAllowed.value || isEmailSignupAllowed.value || isOAuth2SignupAllowed.value
-);
 const registerType = ref<"password" | "email" | "oauth2">(
-  isPasswordSignupAllowed.value ? "password" : isEmailSignupAllowed.value ? "email" : "oauth2"
+  isPasswordSignupAllowed ? "password" : isEmailSignupAllowed ? "email" : "oauth2"
 );
 
 const toSendRegCode = async () => {
@@ -238,7 +237,7 @@ const handleOAuth2Login = async (platform: string) => {
 };
 
 onMounted(async () => {
-  if (!isAnySignupAllowed.value) {
+  if (!isAnySignupAllowed) {
     ElNotification({
       title: "提示",
       message: "暂不允许注册",
@@ -247,7 +246,7 @@ onMounted(async () => {
     router.push("/auth/login");
   } else {
     await refreshRegCaptcha();
-    if (isOAuth2SignupAllowed.value) {
+    if (isOAuth2SignupAllowed) {
       await getOAuth2SignupEnabled();
     }
   }

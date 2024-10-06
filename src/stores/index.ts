@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { ElNotification } from "element-plus";
 import { getPublicSettings } from "@/services/apis/auth";
 import { defineStore } from "pinia";
@@ -8,6 +8,15 @@ export const indexStore = defineStore("indexStore", () => {
   const { execute, state } = getPublicSettings();
 
   const settings = ref<PublicSettings>();
+
+  const isPasswordSignupAllowed = computed(() => !settings?.value?.passwordDisableSignup);
+  const isEmailSignupAllowed = computed(
+    () => settings?.value?.emailEnable && !settings?.value?.emailDisableSignup
+  );
+  const isOAuth2SignupAllowed = computed(() => !settings?.value?.oauth2DisableSignup);
+  const isAnySignupAllowed = computed(
+    () => isPasswordSignupAllowed.value || isEmailSignupAllowed.value || isOAuth2SignupAllowed.value
+  );
 
   const getSiteOptions = async () => {
     try {
@@ -27,6 +36,10 @@ export const indexStore = defineStore("indexStore", () => {
 
   return {
     getSiteOptions,
-    settings
+    settings,
+    isPasswordSignupAllowed,
+    isEmailSignupAllowed,
+    isOAuth2SignupAllowed,
+    isAnySignupAllowed
   };
 });
