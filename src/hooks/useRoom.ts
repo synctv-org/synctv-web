@@ -17,40 +17,35 @@ const { myInfo } = storeToRefs(roomStore());
 export const useRoomApi = () => {
   const { state: thisRoomInfo, execute: reqCheckRoomApi } = checkRoomApi();
   const joinRoom = async (roomId: string, pwd: string) => {
-    try {
-      await reqCheckRoomApi({
-        params: {
-          roomId: roomId
-        }
-      });
-      if (!thisRoomInfo.value) return;
+    await reqCheckRoomApi({
+      params: {
+        roomId: roomId
+      }
+    });
+    if (!thisRoomInfo.value) return;
 
-      if (thisRoomInfo.value.enabledGuest) {
+    if (thisRoomInfo.value.enabledGuest) {
+      router.replace(`/cinema/${roomId}`);
+      return;
+    } else if (isLogin.value) {
+      if (info.value?.username === thisRoomInfo.value.creator) {
         router.replace(`/cinema/${roomId}`);
         return;
-      } else if (isLogin.value) {
-        if (info.value?.username === thisRoomInfo.value.creator) {
-          router.replace(`/cinema/${roomId}`);
-          return;
-        }
-
-        return await _joinRoom({ roomId, password: pwd });
-      } else {
-        router.replace({
-          name: "login",
-          query: {
-            redirect: router.currentRoute.value.fullPath
-          }
-        });
-        throw new Error("请先登录");
       }
-    } catch (err: any) {
-      console.error(err);
-      ElNotification({
-        title: "错误",
-        message: err.response?.data.error || err.message,
-        type: "error"
+
+      if (thisRoomInfo.value.needPassword && !pwd) {
+        throw new Error("该房间需要密码，请输入密码");
+      }
+
+      return await _joinRoom({ roomId, password: pwd });
+    } else {
+      router.replace({
+        name: "login",
+        query: {
+          redirect: router.currentRoute.value.fullPath
+        }
       });
+      throw new Error("请先登录");
     }
   };
 

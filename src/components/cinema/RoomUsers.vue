@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref } from "vue";
-import { ElNotification } from "element-plus";
+import { ElNotification, ElMessageBox } from "element-plus";
 import { Search } from "@element-plus/icons-vue";
 import { ROLE, memberRole, MEMBER_STATUS, memberStatus } from "@/types/Room";
 import {
@@ -122,6 +122,12 @@ const approveUser = async (id: string) => {
 const { execute: reqDeleteUserApi, isLoading: deleteUserLoading } = deleteUserApi();
 const deleteUser = async (id: string) => {
   try {
+    await ElMessageBox.confirm("确定要删除该用户吗？", "警告", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    });
+
     await reqDeleteUserApi({
       headers: {
         Authorization: Props.token,
@@ -137,12 +143,14 @@ const deleteUser = async (id: string) => {
     });
     await getUserListApi();
   } catch (err: any) {
-    console.error(err);
-    ElNotification({
-      title: "错误",
-      type: "error",
-      message: err.response.data.error || err.message
-    });
+    if (err !== "cancel") {
+      console.error(err);
+      ElNotification({
+        title: "错误",
+        type: "error",
+        message: err.response?.data.error || err.message
+      });
+    }
   }
 };
 

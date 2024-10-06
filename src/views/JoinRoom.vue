@@ -5,9 +5,9 @@ import { useRouteParams, useRouteQuery } from "@vueuse/router";
 import { useRoomApi } from "@/hooks/useRoom";
 import { indexStore } from "@/stores";
 import { userStore } from "@/stores/user";
+import { ElNotification } from "element-plus";
 
 const { settings } = indexStore();
-const { isLogin } = userStore();
 const route = useRoute();
 const router = useRouter();
 const roomID = useRouteParams("roomId");
@@ -25,6 +25,8 @@ const props = defineProps<{
   };
 }>();
 
+const roomIdCanEdit = !props.item?.roomId;
+
 const formData = ref<{
   roomId: string;
   password: string;
@@ -36,19 +38,26 @@ const formData = ref<{
 const { joinRoom } = useRoomApi();
 
 const init = () => {
-  if (props.item) formData.value = props.item;
-  else {
+  if (props.item) {
+    formData.value.roomId = props.item.roomId;
+    formData.value.password = props.item.password;
+  } else {
     if (roomID) formData.value.roomId = roomID.value as string;
     if (pwd) formData.value.password = pwd.value as string;
   }
-  if (formData.value.roomId) joinRoom(formData.value.roomId, formData.value.password);
+  handleJoinRoom();
 };
 
-const handleJoinRoom = () => {
-  if (!settings?.guestEnable && !isLogin) {
-    router.push("/login");
-  } else {
-    joinRoom(formData.value.roomId, formData.value.password);
+const handleJoinRoom = async () => {
+  try {
+    await joinRoom(formData.value.roomId, formData.value.password);
+  } catch (error) {
+    console.error(error);
+    ElNotification({
+      title: "错误",
+      message: error as string,
+      type: "error"
+    });
   }
 };
 
@@ -69,6 +78,7 @@ onMounted(() => {
         placeholder="房间ID"
         required
         autocomplete="off"
+        :readonly="!roomIdCanEdit"
       />
       <br />
       <input
@@ -80,9 +90,7 @@ onMounted(() => {
       />
       <br />
 
-      <button class="btn my-[10px]" type="submit">
-        {{ settings?.guestEnable && !isLogin ? "以访客身份加入" : "加入" }}
-      </button>
+      <button class="btn my-[10px]" type="submit">加入</button>
       <div class="text-sm">
         <b>注意：</b>所有输入框最大只可输入32个字符
         <br />
