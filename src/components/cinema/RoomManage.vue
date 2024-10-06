@@ -83,7 +83,7 @@ const getRoomSettings = async () => {
 };
 
 // 更新房间设置
-const { updateSet } = useUpdateRoomSettings(Props.token, Props.roomId);
+const { updateSet, isUpdating } = useUpdateRoomSettings(Props.token, Props.roomId);
 
 // 更新房间密码
 const password = ref("");
@@ -191,6 +191,7 @@ defineExpose({
               v-model="setting[1].value"
               :disabled="!can(RoomAdminPermission.PermissionSetRoomSettings)"
               @change="updateSet(setting[0], setting[1].value)"
+              :loading="isUpdating(setting[0])"
             />
             <el-input
               v-else
@@ -199,6 +200,7 @@ defineExpose({
               :disabled="!can(RoomAdminPermission.PermissionSetRoomSettings) && setting[1].disabled"
               :type="setting[1].isTextarea ? 'textarea' : 'text'"
               @change="updateSet(setting[0], setting[1].value)"
+              :loading="isUpdating(setting[0])"
             >
               <template #append v-if="setting[1].append">{{ setting[1].append }}</template>
             </el-input>
@@ -224,6 +226,7 @@ defineExpose({
               <el-button
                 v-if="isAdmin && can(RoomAdminPermission.PermissionSetRoomSettings)"
                 @click="updateSet('user_default_permissions', computedUserDefaultPermissions)"
+                :loading="isUpdating('user_default_permissions')"
                 >更新</el-button
               >
             </div>
@@ -249,6 +252,7 @@ defineExpose({
               <el-button
                 v-if="isAdmin && can(RoomAdminPermission.PermissionSetRoomSettings)"
                 @click="updateSet('guest_permissions', computedGuestPermissions)"
+                :loading="isUpdating('guest_permissions')"
                 >更新</el-button
               >
             </div>

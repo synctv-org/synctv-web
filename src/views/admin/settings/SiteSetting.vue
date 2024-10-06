@@ -17,7 +17,7 @@ const props = defineProps<{
 }>();
 
 const { token, info } = userStore();
-const { updateSet } = useUpdateAdminSettings(token.value);
+const { updateSet, isUpdating } = useUpdateAdminSettings(token.value);
 
 const {
   databaseSettingsGroup,
@@ -178,6 +178,7 @@ onMounted(async () => {
                 v-if="typeof setting[1].value === 'boolean'"
                 @change="updateSet(setting[0], setting[1].value)"
                 v-model="setting[1].value"
+                :loading="isUpdating(setting[0])"
               />
               <el-input
                 v-else
@@ -186,6 +187,7 @@ onMounted(async () => {
                 :placeholder="setting[1].placeholder"
                 :disabled="setting[1].disabled"
                 :type="setting[1].isTextarea ? 'textarea' : 'text'"
+                :loading="isUpdating(setting[0])"
               >
                 <template #append v-if="setting[1].append">{{ setting[1].append }}</template>
               </el-input>
