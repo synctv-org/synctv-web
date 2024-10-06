@@ -234,8 +234,8 @@ onMounted(async () => {
     </div>
     <div class="card-body">
       <el-table :data="state?.list" v-loading="userListLoading" style="width: 100%">
-        <el-table-column prop="username" label="用户名" width="200" />
-        <el-table-column prop="id" label="ID" width="120">
+        <el-table-column prop="username" label="用户名" min-width="80" max-width="200" />
+        <el-table-column prop="id" label="ID" min-width="120" max-width="200">
           <template #default="scope">
             <div class="flex overflow-hidden text-ellipsis max-w-[100px]">
               <span class="truncate">{{ scope.row.id }}</span>
@@ -243,22 +243,22 @@ onMounted(async () => {
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="role" label="权限组" width="70">
+        <el-table-column prop="role" label="权限组" min-width="60" max-width="120">
           <template #default="scope">
             {{ getRole(scope.row.role) }}
           </template>
         </el-table-column>
-        <el-table-column prop="roomList" label="房间列表" width="120">
+        <el-table-column prop="roomList" label="房间列表" min-width="60" max-width="200">
           <template #default="scope">
             <el-button type="primary" plain @click="getUserRoom(scope.row.id)"> 查看 </el-button>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="注册时间" width="160">
+        <el-table-column prop="createdAt" label="注册时间" min-width="120" max-width="250">
           <template #default="scope">
             {{ new Date(scope.row.createdAt).toLocaleString() }}
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作">
+        <el-table-column fixed="right" label="操作" min-width="250" max-width="350">
           <template #default="scope">
             <div v-if="scope.row.role === ROLE.Pending">
               <el-button type="success" @click="approve(scope.row.id)" :loading="approveLoading">

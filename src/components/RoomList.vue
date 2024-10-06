@@ -6,7 +6,9 @@ import {
   type RoomList,
   type JoinedRoomList,
   memberStatus,
-  memberRole
+  memberRole,
+  RoomStatus,
+  MEMBER_STATUS
 } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
 import { indexStore } from "@/stores";
@@ -118,6 +120,32 @@ watch(
   },
   { immediate: true }
 );
+
+const getStatusColor = (status: RoomStatus) => {
+  switch (status) {
+    case RoomStatus.Banned:
+      return "text-red-500";
+    case RoomStatus.Pending:
+      return "text-yellow-500";
+    case RoomStatus.Active:
+      return "text-green-500";
+    default:
+      return "text-gray-500";
+  }
+};
+
+const getMemberStatusColor = (status: MEMBER_STATUS) => {
+  switch (status) {
+    case MEMBER_STATUS.Banned:
+      return "text-red-500";
+    case MEMBER_STATUS.Pending:
+      return "text-yellow-500";
+    case MEMBER_STATUS.Active:
+      return "text-green-500";
+    default:
+      return "text-gray-500";
+  }
+};
 </script>
 
 <template>
@@ -223,12 +251,17 @@ watch(
               }}</span>
             </div>
             <div v-if="isMyRoom || isJoinedRoom">
-              状态：{{ getObjValue(roomStatus, item.status) }}
+              状态：<span :class="getStatusColor(item.status)">{{
+                getObjValue(roomStatus, item.status)
+              }}</span>
             </div>
             <div v-if="!isMyRoom" class="truncate">创建者：{{ item.creator }}</div>
             <div>创建时间：{{ useTimeAgo(new Date(item.createdAt)).value }}</div>
             <div v-if="isJoinedRoom">
-              我的状态：{{ memberStatus[(item as JoinedRoomList).memberStatus] }}
+              我的状态：<span
+                :class="getMemberStatusColor((item as JoinedRoomList).memberStatus)"
+                >{{ memberStatus[(item as JoinedRoomList).memberStatus] }}</span
+              >
             </div>
             <div v-if="isJoinedRoom">
               我的身份：{{ memberRole[(item as JoinedRoomList).memberRole] }}

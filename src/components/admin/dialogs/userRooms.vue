@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRoomApi } from "@/hooks/useRoom";
-import { roomStatus } from "@/types/Room";
+import { RoomStatus, roomStatus } from "@/types/Room";
 import { Search } from "@element-plus/icons-vue";
 import { useTimeAgo } from "@vueuse/core";
 import { getObjValue } from "@/utils";
@@ -33,6 +33,19 @@ const {
 
 const getRoomList = async (showMsg = false) => {
   await getUserRoomList(showMsg, userId.value);
+};
+
+const getStatusColor = (status: RoomStatus) => {
+  switch (status) {
+    case RoomStatus.Banned:
+      return "text-red-500";
+    case RoomStatus.Pending:
+      return "text-yellow-500";
+    case RoomStatus.Active:
+      return "text-green-500";
+    default:
+      return "text-gray-500";
+  }
 };
 
 defineExpose({ openDialog });
@@ -117,7 +130,11 @@ defineExpose({ openDialog });
                 item["peopleNum"]
               }}</span>
             </div>
-            <div>状态：{{ getObjValue(roomStatus, item.status) }}</div>
+            <div>
+              状态：<span :class="getStatusColor(item.status)">{{
+                getObjValue(roomStatus, item.status)
+              }}</span>
+            </div>
             <div>创建时间：{{ useTimeAgo(new Date(item.createdAt)).value }}</div>
           </div>
           <div class="flex p-2 w-full justify-between items-center">

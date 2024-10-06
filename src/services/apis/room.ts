@@ -271,6 +271,22 @@ export const approveUserApi = useDefineApi<
   method: "POST"
 });
 
+export const deleteUserApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+      "X-Room-Id": string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/room/admin/members/delete",
+  method: "POST"
+});
+
 // 设置为管理员
 export const setAdminApi = useDefineApi<
   {

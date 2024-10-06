@@ -9,7 +9,8 @@ import {
   unbanUserApi,
   setAdminApi,
   setMemberApi,
-  approveUserApi
+  approveUserApi,
+  deleteUserApi
 } from "@/services/apis/room";
 import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
 import { RoomAdminPermission, RoomMemberPermission } from "@/types/Room";
@@ -117,6 +118,34 @@ const approveUser = async (id: string) => {
   }
 };
 
+// 删除用户
+const { execute: reqDeleteUserApi, isLoading: deleteUserLoading } = deleteUserApi();
+const deleteUser = async (id: string) => {
+  try {
+    await reqDeleteUserApi({
+      headers: {
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
+      },
+      data: {
+        id: id
+      }
+    });
+    ElNotification({
+      title: "删除成功",
+      type: "success"
+    });
+    await getUserListApi();
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "错误",
+      type: "error",
+      message: err.response.data.error || err.message
+    });
+  }
+};
+
 // 封禁 / 解封 用户
 const banUser = async (id: string, is: boolean) => {
   try {
@@ -191,6 +220,19 @@ const setAdmin = async (
 defineExpose({
   openDrawer
 });
+
+const getMemberStatusColor = (status: MEMBER_STATUS) => {
+  switch (status) {
+    case MEMBER_STATUS.Banned:
+      return "text-red-500";
+    case MEMBER_STATUS.Pending:
+      return "text-yellow-500";
+    case MEMBER_STATUS.Active:
+      return "text-green-500";
+    default:
+      return "text-gray-500";
+  }
+};
 </script>
 
 <template>
@@ -259,7 +301,7 @@ defineExpose({
         style="width: 100%"
         :loading="userListLoading"
       >
-        <el-table-column prop="username" label="用户名" width="160" />
+        <el-table-column prop="username" label="用户名" width="100" />
         <el-table-column prop="id" label="ID" width="50">
           <template #default="scope">
             <CopyButton size="small" :value="scope.row.userId" />
@@ -291,87 +333,115 @@ defineExpose({
             >
           </template>
         </el-table-column>
-        <el-table-column prop="role" label="状态" width="90">
+        <el-table-column prop="role" label="状态" width="80">
           <template #default="scope">
-            {{ memberStatus[scope.row.status as MEMBER_STATUS] }}
+            <span :class="getMemberStatusColor(scope.row.status)">
+              {{ memberStatus[scope.row.status as MEMBER_STATUS] }}
+            </span>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="加入时间" width="160">
+        <el-table-column prop="createdAt" label="加入时间" width="150">
           <template #default="scope">
             {{ new Date(scope.row.joinAt).toLocaleString() }}
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作">
           <template #default="scope" v-if="isAdmin">
-            <el-button
-              v-if="
-                can(RoomAdminPermission.PermissionApprovePendingMember) &&
-                scope.row.status === MEMBER_STATUS.Pending
-              "
-              type="success"
-              @click="approveUser(scope.row.userId)"
-            >
-              允许加入
-            </el-button>
-            <div v-else>
+            <div v-if="scope.row.status === MEMBER_STATUS.Pending">
               <el-button
-                v-if="
-                  can(RoomAdminPermission.PermissionBanRoomMember) &&
-                  scope.row.status === MEMBER_STATUS.Banned
-                "
+                v-if="can(RoomAdminPermission.PermissionBanRoomMember)"
+                type="danger"
+                @click="banUser(scope.row.userId, true)"
+              >
+                封禁
+              </el-button>
+              <el-button
+                v-if="can(RoomAdminPermission.PermissionApprovePendingMember)"
+                type="success"
+                @click="approveUser(scope.row.userId)"
+              >
+                允许
+              </el-button>
+              <el-button
+                v-if="can(RoomAdminPermission.PermissionApprovePendingMember)"
+                type="danger"
+                @click="deleteUser(scope.row.userId)"
+              >
+                删除
+              </el-button>
+            </div>
+            <div v-else-if="scope.row.status === MEMBER_STATUS.Banned">
+              <el-button
+                v-if="can(RoomAdminPermission.PermissionBanRoomMember)"
                 type="warning"
                 @click="banUser(scope.row.userId, false)"
               >
                 解封
               </el-button>
-
-              <div v-else class="phone-button">
-                <el-button
-                  v-if="
-                    can(RoomAdminPermission.PermissionBanRoomMember) &&
-                    scope.row.role !== ROLE.Creator &&
-                    scope.row.userId !== myInfo?.userId
-                  "
-                  type="danger"
-                  plain
-                  @click="banUser(scope.row.userId, true)"
-                >
-                  封禁
-                </el-button>
-
-                <el-button
-                  v-if="scope.row.role < ROLE.Admin"
-                  type="primary"
-                  @click="
-                    setAdmin(
-                      scope.row.userId,
-                      scope.row.permissions,
-                      scope.row.adminPermissions,
-                      true
-                    )
-                  "
-                >
-                  设为管理
-                </el-button>
-                <el-button
-                  v-else-if="
-                    scope.row.role === ROLE.Admin &&
-                    scope.row.role !== ROLE.Creator &&
-                    myInfo?.role === ROLE.Creator
-                  "
-                  type="warning"
-                  @click="
-                    setAdmin(
-                      scope.row.userId,
-                      scope.row.permissions,
-                      scope.row.adminPermissions,
-                      false
-                    )
-                  "
-                >
-                  取消管理
-                </el-button>
-              </div>
+              <el-button
+                v-if="can(RoomAdminPermission.PermissionApprovePendingMember)"
+                type="danger"
+                @click="deleteUser(scope.row.userId)"
+              >
+                删除
+              </el-button>
+            </div>
+            <div v-else>
+              <el-button
+                v-if="
+                  can(RoomAdminPermission.PermissionBanRoomMember) &&
+                  scope.row.role !== ROLE.Creator &&
+                  scope.row.userId !== myInfo?.userId
+                "
+                type="danger"
+                plain
+                @click="banUser(scope.row.userId, true)"
+              >
+                封禁
+              </el-button>
+              <el-button
+                v-if="scope.row.role < ROLE.Admin"
+                type="primary"
+                @click="
+                  setAdmin(
+                    scope.row.userId,
+                    scope.row.permissions,
+                    scope.row.adminPermissions,
+                    true
+                  )
+                "
+              >
+                设为管理
+              </el-button>
+              <el-button
+                v-else-if="
+                  scope.row.role === ROLE.Admin &&
+                  scope.row.role !== ROLE.Creator &&
+                  myInfo?.role === ROLE.Creator
+                "
+                type="warning"
+                @click="
+                  setAdmin(
+                    scope.row.userId,
+                    scope.row.permissions,
+                    scope.row.adminPermissions,
+                    false
+                  )
+                "
+              >
+                取消管理
+              </el-button>
+              <el-button
+                v-if="
+                  can(RoomAdminPermission.PermissionApprovePendingMember) &&
+                  scope.row.role !== ROLE.Creator &&
+                  scope.row.userId !== myInfo?.userId
+                "
+                type="danger"
+                @click="deleteUser(scope.row.userId)"
+              >
+                删除
+              </el-button>
             </div>
           </template>
         </el-table-column>
