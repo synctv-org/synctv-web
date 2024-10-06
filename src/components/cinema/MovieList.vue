@@ -50,7 +50,6 @@ const {
   clearMovieListLoading,
   getLiveInfo,
   liveInfo,
-  subPath,
   // movieList,
   switchDir,
   dynamic
@@ -97,9 +96,9 @@ const confirmCancelPlayback = async () => {
 
     <div class="card-body">
       <el-breadcrumb :separator-icon="ArrowRight">
-        <el-breadcrumb-item v-for="item in room.movieList" :key="item.id">
+        <el-breadcrumb-item v-for="item in room.folder" :key="item.id">
           <el-button link @click="switchDir(item.id, item.subPath)">
-            {{ item.label }}
+            {{ item.name }}
           </el-button>
         </el-breadcrumb-item>
       </el-breadcrumb>
@@ -260,18 +259,8 @@ const confirmCancelPlayback = async () => {
         :pager-count="5"
         layout="sizes, prev, pager, next, jumper"
         :total="room.totalMovies"
-        @size-change="
-          getMovies(
-            room.movieList[room.movieList.length - 1].id,
-            room.movieList[room.movieList.length - 1].subPath
-          )
-        "
-        @current-change="
-          getMovies(
-            room.movieList[room.movieList.length - 1].id,
-            room.movieList[room.movieList.length - 1].subPath
-          )
-        "
+        @size-change="getMovies()"
+        @current-change="getMovies()"
       />
 
       <div></div>
@@ -304,17 +293,7 @@ const confirmCancelPlayback = async () => {
             <button class="btn btn-error mx-2">清空当前目录</button>
           </template>
         </el-popconfirm>
-        <button
-          class="btn btn-success"
-          @click="
-            getMovies(
-              room.movieList[room.movieList.length - 1].id,
-              room.movieList[room.movieList.length - 1].subPath
-            )
-          "
-        >
-          更新列表
-        </button>
+        <button class="btn btn-success" @click="getMovies()">更新列表</button>
       </div>
     </div>
   </div>

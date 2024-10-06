@@ -135,7 +135,7 @@ const submit = async () => {
               },
               backend: Props.vendor
             },
-            parentId: room.movieList[room.movieList.length - 1].id
+            parentId: room.lastFolderId
           }
       )
     });

@@ -15,7 +15,8 @@ interface AListItem extends FileItem {
 }
 
 const props = defineProps<{
-  roomToken: string;
+  token: string;
+  roomId: string;
 }>();
 
 const room = roomStore();
@@ -58,7 +59,7 @@ const submit = async () => {
     if (!selectedItems) return;
     if (selectedItems.length === 0) return ElMessage.error("请选择视频");
     await reqPushMoviesApi({
-      headers: { Authorization: props.roomToken, "X-Room-Id": room.roomID.value },
+      headers: { Authorization: props.token, "X-Room-Id": props.roomId },
       data: selectedItems.map(
         (item) =>
           <BaseMovieInfo>{
@@ -76,7 +77,7 @@ const submit = async () => {
               }
             },
             isFolder: item.isDir,
-            parentId: room.movieList[room.movieList.length - 1].id
+            parentId: room.lastFolderId
           }
       )
     });
@@ -87,7 +88,7 @@ const submit = async () => {
       title: "添加成功"
     });
   } catch (err: any) {
-    console.error(err.message);
+    console.error(err);
     return ElNotification({
       type: "error",
       title: "错误",

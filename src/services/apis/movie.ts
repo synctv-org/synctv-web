@@ -27,6 +27,12 @@ export const movieListApi = useDefineApi<
   method: "GET"
 });
 
+export interface MoviePath {
+  name: string;
+  id: string;
+  subPath: string;
+}
+
 // 获取影片列表（无正在播放）
 export const moviesApi = useDefineApi<
   {
@@ -43,6 +49,7 @@ export const moviesApi = useDefineApi<
   },
   {
     movies: MovieInfo[] | [];
+    paths: MoviePath[];
     total: number;
     dynamic: boolean;
   }

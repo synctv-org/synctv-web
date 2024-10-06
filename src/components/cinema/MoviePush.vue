@@ -351,7 +351,7 @@ const pushMovie = async () => {
     await reqPushMovieApi({
       data: {
         ...newMovieInfo.value,
-        parentId: room.movieList[room.movieList.length - 1].id
+        parentId: room.lastFolderId
       },
       headers: { Authorization: Props.token, "X-Room-Id": Props.roomId }
     });
@@ -579,10 +579,10 @@ const getBiliBiliVendors = async () => {
   />
 
   <!-- AList 文件列表 -->
-  <alist ref="alistDialog" :room-token="token" />
+  <alist ref="alistDialog" :token="token" :room-id="roomId" />
 
   <!-- Emby 文件列表 -->
-  <emby ref="embyDialog" :room-token="token" />
+  <emby ref="embyDialog" :token="token" :room-id="roomId" />
 </template>
 
 <style lang="less" scoped>

@@ -7,6 +7,7 @@ import type { CurrentMovie, MovieInfo } from "@/types/Movie";
 import { userStore } from "@/stores/user";
 import type { MovieStatus } from "@/proto/message";
 import type { MyInfo } from "@/types/Room";
+import type { MoviePath } from "@/services/apis/movie";
 const { token: userToken } = userStore();
 export const roomStore = defineStore("roomStore", () => {
   const isDarkMode = useStorage<boolean>("isDarkMode", localStorage.isDarkMode === "true");
@@ -23,10 +24,6 @@ export const roomStore = defineStore("roomStore", () => {
   // roomID
   const roomID = computed(() => {
     return useRouteParams<string>("roomId");
-  });
-
-  const roomToken = computed(() => {
-    return useLocalStorage<string>(`room-${roomID.value}-token`, "");
   });
 
   const totalMovies = ref(0);
@@ -59,19 +56,16 @@ export const roomStore = defineStore("roomStore", () => {
   // 在线人数
   const peopleNum = ref(1);
 
-  const movieList = ref<
-    {
-      label: string;
-      subPath: string;
-      id: string;
-    }[]
-  >([
-    {
-      label: "根目录",
-      subPath: "",
-      id: ""
-    }
-  ]);
+  const folder = ref<MoviePath[]>();
+
+  const lastFolderId = computed(() => {
+    return folder.value && folder.value.length > 0 ? folder.value[folder.value.length - 1].id : "";
+  });
+  const lastFolderSubPath = computed(() => {
+    return folder.value && folder.value.length > 0
+      ? folder.value[folder.value.length - 1].subPath
+      : "";
+  });
 
   return {
     isDarkMode,
@@ -85,7 +79,8 @@ export const roomStore = defineStore("roomStore", () => {
     login,
     myInfo,
     roomID,
-    roomToken,
-    movieList
+    folder,
+    lastFolderId,
+    lastFolderSubPath
   };
 });

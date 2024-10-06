@@ -23,45 +23,20 @@ export const useMovieApi = (token: string, roomId: string) => {
   const pageSize = ref(10);
   const dynamic = ref(false);
 
-  const subPath = computed(() => {
-    return room.movieList && room.movieList[room.movieList.length - 1].subPath;
-  });
-
-  const switchDir = (id: string, subPath: string) => {
-    if (!room.movieList) return;
-
-    const file = room.movieList
-      .filter((item) => item.id === id)
-      .find((item) => item.subPath === subPath);
-
-    if (!file) {
-      const movie = room.movies
-        .filter((movie) => movie.id === id)
-        .find((movie) => movie.subPath === subPath);
-      room.movieList.push({
-        label: movie?.base.name || "",
-        subPath: movie?.subPath || "",
-        id: movie?.id || ""
-      });
-    } else {
-      room.movieList = room.movieList.slice(0, room.movieList.indexOf(file) + 1);
-    }
-    currentPage.value = 1;
-    return getMovies(id, subPath);
+  const switchDir = async (id: string, subPath: string) => {
+    return await getMovies(id, subPath);
   };
 
   // 获取影片列表
   const { state: movies, isLoading: moviesLoading, execute: reqMoviesApi } = moviesApi();
   const getMovies = async (id?: string, subPath?: string) => {
-    id = id || room.movieList[room.movieList.length - 1].id;
-    subPath = subPath || room.movieList[room.movieList.length - 1].subPath;
     try {
       await reqMoviesApi({
         params: {
           page: currentPage.value,
           max: pageSize.value,
-          subPath,
-          id
+          subPath: subPath === undefined ? room.lastFolderSubPath : subPath,
+          id: id === undefined ? room.lastFolderId : id
         },
         headers: {
           Authorization: token,
@@ -72,6 +47,7 @@ export const useMovieApi = (token: string, roomId: string) => {
       if (movies.value) {
         room.movies = movies.value.movies;
         room.totalMovies = movies.value.total;
+        room.folder = movies.value.paths;
       }
       dynamic.value = movies.value?.dynamic || false;
     } catch (err: any) {
@@ -304,7 +280,7 @@ export const useMovieApi = (token: string, roomId: string) => {
           "X-Room-Id": roomId
         },
         data: {
-          parentId: room.movieList[room.movieList.length - 1].id
+          parentId: room.lastFolderId
         }
       });
 
@@ -348,7 +324,6 @@ export const useMovieApi = (token: string, roomId: string) => {
   return {
     currentPage,
     pageSize,
-    subPath,
     // movieList,
 
     getMovies,
