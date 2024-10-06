@@ -3,7 +3,7 @@ import { ElNotification } from "element-plus";
 import { userStore } from "@/stores/user";
 import { roomStore } from "@/stores/room";
 import router from "@/router";
-import { myRoomListApi, joinedRoomApi } from "@/services/apis/user";
+import { myRoomListApi, joinedRoomApi, myJoinedRoomListApi } from "@/services/apis/user";
 import { userRoomListApi } from "@/services/apis/admin";
 import { joinRoomApi, checkRoomApi, roomListApi, hotRoom, myInfoApi } from "@/services/apis/room";
 import { strLengthLimit } from "@/utils";
@@ -14,7 +14,7 @@ import { RoomMemberPermission, RoomAdminPermission, MEMBER_STATUS } from "@/type
 const { info, token, isLogin } = userStore();
 const { myInfo } = storeToRefs(roomStore());
 
-export const useRoomApi = (roomId: string) => {
+export const useRoomApi = () => {
   const { state: thisRoomInfo, execute: reqCheckRoomApi } = checkRoomApi();
   const joinRoom = async (roomId: string, pwd: string) => {
     try {
@@ -25,19 +25,16 @@ export const useRoomApi = (roomId: string) => {
       });
       if (!thisRoomInfo.value) return;
 
-      if (isLogin.value) {
-        if (
-          info.value?.username === thisRoomInfo.value.creator ||
-          thisRoomInfo.value.needPassword
-        ) {
+      if (thisRoomInfo.value.enabledGuest) {
+        router.replace(`/cinema/${roomId}`);
+        return;
+      } else if (isLogin.value) {
+        if (info.value?.username === thisRoomInfo.value.creator) {
           router.replace(`/cinema/${roomId}`);
           return;
         }
 
         return await _joinRoom({ roomId, password: pwd });
-      } else if (thisRoomInfo.value.enabledGuest) {
-        router.replace(`/cinema/${roomId}`);
-        return;
       } else {
         router.replace({
           name: "login",
@@ -75,7 +72,7 @@ export const useRoomApi = (roomId: string) => {
     try {
       await reqJoinedRoomApi({
         params: {
-          roomId: roomId
+          roomId: formData.roomId
         },
         headers: {
           Authorization: token.value
@@ -100,7 +97,7 @@ export const useRoomApi = (roomId: string) => {
               title: "加入成功",
               type: "success"
             });
-            router.replace(`/cinema/${roomId}`);
+            router.replace(`/cinema/${formData.roomId}`);
             break;
         }
         return;
@@ -111,14 +108,14 @@ export const useRoomApi = (roomId: string) => {
           Authorization: token.value
         }
       });
-      if (formData.password) localStorage.setItem(`room-${roomId}-pwd`, formData.password);
+      if (formData.password) localStorage.setItem(`room-${formData.roomId}-pwd`, formData.password);
 
       ElNotification({
         title: "加入成功",
         type: "success"
       });
 
-      router.replace(`/cinema/${roomId}`);
+      router.replace(`/cinema/${formData.roomId}`);
     } catch (err: any) {
       console.error(err);
       ElNotification({
@@ -192,6 +189,44 @@ export const useRoomApi = (roomId: string) => {
 
       if (myRoomList.value) {
         totalItems.value = myRoomList.value.total;
+      }
+
+      showMsg &&
+        ElNotification({
+          title: "更新列表成功",
+          type: "success"
+        });
+    } catch (err: any) {
+      console.error(err.message);
+      ElNotification({
+        title: "错误",
+        message: err.response.data.error || err.message,
+        type: "error"
+      });
+    }
+  };
+
+  // 我加入的房间列表
+  const { state: myJoinedRoomList, execute: reqMyJoinedRoomList } = myJoinedRoomListApi();
+  const getMyJoinedRoomList = async (showMsg = false) => {
+    try {
+      await reqMyJoinedRoomList({
+        params: {
+          page: currentPage.value,
+          max: pageSize.value,
+          sort: sort.value,
+          order: order.value,
+          search: search.value,
+          keyword: keyword.value,
+          status: status.value
+        },
+        headers: {
+          Authorization: token.value
+        }
+      });
+
+      if (myJoinedRoomList.value) {
+        totalItems.value = myJoinedRoomList.value.total;
       }
 
       showMsg &&
@@ -284,7 +319,7 @@ export const useRoomApi = (roomId: string) => {
 
   // 我的信息
   const { state: _myInfo, execute: reqMyInfoApi } = myInfoApi();
-  const getMyInfo = async () => {
+  const getMyInfo = async (roomId: string) => {
     await reqMyInfoApi({
       headers: {
         Authorization: token.value,
@@ -315,6 +350,9 @@ export const useRoomApi = (roomId: string) => {
 
     getMyRoomList,
     myRoomList,
+
+    getMyJoinedRoomList,
+    myJoinedRoomList,
 
     getUserRoomList,
     userRoomList,

@@ -22,7 +22,7 @@ const Props = defineProps<{
 
 // 获取房间信息
 const room = roomStore();
-const { myInfo } = useRoomApi(Props.roomId);
+const { myInfo } = useRoomApi();
 const { hasMemberPermission } = useRoomPermission();
 const can = (p: RoomMemberPermission) => {
   if (!myInfo.value) return;

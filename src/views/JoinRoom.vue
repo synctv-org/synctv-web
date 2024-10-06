@@ -33,7 +33,7 @@ const formData = ref<{
   password: pwd.value as string
 });
 
-const { joinRoom } = useRoomApi(formData.value.roomId);
+const { joinRoom } = useRoomApi();
 
 const init = () => {
   if (props.item) formData.value = props.item;

@@ -11,6 +11,11 @@ export interface RoomList {
   status: number;
 }
 
+export interface JoinedRoomList extends RoomList {
+  memberStatus: MEMBER_STATUS;
+  memberRole: ROLE;
+}
+
 // 房间权限（默认用户）
 export enum RoomMemberPermission {
   PermissionGetMovieList = 1 << 0,
@@ -74,7 +79,7 @@ export enum ROLE {
   Creator = 3
 }
 
-export const role: Record<ROLE, string> = {
+export const memberRole: Record<ROLE, string> = {
   [ROLE.Unknown]: "Unknown",
   [ROLE.Member]: "Member",
   [ROLE.Admin]: "Admin",

@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { ElNotification } from "element-plus";
 import { Search } from "@element-plus/icons-vue";
-import { ROLE, role, MEMBER_STATUS, memberStatus } from "@/types/Room";
+import { ROLE, memberRole, MEMBER_STATUS, memberStatus } from "@/types/Room";
 import {
   userListApi,
   banUserApi,
@@ -26,7 +26,7 @@ const openDrawer = async () => {
 };
 
 const userPermissionDialog = ref<InstanceType<typeof UserPermission>>();
-const { myInfo } = useRoomApi(Props.roomId);
+const { myInfo } = useRoomApi();
 const { hasAdminPermission } = useRoomPermission();
 const can = (p: RoomAdminPermission) => {
   if (!myInfo.value) return;
@@ -35,8 +35,8 @@ const can = (p: RoomAdminPermission) => {
 };
 
 const rolesFilter = computed(() => {
-  const v = Object.values(role);
-  return v.filter((r) => r !== role[ROLE.Unknown]);
+  const v = Object.values(memberRole);
+  return v.filter((r) => r !== memberRole[ROLE.Unknown]);
 });
 
 const memberStatusFilter = computed(() => {
@@ -287,7 +287,7 @@ defineExpose({
                   )
               "
             >
-              {{ role[scope.row.role as ROLE] }}</a
+              {{ memberRole[scope.row.role as ROLE] }}</a
             >
           </template>
         </el-table-column>

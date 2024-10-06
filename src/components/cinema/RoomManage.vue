@@ -27,7 +27,7 @@ const Props = defineProps<{
   roomId: string;
 }>();
 
-const { myInfo } = useRoomApi(Props.roomId);
+const { myInfo } = useRoomApi();
 const { hasAdminPermission, roomMemberPermissionKeys, roomMemberPermissionKeysTranslate } =
   useRoomPermission();
 const can = (p: RoomAdminPermission) => {

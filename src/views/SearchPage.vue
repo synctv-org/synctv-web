@@ -20,7 +20,7 @@ const formData = ref<{
 });
 
 const { totalItems, currentPage, pageSize, keyword, search, getRoomList, roomList, joinRoom } =
-  useRoomApi(formData.value.roomId);
+  useRoomApi();
 
 const { settings } = indexStore();
 const JoinRoomDialog = ref(false);

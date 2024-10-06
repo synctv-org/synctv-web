@@ -29,7 +29,7 @@ const {
   getUserRoomList,
   userRoomList,
   userRoomListLoading
-} = useRoomApi("");
+} = useRoomApi();
 
 const getRoomList = async (showMsg = false) => {
   await getUserRoomList(showMsg, userId.value);

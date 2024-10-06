@@ -1,7 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { ElNotification } from "element-plus";
-import { roomStatus, type RoomList } from "@/types/Room";
+import {
+  roomStatus,
+  type RoomList,
+  type JoinedRoomList,
+  memberStatus,
+  memberRole
+} from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
 import { indexStore } from "@/stores";
 import { userStore } from "@/stores/user";
@@ -15,10 +21,11 @@ const router = useRouter();
 const props = defineProps<{
   isMyRoom: boolean;
   isHot: boolean;
+  isJoinedRoom: boolean;
 }>();
 
 const { isLogin, info } = userStore();
-const thisRoomList = ref<RoomList[]>([]);
+const thisRoomList = ref<RoomList[] | JoinedRoomList[]>([]);
 const formData = ref<{
   roomId: string;
   password: string;
@@ -42,16 +49,22 @@ const {
   getMyRoomList,
   myRoomList,
 
+  getMyJoinedRoomList,
+  myJoinedRoomList,
+
   getHotRoomList,
   hotRoomList,
 
   joinRoom
-} = useRoomApi(formData.value.roomId);
+} = useRoomApi();
 
 const getRoomList = async (showMsg = false) => {
   if (props.isMyRoom) {
     await getMyRoomList(showMsg);
     if (myRoomList.value) thisRoomList.value = myRoomList.value.list!;
+  } else if (props.isJoinedRoom) {
+    await getMyJoinedRoomList(showMsg);
+    if (myJoinedRoomList.value) thisRoomList.value = myJoinedRoomList.value.list!;
   } else if (props.isHot) {
     await getHotRoomList(showMsg);
     if (hotRoomList.value) if (hotRoomList.value.list) thisRoomList.value = hotRoomList.value.list;
@@ -88,6 +101,23 @@ const joinThisRoom = async (item: RoomList) => {
 onMounted(() => {
   getRoomList();
 });
+
+// 监听 props 变化，清空旧数据并刷新
+watch(
+  () => [...Object.values(props)],
+  () => {
+    thisRoomList.value = [];
+    currentPage.value = 1;
+    pageSize.value = 10;
+    order.value = "desc";
+    sort.value = "createdAt";
+    keyword.value = "";
+    search.value = "all";
+    status.value = "";
+    getRoomList();
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
@@ -116,7 +146,7 @@ onMounted(() => {
       </div>
     </div>
     <div class="card-body" :class="{ 'text-center': !isHot }">
-      <div class="m-auto w-96 mb-3 flex" v-if="isMyRoom">
+      <div class="m-auto w-96 mb-3 flex" v-if="isMyRoom || isJoinedRoom">
         <el-select
           v-model="status"
           placeholder="状态"
@@ -192,9 +222,17 @@ onMounted(() => {
                 item["peopleNum"]
               }}</span>
             </div>
-            <div v-if="isMyRoom">状态：{{ getObjValue(roomStatus, item.status) }}</div>
-            <div v-else class="truncate">创建者：{{ item.creator }}</div>
+            <div v-if="isMyRoom || isJoinedRoom">
+              状态：{{ getObjValue(roomStatus, item.status) }}
+            </div>
+            <div v-if="!isMyRoom" class="truncate">创建者：{{ item.creator }}</div>
             <div>创建时间：{{ useTimeAgo(new Date(item.createdAt)).value }}</div>
+            <div v-if="isJoinedRoom">
+              我的状态：{{ memberStatus[(item as JoinedRoomList).memberStatus] }}
+            </div>
+            <div v-if="isJoinedRoom">
+              我的身份：{{ memberRole[(item as JoinedRoomList).memberRole] }}
+            </div>
           </div>
           <div class="flex mt-2 my-3 w-full justify-around items-center">
             <el-tag disabled :type="item.needPassword ? 'danger' : 'success'">

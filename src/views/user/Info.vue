@@ -48,12 +48,19 @@ const logoff = async () => {
 interface Tabs {
   name: string;
   component: Component;
+  props?: Record<string, any>;
 }
 
 const tabs: Tabs[] = [
   {
-    name: "我的房间",
-    component: RoomList
+    name: "我创建的房间",
+    component: RoomList,
+    props: { isMyRoom: true, isHot: false, isJoinedRoom: false }
+  },
+  {
+    name: "我加入的房间",
+    component: RoomList,
+    props: { isMyRoom: false, isHot: false, isJoinedRoom: true }
   },
   {
     name: "平台绑定",
@@ -65,10 +72,7 @@ const tabs: Tabs[] = [
   }
 ];
 
-const activeTab = shallowRef<Tabs>({
-  name: "我的房间",
-  component: RoomList
-});
+const activeTab = shallowRef<Tabs>(tabs[0]);
 
 const switchTab = (tab: Tabs) => {
   activeTab.value = tab;
@@ -151,8 +155,8 @@ onMounted(() => {});
             >
           </div>
         </div>
-        <component :is="activeTab.component" :is-my-room="true" :is-hot="false">
-          <template #title> 我创建的 </template>
+        <component :is="activeTab.component" v-bind="activeTab.props">
+          <template #title>{{ activeTab.name }}</template>
         </component>
       </el-col>
     </el-row>

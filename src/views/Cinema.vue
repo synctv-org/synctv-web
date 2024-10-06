@@ -45,7 +45,7 @@ onBeforeUnmount(() => {
 });
 
 const { getMovies, getCurrentMovie } = useMovieApi(token.value, roomID.value);
-const { getMyInfo, myInfo } = useRoomApi(roomID.value);
+const { getMyInfo, myInfo } = useRoomApi();
 const { hasMemberPermission } = useRoomPermission();
 
 let player: Artplayer;
@@ -403,7 +403,7 @@ const p = async () => {
 onMounted(async () => {
   // 获取用户信息
   try {
-    if (!myInfo.value) await getMyInfo();
+    if (!myInfo.value) await getMyInfo(roomID.value);
   } catch (err: any) {
     console.error(err);
     ElNotification({
