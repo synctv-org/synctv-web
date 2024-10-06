@@ -26,9 +26,9 @@ console.log("redirect: ", (redirect.value as string) ?? "");
 const { getUserInfo: updateUserInfo, updateToken } = userStore();
 const { execute: reqLoginApi, state: loginData } = LoginApi();
 const login = async () => {
-  if (activeTab.value === "username" && (!formData.value?.username || !formData.value?.password))
+  if (activeTab.value === "username" && (!formData.value.username || !formData.value.password))
     return ElMessage.error("请填写用户名和密码");
-  if (activeTab.value === "email" && (!formData.value?.email || !formData.value?.password))
+  if (activeTab.value === "email" && (!formData.value.email || !formData.value.password))
     return ElMessage.error("请填写邮箱和密码");
 
   try {
@@ -75,7 +75,7 @@ const login = async () => {
     console.error(err);
     ElNotification({
       title: "错误",
-      message: err.response.data.error || err.message,
+      message: err.response?.data?.error || err.message,
       type: "error"
     });
   }
@@ -89,7 +89,7 @@ const getOAuth2Platforms = async () => {
     console.error(err);
     ElNotification({
       title: "错误",
-      message: err.response.data.error || err.message,
+      message: err.response?.data?.error || err.message,
       type: "error"
     });
   }
@@ -109,7 +109,7 @@ const useOAuth2 = async (platform: string) => {
     console.error(err);
     ElNotification({
       title: "错误",
-      message: err.response.data.error || err.message,
+      message: err.response?.data?.error || err.message,
       type: "error"
     });
   }
@@ -126,6 +126,7 @@ onMounted(async () => {
       <el-tabs v-model="activeTab">
         <el-tab-pane label="用户名登录" name="username">
           <input
+            v-if="activeTab === 'username'"
             class="l-input"
             type="text"
             v-model="formData.username"
@@ -135,6 +136,7 @@ onMounted(async () => {
         </el-tab-pane>
         <el-tab-pane label="邮箱登录" name="email">
           <input
+            v-if="activeTab === 'email'"
             class="l-input"
             type="email"
             v-model="formData.email"
