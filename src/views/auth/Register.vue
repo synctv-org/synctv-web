@@ -11,7 +11,8 @@ import {
   sendRegCodeApi,
   usePasswordRegisterApi,
   loginWithOAuth2,
-  OAuth2SignupEnabled
+  OAuth2SignupEnabled,
+  oauth2Platforms
 } from "@/services/apis/auth";
 import { strLengthLimit, getAppIcon } from "@/utils";
 import type { EmailRegForm, RegForm } from "@/types";
@@ -51,57 +52,6 @@ const isAnySignupAllowed = computed(
 const registerType = ref<"password" | "email" | "oauth2">(
   isPasswordSignupAllowed.value ? "password" : isEmailSignupAllowed.value ? "email" : "oauth2"
 );
-
-const platforms: { [key: string]: { name: string; class: string } } = {
-  github: {
-    name: "Github",
-    class: "btn-white"
-  },
-  microsoft: {
-    name: "Microsoft",
-    class: "btn-default"
-  },
-  google: {
-    name: "Google",
-    class: "btn-white"
-  },
-  "feishu-sso": {
-    name: "飞书SSO",
-    class: "btn-white"
-  },
-  authing: {
-    name: "Authing",
-    class: "btn-white"
-  },
-  xiaomi: {
-    name: "小米",
-    class: "btn-white"
-  },
-  discord: {
-    name: "Discord",
-    class: "btn-white"
-  },
-  baidu: {
-    name: "百度",
-    class: "btn-white"
-  },
-  "baidu-netdisk": {
-    name: "百度网盘",
-    class: "btn-white"
-  },
-  gitee: {
-    name: "Gitee",
-    class: "btn-error"
-  },
-  gitlab: {
-    name: "GitLab",
-    class: "btn-error"
-  },
-  qq: {
-    name: "QQ",
-    class: "btn-default"
-  }
-};
 
 const toSendRegCode = async () => {
   try {
@@ -428,12 +378,12 @@ onMounted(async () => {
         <button
           v-for="item in oauth2SignupEnabled?.signupEnabled"
           :class="`inline-flex items-center btn ${
-            platforms[item] ? platforms[item].class : 'btn-black'
+            oauth2Platforms[item] ? oauth2Platforms[item].class : 'btn-black'
           } m-[10px] hover:px-[10px]`"
           @click="handleOAuth2Login(item)"
         >
           <el-image class="w-4 mr-2 rounded-lg" :src="getAppIcon(item)"> </el-image>
-          {{ platforms[item] ? platforms[item].name : item }}
+          {{ oauth2Platforms[item] ? oauth2Platforms[item].name : item }}
         </button>
       </template>
       <div class="text-sm"><b>注意：</b>所有输入框最大只可输入32个字符</div>

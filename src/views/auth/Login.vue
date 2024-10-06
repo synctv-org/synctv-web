@@ -8,57 +8,7 @@ import { useRouteQuery } from "@vueuse/router";
 import { strLengthLimit, getAppIcon } from "@/utils";
 import { userStore } from "@/stores/user";
 import router from "@/router/index";
-
-const platforms: { [key: string]: { name: string; class: string } } = {
-  github: {
-    name: "Github",
-    class: "btn-white"
-  },
-  microsoft: {
-    name: "Microsoft",
-    class: "btn-default"
-  },
-  google: {
-    name: "Google",
-    class: "btn-white"
-  },
-  "feishu-sso": {
-    name: "飞书SSO",
-    class: "btn-white"
-  },
-  authing: {
-    name: "Authing",
-    class: "btn-white"
-  },
-  xiaomi: {
-    name: "小米",
-    class: "btn-white"
-  },
-  discord: {
-      name: "Discord",
-      class: "btn-white"
-  },
-  baidu: {
-    name: "百度",
-    class: "btn-white"
-  },
-  "baidu-netdisk": {
-    name: "百度网盘",
-    class: "btn-white"
-  },
-  gitee: {
-    name: "Gitee",
-    class: "btn-error"
-  },
-  gitlab: {
-    name: "GitLab",
-    class: "btn-error"
-  },
-  qq: {
-    name: "QQ",
-    class: "btn-default"
-  }
-};
+import { oauth2Platforms } from "@/services/apis/auth";
 
 const { settings } = indexStore();
 
@@ -208,12 +158,12 @@ onMounted(async () => {
       <button
         v-for="item in OAuth2Platforms_?.enabled"
         :class="`inline-flex items-center btn ${
-          platforms[item] ? platforms[item].class : 'btn-black'
+          oauth2Platforms[item] ? oauth2Platforms[item].class : 'btn-black'
         } m-[10px] hover:px-[10px]`"
         @click="useOAuth2(item)"
       >
         <el-image class="w-4 mr-2 rounded-lg" :src="getAppIcon(item)"> </el-image>
-        {{ platforms[item] ? platforms[item].name : item }}
+        {{ oauth2Platforms[item] ? oauth2Platforms[item].name : item }}
       </button>
     </div>
   </div>

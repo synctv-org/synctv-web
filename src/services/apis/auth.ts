@@ -179,3 +179,54 @@ export const usePasswordRegisterApi = useDefineApi<
   url: "/api/user/signup",
   method: "POST"
 });
+
+export const oauth2Platforms: { [key: string]: { name: string; class: string } } = {
+  github: {
+    name: "Github",
+    class: "btn-white"
+  },
+  microsoft: {
+    name: "Microsoft",
+    class: "btn-default"
+  },
+  google: {
+    name: "Google",
+    class: "btn-white"
+  },
+  "feishu-sso": {
+    name: "飞书SSO",
+    class: "btn-white"
+  },
+  authing: {
+    name: "Authing",
+    class: "btn-white"
+  },
+  xiaomi: {
+    name: "小米",
+    class: "btn-white"
+  },
+  discord: {
+    name: "Discord",
+    class: "btn-white"
+  },
+  baidu: {
+    name: "百度",
+    class: "btn-white"
+  },
+  "baidu-netdisk": {
+    name: "百度网盘",
+    class: "btn-white"
+  },
+  gitee: {
+    name: "Gitee",
+    class: "btn-error"
+  },
+  gitlab: {
+    name: "GitLab",
+    class: "btn-error"
+  },
+  qq: {
+    name: "QQ",
+    class: "btn-default"
+  }
+};

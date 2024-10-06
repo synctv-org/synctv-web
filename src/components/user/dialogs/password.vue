@@ -9,6 +9,7 @@ const { token, updateToken } = userStore();
 
 interface FormData {
   password: string;
+  confirmPassword: string;
 }
 
 const open = ref(false);
@@ -19,13 +20,26 @@ defineExpose({ openDialog });
 
 const formDataRef = ref<FormInstance>();
 const formData = reactive<FormData>({
-  password: ""
+  password: "",
+  confirmPassword: ""
 });
+
+const validatePass = (rule: any, value: any, callback: any) => {
+  if (value === "") {
+    callback(new Error("请再次输入密码"));
+  } else if (value !== formData.password) {
+    callback(new Error("两次输入密码不一致!"));
+  } else {
+    callback();
+  }
+};
+
 const rules = reactive<FormRules<FormData>>({
   password: [
     { required: true, message: "请输入密码", trigger: "blur" },
     { min: 1, max: 32, message: "长度在 1 ~ 32 之间", trigger: "blur" }
-  ]
+  ],
+  confirmPassword: [{ required: true, validator: validatePass, trigger: "blur" }]
 });
 
 const { execute, state, isLoading } = changePasswordApi();
@@ -37,7 +51,7 @@ const changePwd = () => {
           headers: {
             Authorization: token.value
           },
-          data: formData
+          data: { password: formData.password }
         });
 
         if (state.value) {
@@ -81,9 +95,11 @@ const changePwd = () => {
         <el-form-item label="新密码" prop="password">
           <el-input v-model="formData.password" type="password" show-password />
         </el-form-item>
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input v-model="formData.confirmPassword" type="password" show-password />
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="changePwd" :loading="isLoading"> 确定修改 </el-button>
-          <el-button @click="formDataRef?.resetFields()">重置</el-button>
         </el-form-item>
       </el-form>
     </template>
