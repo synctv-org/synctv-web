@@ -32,6 +32,7 @@ export const LoginApi = useDefineApi<
   {
     data: {
       username: string;
+      email: string;
       password: string;
     };
   },

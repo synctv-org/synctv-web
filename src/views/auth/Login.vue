@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { ElNotification, ElMessage } from "element-plus";
+import { ElNotification, ElMessage, ElTabs, ElTabPane } from "element-plus";
 import { indexStore } from "@/stores";
 import { OAuth2Platforms, loginWithOAuth2, LoginApi } from "@/services/apis/auth";
 import { userInfo } from "@/services/apis/user";
@@ -14,9 +14,11 @@ const { settings } = indexStore();
 
 const formData = ref({
   username: localStorage.getItem("uname") || "",
+  email: localStorage.getItem("email") || "",
   password: localStorage.getItem("password") || ""
 });
 const savePwd = ref(false);
+const activeTab = ref("username");
 
 const redirect = useRouteQuery("redirect");
 console.log("redirect: ", (redirect.value as string) ?? "");
@@ -24,15 +26,21 @@ console.log("redirect: ", (redirect.value as string) ?? "");
 const { getUserInfo: updateUserInfo, updateToken } = userStore();
 const { execute: reqLoginApi, state: loginData } = LoginApi();
 const login = async () => {
-  if (!formData.value?.username || !formData.value?.password)
-    return ElMessage.error("请填写表单完整");
+  if (activeTab.value === "username" && (!formData.value?.username || !formData.value?.password))
+    return ElMessage.error("请填写用户名和密码");
+  if (activeTab.value === "email" && (!formData.value?.email || !formData.value?.password))
+    return ElMessage.error("请填写邮箱和密码");
 
   try {
     for (const key in formData.value) {
       strLengthLimit(key, 32);
     }
     await reqLoginApi({
-      data: formData.value
+      data: {
+        username: activeTab.value === "username" ? formData.value.username : "",
+        email: activeTab.value === "email" ? formData.value.email : "",
+        password: formData.value.password
+      }
     });
     if (!loginData.value)
       return ElNotification({
@@ -43,6 +51,7 @@ const login = async () => {
 
     updateToken(loginData.value.token);
     localStorage.setItem("uname", formData.value.username);
+    localStorage.setItem("email", formData.value.email);
     localStorage.setItem("password", savePwd.value ? formData.value.password : "");
 
     const state = await userInfo().execute({
@@ -54,6 +63,7 @@ const login = async () => {
     if (state.value) {
       updateUserInfo(state.value);
       localStorage.setItem("uname", state.value.username);
+      localStorage.setItem("email", state.value.email);
       ElNotification({
         title: "登录成功",
         type: "success"
@@ -112,14 +122,27 @@ onMounted(async () => {
 
 <template>
   <div class="room">
-    <form @submit.prevent="" class="login-box">
-      <input
-        class="l-input"
-        type="text"
-        v-model="formData.username"
-        placeholder="用户名"
-        required
-      />
+    <form @submit.prevent="login" class="login-box">
+      <el-tabs v-model="activeTab">
+        <el-tab-pane label="用户名登录" name="username">
+          <input
+            class="l-input"
+            type="text"
+            v-model="formData.username"
+            placeholder="用户名"
+            required
+          />
+        </el-tab-pane>
+        <el-tab-pane label="邮箱登录" name="email">
+          <input
+            class="l-input"
+            type="email"
+            v-model="formData.email"
+            placeholder="邮箱"
+            required
+          />
+        </el-tab-pane>
+      </el-tabs>
       <br />
       <input
         class="l-input"
@@ -142,7 +165,7 @@ onMounted(async () => {
           >重置密码</a
         >
       </div>
-      <button class="btn m-[10px]" @click="login">登录</button>
+      <button type="submit" class="btn m-[10px]">登录</button>
       <div v-if="settings?.emailEnable">
         还没有账号？<a class="ml-2" href="javascript:;" @click="router.push('/auth/register')"
           >立即注册</a
