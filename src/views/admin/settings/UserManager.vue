@@ -260,46 +260,45 @@ onMounted(async () => {
         </el-table-column>
         <el-table-column fixed="right" label="操作">
           <template #default="scope">
-            <el-button
-              v-if="scope.row.role === ROLE.Pending"
-              type="success"
-              @click="approve(scope.row.id)"
-              :loading="approveLoading"
-            >
-              通过注册
-            </el-button>
-            <div v-else>
+            <div v-if="scope.row.role === ROLE.Pending">
+              <el-button type="success" @click="approve(scope.row.id)" :loading="approveLoading">
+                通过注册
+              </el-button>
+              <el-button type="danger" @click="banUser(scope.row.id, true)"> 禁止注册 </el-button>
+              <el-popconfirm title="你确定要删除这个用户吗？" @confirm="delUser(scope.row.id)">
+                <template #reference>
+                  <el-button type="danger"> 删除 </el-button>
+                </template>
+              </el-popconfirm>
+            </div>
+            <div v-else-if="scope.row.role === ROLE.Banned">
+              <el-button type="warning" @click="banUser(scope.row.id, false)"> 解封 </el-button>
+              <el-popconfirm title="你确定要删除这个用户吗？" @confirm="delUser(scope.row.id)">
+                <template #reference>
+                  <el-button type="danger"> 删除 </el-button>
+                </template>
+              </el-popconfirm>
+            </div>
+            <div v-else class="phone-button">
+              <el-button type="danger" plain @click="banUser(scope.row.id, true)"> 封禁 </el-button>
+
               <el-button
-                v-if="scope.row.role === ROLE.Banned"
-                type="warning"
-                @click="banUser(scope.row.id, false)"
+                v-if="scope.row.role < ROLE.Admin"
+                type="primary"
+                @click="setAdmin(scope.row.id, true)"
               >
-                解封
+                设为管理
               </el-button>
 
-              <div v-else class="phone-button">
-                <el-button type="danger" plain @click="banUser(scope.row.id, true)">
-                  封禁
-                </el-button>
+              <el-button v-else type="warning" @click="setAdmin(scope.row.id, false)">
+                取消管理
+              </el-button>
 
-                <el-button
-                  v-if="scope.row.role < ROLE.Admin"
-                  type="primary"
-                  @click="setAdmin(scope.row.id, true)"
-                >
-                  设为管理
-                </el-button>
-
-                <el-button v-else type="warning" @click="setAdmin(scope.row.id, false)">
-                  取消管理
-                </el-button>
-
-                <el-popconfirm title="你确定要删除这个用户吗？" @confirm="delUser(scope.row.id)">
-                  <template #reference>
-                    <el-button type="danger"> 删除 </el-button>
-                  </template>
-                </el-popconfirm>
-              </div>
+              <el-popconfirm title="你确定要删除这个用户吗？" @confirm="delUser(scope.row.id)">
+                <template #reference>
+                  <el-button type="danger"> 删除 </el-button>
+                </template>
+              </el-popconfirm>
             </div>
           </template>
         </el-table-column>
