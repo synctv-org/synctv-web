@@ -71,7 +71,9 @@ export default function artplayerPluginQuality() {
           art.loading.show = true;
           return item.html;
         };
-      } else {
+      }
+
+      if (!levels || levels.length <= 1) {
         if (art.controls["quality"]) art.controls.remove("quality");
         if (art.setting.find("quality")) art.setting.remove("quality");
         return;

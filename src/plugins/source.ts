@@ -29,7 +29,7 @@ export function artplayPluginSource(sources: artplayPluginSource[]) {
       return "源";
     };
     const setSelector = (newSources: artplayPluginSource[]) => {
-      if (newSources.length === 0) {
+      if (newSources.length <= 1) {
         if (art.controls["source"]) art.controls.remove("source");
         if (art.setting.find("source")) art.setting.remove("source");
       } else {
