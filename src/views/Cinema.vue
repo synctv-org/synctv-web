@@ -402,7 +402,17 @@ const p = async () => {
 
 onMounted(async () => {
   // 获取用户信息
-  if (!myInfo.value) await getMyInfo();
+  try {
+    if (!myInfo.value) await getMyInfo();
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "错误",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+    return;
+  }
 
   // 从 sessionStorage 获取存储的聊天消息
   const storedMessages = sessionStorage.getItem(`chatMessages-${roomID}`);

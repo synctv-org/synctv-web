@@ -1,6 +1,5 @@
 import axios, { type AxiosRequestConfig } from "axios";
 import { useAsyncState } from "@vueuse/core";
-import { decodeJWT } from "@/utils";
 import router from "@/router";
 axios.interceptors.response.use(
   function (response) {
@@ -14,7 +13,7 @@ axios.interceptors.response.use(
         error.config.url.startsWith("/api/room/pwd") ||
         error.config.url.startsWith("/api/room/me")
       ) {
-        const { r: roomId } = decodeJWT(error.config.headers.Authorization);
+        const roomId = error.config.headers["X-Room-Id"];
         router.push(`/joinRoom/${roomId}`);
       } else {
         localStorage.clear();

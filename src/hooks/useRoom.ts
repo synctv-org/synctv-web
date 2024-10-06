@@ -285,24 +285,15 @@ export const useRoomApi = (roomId: string) => {
   // 我的信息
   const { state: _myInfo, execute: reqMyInfoApi } = myInfoApi();
   const getMyInfo = async () => {
-    try {
-      await reqMyInfoApi({
-        headers: {
-          Authorization: token.value,
-          "X-Room-Id": roomId
-        }
-      });
-
-      if (_myInfo.value) {
-        myInfo.value = _myInfo.value;
+    await reqMyInfoApi({
+      headers: {
+        Authorization: token.value,
+        "X-Room-Id": roomId
       }
-    } catch (err: any) {
-      console.error(err.message);
-      ElNotification({
-        title: "错误",
-        message: err.response.data.error || err.message,
-        type: "error"
-      });
+    });
+
+    if (_myInfo.value) {
+      myInfo.value = _myInfo.value;
     }
   };
 

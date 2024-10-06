@@ -40,14 +40,6 @@ export const blobToUint8Array = (blob: Blob): Promise<Uint8Array> => {
   });
 };
 
-export const decodeJWT = (jwt: string) => {
-  const parts = jwt.split(".");
-  if (parts.length !== 3) {
-    throw new Error("非 JWT 格式！");
-  }
-  return JSON.parse(atob(parts[1]));
-};
-
 export const getAppIcon = (appName: string): string => {
   const href = new URL(`/src/assets/appIcons/${appName}.svg`, import.meta.url).href;
   return href.endsWith("undefined") ? getAppIcon("default") : href;
