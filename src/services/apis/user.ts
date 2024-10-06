@@ -176,8 +176,8 @@ export const unbindEmailApi = useDefineApi<
 
 export const joinedRoomApi = useDefineApi<
   {
-    data: {
-      id: string;
+    params: {
+      roomId: string;
     };
     headers: {
       Authorization: string;

@@ -8,6 +8,7 @@ import RoomUsers from "@/components/cinema/RoomUsers.vue";
 import { userStore } from "@/stores/user";
 
 const props = defineProps<{
+  token: string;
   status: WebSocketStatus;
 }>();
 
@@ -70,10 +71,10 @@ const roomUsersDrawer = ref<InstanceType<typeof RoomUsers>>();
   </div>
 
   <!-- 用户列表 -->
-  <RoomUsers v-if="isLogin" ref="roomUsersDrawer" />
+  <RoomUsers v-if="isLogin" ref="roomUsersDrawer" :room-id="roomID" :token="token" />
 
   <!-- 房间设置 -->
-  <RoomManage v-if="isLogin" ref="roomManageDrawer" />
+  <RoomManage v-if="isLogin" ref="roomManageDrawer" :room-id="roomID" :token="token" />
 </template>
 
 <style lang="less" scoped>

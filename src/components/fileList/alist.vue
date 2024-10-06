@@ -58,7 +58,7 @@ const submit = async () => {
     if (!selectedItems) return;
     if (selectedItems.length === 0) return ElMessage.error("请选择视频");
     await reqPushMoviesApi({
-      headers: { Authorization: props.roomToken },
+      headers: { Authorization: props.roomToken, "X-Room-Id": room.roomID.value },
       data: selectedItems.map(
         (item) =>
           <BaseMovieInfo>{

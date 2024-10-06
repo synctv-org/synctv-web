@@ -572,6 +572,7 @@ const getBiliBiliVendors = async () => {
   <!-- B站视频解析对话框 -->
   <bilibiliParse
     ref="bilibiliParseDialog"
+    :room-id="roomId"
     :newMovieInfo="newMovieInfo"
     :token="token"
     :vendor="biliVendor"

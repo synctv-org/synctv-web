@@ -124,7 +124,7 @@ defineExpose({ openDialog });
             <el-tag disabled :type="item.needPassword ? 'danger' : 'success'">
               {{ item.needPassword ? "有密码" : "无密码" }}
             </el-tag>
-            <button class="btn btn-dense" @click="joinRoom({ roomId: item.roomId, password: '' })">
+            <button class="btn btn-dense" @click="() => joinRoom(item.roomId, '')">
               加入房间
               <PlayIcon class="inline-block" width="18px" />
             </button>

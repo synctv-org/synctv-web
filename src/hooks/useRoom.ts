@@ -74,8 +74,8 @@ export const useRoomApi = (roomId: string) => {
     }
     try {
       await reqJoinedRoomApi({
-        data: {
-          id: roomId
+        params: {
+          roomId: roomId
         },
         headers: {
           Authorization: token.value

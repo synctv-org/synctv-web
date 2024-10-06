@@ -8,6 +8,7 @@ import { roomStore } from "@/stores/room";
 import { userStore } from "@/stores/user";
 
 const Props = defineProps<{
+  roomId: string;
   newMovieInfo: BaseMovieInfo;
   token: string;
   vendor: string;
@@ -117,7 +118,7 @@ const submit = async () => {
   try {
     if (selectedItems.value.length === 0) return ElMessage.error("请选择视频");
     await reqPushMoviesApi({
-      headers: { Authorization: Props.token },
+      headers: { Authorization: Props.token, "X-Room-Id": Props.roomId },
       data: selectedItems.value.map(
         (item) =>
           <BaseMovieInfo>{

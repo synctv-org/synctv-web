@@ -65,6 +65,7 @@ const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
 const { status, data, send, open } = useWebSocket(
   `${wsProtocol}//${window.location.host}/api/room/ws?roomId=${roomID.value}`,
   {
+    ...(token.value ? { protocols: [token.value] } : {}),
     autoReconnect: {
       retries: 3,
       delay: 1000,
@@ -81,10 +82,10 @@ const sendElement = (msg: ElementMessage) => {
   if (!msg.time) {
     msg.time = Date.now();
   }
-  console.log(`-----Ws Send Start-----`);
+  console.group("Ws Send");
   console.log(msg);
-  console.log(`-----Ws Send End-----`);
-  return send(ElementMessage.encode(msg).finish().toString());
+  console.groupEnd();
+  return send(ElementMessage.encode(msg).finish() as any, false);
 };
 
 // 消息列表
@@ -495,7 +496,7 @@ onMounted(async () => {
   <el-row :gutter="20">
     <!-- 房间信息 -->
     <el-col :lg="6" :md="8" :sm="9" :xs="24" class="mb-5 max-sm:mb-2">
-      <RoomInfo :status="status" />
+      <RoomInfo :status="status" :token="token" />
     </el-col>
 
     <!-- 影片列表 -->

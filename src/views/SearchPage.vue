@@ -42,7 +42,7 @@ const openJoinRoomDialog = async (item: RoomList) => {
   formData.value.roomId = item.roomId;
 
   info.value?.username === item.creator || !item.needPassword
-    ? await joinRoom(formData.value)
+    ? await joinRoom(item.roomId, "")
     : (JoinRoomDialog.value = true);
 };
 
