@@ -225,7 +225,7 @@ const newPlayerOption = (html: HTMLDivElement): Option => {
     miniProgressBar: true, // 迷你进度条,播放器失去焦点后且正在播放时出现
     playsInline: true, // 在移动端是否使用 playsInline 模式
     lock: true, // 移动端显示锁定按钮
-    fastForward: false, // 移动端添加长按视频快进功能
+    fastForward: true, // 移动端添加长按视频快进功能
     autoPlayback: false, // 使用自动回放功能
     autoOrientation: false, // 移动端的网页全屏时，根据视频尺寸和视口尺寸，旋转播放器
     airplay: false, // 隔空播放

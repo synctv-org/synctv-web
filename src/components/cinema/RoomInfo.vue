@@ -6,6 +6,7 @@ import CopyButton from "../CopyButton.vue";
 import RoomManage from "@/components/cinema/RoomManage.vue";
 import RoomUsers from "@/components/cinema/RoomUsers.vue";
 import { userStore } from "@/stores/user";
+import { useRouter } from "vue-router";
 
 const props = defineProps<{
   token: string;
@@ -17,6 +18,7 @@ const roomID = useRouteParams<string>("roomId");
 const roomPwd = useLocalStorage(`room-${roomID.value}-pwd`, "");
 
 const { isLogin } = userStore();
+const router = useRouter();
 
 const shareURL = computed(() => {
   return `${window.location.origin}/web/joinRoom/${roomID.value}?pwd=${roomPwd.value}`;
@@ -24,6 +26,10 @@ const shareURL = computed(() => {
 
 const roomManageDrawer = ref<InstanceType<typeof RoomManage>>();
 const roomUsersDrawer = ref<InstanceType<typeof RoomUsers>>();
+
+const goToLogin = () => {
+  router.push("/login");
+};
 </script>
 
 <template>
@@ -67,6 +73,9 @@ const roomUsersDrawer = ref<InstanceType<typeof RoomUsers>>();
     <div v-if="isLogin" class="card-footer flex-wrap justify-between">
       <button class="btn btn-success" @click="roomUsersDrawer?.openDrawer">用户列表</button>
       <button class="btn" @click="roomManageDrawer?.openDrawer">房间设置</button>
+    </div>
+    <div v-else class="card-footer justify-center">
+      <button class="btn btn-primary" @click="goToLogin">登录</button>
     </div>
   </div>
 
