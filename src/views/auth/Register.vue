@@ -169,7 +169,7 @@ const toRegister = async () => {
       const result = await passwordRegisterApi({
         data: passwordFormData.value
       });
-      if (!result)
+      if (!result || !result.value?.token)
         return ElNotification({
           title: "错误",
           message: "注册失败",
@@ -177,11 +177,12 @@ const toRegister = async () => {
         });
       ElNotification({
         title: "注册成功",
-        message: "请登录",
+        message: "正在尝试自动登录",
         type: "success"
       });
       resetForm();
-      router.push("/auth/login");
+      updateToken(result.value?.token);
+      router.replace("/");
     } catch (err: any) {
       console.error(err);
       ElNotification({

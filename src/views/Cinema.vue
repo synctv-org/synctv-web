@@ -506,7 +506,7 @@ onMounted(async () => {
   <el-row :gutter="20">
     <!-- 房间信息 -->
     <el-col :lg="6" :md="8" :sm="9" :xs="24" class="mb-5 max-sm:mb-2">
-      <RoomInfo :status="status" :token="token" />
+      <RoomInfo :status="status" :token="token" :roomId="roomID" />
     </el-col>
 
     <!-- 影片列表 -->

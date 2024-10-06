@@ -60,6 +60,24 @@ export interface MyInfo {
   adminPermissions: RoomAdminPermission;
 }
 
+export interface RoomInfo {
+  id: string;
+  roomName: string;
+  peopleNum: number;
+  needPassword: boolean;
+  creator: string;
+  createdAt: number;
+  creatorId: string;
+  member: {
+    id: string;
+    name: string;
+    role: ROLE;
+    status: MEMBER_STATUS;
+    permissions: RoomMemberPermission;
+    adminPermissions: RoomAdminPermission;
+  };
+}
+
 export enum RoomStatus {
   Banned = 1,
   Pending = 2,

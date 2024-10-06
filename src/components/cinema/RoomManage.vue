@@ -264,7 +264,6 @@ defineExpose({
                   width="220"
                   confirm-button-text="是"
                   cancel-button-text="否"
-                  title="更新密码后，所有人将会被踢下线！"
                   @confirm="changePassword"
                 >
                   <template #reference>

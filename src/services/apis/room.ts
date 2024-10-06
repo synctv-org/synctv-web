@@ -1,5 +1,5 @@
 import { useDefineApi } from "@/stores/useDefineApi";
-import type { MyInfo, RoomList } from "@/types/Room";
+import type { MyInfo, RoomInfo, RoomList } from "@/types/Room";
 import type { ROLE } from "@/types/Room";
 
 // 房间列表
@@ -188,6 +188,20 @@ export const myInfoApi = useDefineApi<
   method: "GET"
 });
 
+// 房间信息
+export const roomInfoApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+      "X-Room-Id": string;
+    };
+  },
+  RoomInfo
+>({
+  url: "/api/room/info",
+  method: "GET"
+});
+
 // 更新房间密码
 export const updateRoomPasswordApi = useDefineApi<
   {
@@ -202,6 +216,25 @@ export const updateRoomPasswordApi = useDefineApi<
   {}
 >({
   url: "/api/room/admin/pwd",
+  method: "POST"
+});
+
+// 检查房间密码
+export const checkRoomPasswordApi = useDefineApi<
+  {
+    data: {
+      password: string;
+    };
+    headers: {
+      Authorization: string;
+      "X-Room-Id": string;
+    };
+  },
+  {
+    valid: boolean;
+  }
+>({
+  url: "/api/room/pwd/check",
   method: "POST"
 });
 
