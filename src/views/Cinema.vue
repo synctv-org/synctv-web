@@ -28,6 +28,7 @@ import { RoomMemberPermission } from "@/types/Room";
 import artplayerPluginAss from "@/plugins/artplayer-plugin-ass";
 import { newSyncPlugin } from "@/plugins/sync";
 import artplayerPluginQuality from "@/plugins/quality";
+import artplayerPluginAudioTrack from "@/plugins/audio";
 import { artplayPluginSource } from "@/plugins/source";
 import { currentMovieApi } from "@/services/apis/movie";
 import { userStore } from "@/stores/user";
@@ -160,7 +161,9 @@ const playerOption = computed<options>(() => {
       // WARN: room.currentStatus 变了会导致重载
       newSyncPlugin(sendElement, room.currentStatus, () => room.currentExpireId),
       // 画质
-      artplayerPluginQuality()
+      artplayerPluginQuality(),
+      // 音轨
+      artplayerPluginAudioTrack()
     ]
   };
 
@@ -280,9 +283,9 @@ const setPlayerStatus = (status: MovieStatus) => {
 };
 
 const handleElementMessage = (msg: ElementMessage) => {
-  console.log(`-----Ws Message Start-----`);
+  console.group("Ws Message");
   console.log(msg);
-  console.log(`-----Ws Message End-----`);
+  console.groupEnd();
   switch (msg.type) {
     case ElementMessageType.ERROR: {
       console.error(msg.error);
