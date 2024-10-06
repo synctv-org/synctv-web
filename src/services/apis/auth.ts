@@ -50,8 +50,14 @@ export const logOutApi = useDefineApi<{ headers: { Authorization: string } }, an
 });
 
 // 获取可用的oauth2平台
-export const OAuth2Platforms = useDefineApi<any, { enabled: string[] | null }>({
+export const OAuth2Platforms = useDefineApi<any, { enabled: string[] }>({
   url: "/oauth2/enabled",
+  method: "GET"
+});
+
+// 获取可注册的oauth2平台
+export const OAuth2SignupEnabled = useDefineApi<any, { signupEnabled: string[] }>({
+  url: "/oauth2/enabled/signup",
   method: "GET"
 });
 
@@ -159,5 +165,17 @@ export const resetPasswordApi = useDefineApi<
   any
 >({
   url: "/api/user/retrieve/email",
+  method: "POST"
+});
+
+export const usePasswordRegisterApi = useDefineApi<
+  {
+    data: RegForm;
+  },
+  {
+    token: string;
+  }
+>({
+  url: "/api/user/signup",
   method: "POST"
 });

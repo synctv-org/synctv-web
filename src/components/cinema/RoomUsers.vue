@@ -8,7 +8,7 @@ import { ROLE, role, MEMBER_STATUS, memberStatus } from "@/types/Room";
 import {
   userListApi,
   banUserApi,
-  unBanUserApi,
+  unbanUserApi,
   setAdminApi,
   setMemberApi,
   approveUserApi
@@ -131,7 +131,7 @@ const banUser = async (id: string, is: boolean) => {
         id: id
       }
     };
-    is ? await banUserApi().execute(config) : await unBanUserApi().execute(config);
+    is ? await banUserApi().execute(config) : await unbanUserApi().execute(config);
     ElNotification({
       title: `${is ? "封禁" : "解封"}成功`,
       type: "success"

@@ -238,7 +238,7 @@ export const banUserApi = useDefineApi<
 });
 
 // 解封用户
-export const unBanUserApi = useDefineApi<
+export const unbanUserApi = useDefineApi<
   {
     headers: {
       Authorization: string;

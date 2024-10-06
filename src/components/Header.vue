@@ -35,7 +35,11 @@ const menuLinks = computed(() => {
     }
   ];
 
-  if (settings?.emailEnable && !settings.emailDisableUserSignup)
+  if (
+    !settings?.passwordDisableSignup ||
+    (settings?.emailEnable && !settings.emailDisableSignup) ||
+    !settings?.oauth2DisableSignup
+  )
     links.push({
       name: "注册",
       to: "/auth/register"

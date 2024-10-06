@@ -9,7 +9,7 @@ import {
   type settingType
 } from "@/hooks/useSettings";
 import { assignSettingApi, sendTestMailApi } from "@/services/apis/admin";
-import { useUpdateSettings } from "@/hooks/useUpdateSettings";
+import { useUpdateAdminSettings } from "@/hooks/useUpdateSettings";
 
 const props = defineProps<{
   title: string;
@@ -17,7 +17,7 @@ const props = defineProps<{
 }>();
 
 const { token, info } = userStore();
-const { updateSet } = useUpdateSettings("admin", token.value);
+const { updateSet } = useUpdateAdminSettings(token.value);
 
 const {
   databaseSettingsGroup,

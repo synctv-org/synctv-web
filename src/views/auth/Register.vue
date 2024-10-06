@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { ElNotification, ElMessage, ElMessageBox } from "element-plus";
 import { indexStore } from "@/stores";
 import { userStore } from "@/stores/user";
 import router from "@/router/index";
 import { userInfo } from "@/services/apis/user";
-import { useEmailRegisterApi, getRegCaptchaApi, sendRegCodeApi } from "@/services/apis/auth";
-import { strLengthLimit } from "@/utils";
-import type { EmailRegForm } from "@/types";
+import {
+  useEmailRegisterApi,
+  getRegCaptchaApi,
+  sendRegCodeApi,
+  usePasswordRegisterApi,
+  loginWithOAuth2,
+  OAuth2SignupEnabled
+} from "@/services/apis/auth";
+import { strLengthLimit, getAppIcon } from "@/utils";
+import type { EmailRegForm, RegForm } from "@/types";
 
 const { settings } = indexStore();
 const { getUserInfo: updateUserInfo, updateToken } = userStore();
@@ -15,6 +22,9 @@ const { getUserInfo: updateUserInfo, updateToken } = userStore();
 const { state: userToken, execute: emailRegisterApi } = useEmailRegisterApi();
 const { state: captcha, execute: getRegCaptcha, isLoading: captchaLoading } = getRegCaptchaApi();
 const { execute: sendRegCode, isLoading: sendRegCodeLoading } = sendRegCodeApi();
+const { execute: passwordRegisterApi } = usePasswordRegisterApi();
+const { state: oauth2SignupEnabled, execute: getOAuth2SignupEnabled } = OAuth2SignupEnabled();
+const { execute: loginOAuth2 } = loginWithOAuth2();
 
 const formData = ref<EmailRegForm & { captchaID: string; answer: string }>({
   email: "",
@@ -23,8 +33,75 @@ const formData = ref<EmailRegForm & { captchaID: string; answer: string }>({
   captchaID: "",
   answer: ""
 });
+
+const passwordFormData = ref<RegForm>({
+  username: "",
+  password: ""
+});
+
 const emailProvider = ref(settings?.emailWhitelistEnabled && settings?.emailWhitelist[0]);
 const confirmPwd = ref("");
+
+const isPasswordSignupAllowed = computed(() => !settings?.passwordDisableSignup);
+const isEmailSignupAllowed = computed(() => settings?.emailEnable && !settings?.emailDisableSignup);
+const isOAuth2SignupAllowed = computed(() => !settings?.oauth2DisableSignup);
+const isAnySignupAllowed = computed(
+  () => isPasswordSignupAllowed.value || isEmailSignupAllowed.value || isOAuth2SignupAllowed.value
+);
+const registerType = ref<"password" | "email" | "oauth2">(
+  isPasswordSignupAllowed.value ? "password" : isEmailSignupAllowed.value ? "email" : "oauth2"
+);
+
+const platforms: { [key: string]: { name: string; class: string } } = {
+  github: {
+    name: "Github",
+    class: "btn-white"
+  },
+  microsoft: {
+    name: "Microsoft",
+    class: "btn-default"
+  },
+  google: {
+    name: "Google",
+    class: "btn-white"
+  },
+  "feishu-sso": {
+    name: "飞书SSO",
+    class: "btn-white"
+  },
+  authing: {
+    name: "Authing",
+    class: "btn-white"
+  },
+  xiaomi: {
+    name: "小米",
+    class: "btn-white"
+  },
+  discord: {
+    name: "Discord",
+    class: "btn-white"
+  },
+  baidu: {
+    name: "百度",
+    class: "btn-white"
+  },
+  "baidu-netdisk": {
+    name: "百度网盘",
+    class: "btn-white"
+  },
+  gitee: {
+    name: "Gitee",
+    class: "btn-error"
+  },
+  gitlab: {
+    name: "GitLab",
+    class: "btn-error"
+  },
+  qq: {
+    name: "QQ",
+    class: "btn-default"
+  }
+};
 
 const toSendRegCode = async () => {
   try {
@@ -63,69 +140,109 @@ const toSendRegCode = async () => {
 
 const regDisable = ref(false);
 const toRegister = async () => {
-  if (
-    !formData.value.email ||
-    !formData.value.password ||
-    !formData.value.captcha ||
-    !formData.value.answer
-  ) {
-    return ElMessage.error("请填写表单完整");
-  }
-  if (formData.value.password !== confirmPwd.value) return ElMessage.error("两次输入的密码不一致");
-  try {
-    regDisable.value = true;
-    for (const key in formData.value) {
-      strLengthLimit(key, 32);
+  if (registerType.value === "email") {
+    if (
+      !formData.value.email ||
+      !formData.value.password ||
+      !formData.value.captcha ||
+      !formData.value.answer
+    ) {
+      return ElMessage.error("请填写表单完整");
     }
-    const email = settings?.emailWhitelistEnabled
-      ? `${formData.value.email}@${emailProvider.value}`
-      : formData.value.email;
-    await emailRegisterApi({
-      data: {
-        email,
-        password: formData.value.password,
-        captcha: formData.value.captcha
+    if (formData.value.password !== confirmPwd.value)
+      return ElMessage.error("两次输入的密码不一致");
+    try {
+      regDisable.value = true;
+      for (const key in formData.value) {
+        strLengthLimit(key, 32);
       }
-    });
-    if (!userToken.value)
-      return ElNotification({
-        title: "错误",
-        message: "服务器并未返回token",
-        type: "error"
+      const email = settings?.emailWhitelistEnabled
+        ? `${formData.value.email}@${emailProvider.value}`
+        : formData.value.email;
+      await emailRegisterApi({
+        data: {
+          email,
+          password: formData.value.password,
+          captcha: formData.value.captcha
+        }
       });
-    ElNotification({
-      title: "注册成功",
-      message: "正在尝试自动登录",
-      type: "success"
-    });
-    resetForm();
-    updateToken(userToken.value.token);
-
-    const state = await userInfo().execute({
-      headers: {
-        Authorization: userToken.value?.token ?? ""
-      }
-    });
-
-    if (state.value) {
-      updateUserInfo(state.value);
-      localStorage.setItem("uname", state.value.username);
+      if (!userToken.value)
+        return ElNotification({
+          title: "错误",
+          message: "服务器并未返回token",
+          type: "error"
+        });
       ElNotification({
-        title: "登录成功",
+        title: "注册成功",
+        message: "正在尝试自动登录",
         type: "success"
       });
+      resetForm();
+      updateToken(userToken.value.token);
 
-      router.replace("/");
+      const state = await userInfo().execute({
+        headers: {
+          Authorization: userToken.value?.token ?? ""
+        }
+      });
+
+      if (state.value) {
+        updateUserInfo(state.value);
+        localStorage.setItem("uname", state.value.username);
+        ElNotification({
+          title: "登录成功",
+          type: "success"
+        });
+
+        router.replace("/");
+      }
+    } catch (err: any) {
+      console.error(err);
+      ElNotification({
+        title: "错误",
+        message: err.response.data.error || err.message,
+        type: "error"
+      });
+    } finally {
+      regDisable.value = false;
     }
-  } catch (err: any) {
-    console.error(err);
-    ElNotification({
-      title: "错误",
-      message: err.response.data.error || err.message,
-      type: "error"
-    });
-  } finally {
-    regDisable.value = false;
+  } else if (registerType.value === "password") {
+    if (!passwordFormData.value.username || !passwordFormData.value.password) {
+      return ElMessage.error("请填写表单完整");
+    }
+    if (passwordFormData.value.password !== confirmPwd.value)
+      return ElMessage.error("两次输入的密码不一致");
+    try {
+      regDisable.value = true;
+      for (const key in passwordFormData.value) {
+        strLengthLimit(key, 32);
+      }
+      const result = await passwordRegisterApi({
+        data: passwordFormData.value
+      });
+      if (!result)
+        return ElNotification({
+          title: "错误",
+          message: "注册失败",
+          type: "error"
+        });
+      ElNotification({
+        title: "注册成功",
+        message: "请登录",
+        type: "success"
+      });
+      resetForm();
+      router.push("/auth/login");
+    } catch (err: any) {
+      console.error(err);
+      ElNotification({
+        title: "错误",
+        message: err.response.data.error || err.message,
+        type: "error"
+      });
+    } finally {
+      regDisable.value = false;
+    }
   }
 };
 
@@ -134,102 +251,200 @@ const refreshRegCaptcha = async () => {
   if (captcha.value) formData.value.captchaID = captcha.value.captchaID;
 };
 
-const resetForm = () =>
-  (formData.value = {
+const resetForm = () => {
+  formData.value = {
     email: "",
     password: "",
     captcha: "",
     captchaID: "",
     answer: ""
-  });
+  };
+  passwordFormData.value = {
+    username: "",
+    password: ""
+  };
+  confirmPwd.value = "";
+};
 
-onMounted(async () => await refreshRegCaptcha());
+const handleOAuth2Login = async (platform: string) => {
+  try {
+    const result = await loginOAuth2({
+      url: `/oauth2/login/${platform}`,
+      data: {
+        redirect: `${window.location.origin}/oauth2/callback`
+      }
+    });
+    if (result.value?.url) {
+      window.location.href = result.value.url;
+    }
+  } catch (error) {
+    console.error(error);
+    ElNotification({
+      title: "错误",
+      message: "OAuth2登录失败",
+      type: "error"
+    });
+  }
+};
+
+onMounted(async () => {
+  if (!isAnySignupAllowed.value) {
+    ElNotification({
+      title: "提示",
+      message: "暂不允许注册",
+      type: "warning"
+    });
+    router.push("/auth/login");
+  } else {
+    await refreshRegCaptcha();
+    if (isOAuth2SignupAllowed.value) {
+      await getOAuth2SignupEnabled();
+    }
+  }
+});
 </script>
 
 <template>
-  <div class="room">
+  <div v-if="isAnySignupAllowed" class="room">
+    <div class="mb-4">
+      <el-radio-group v-model="registerType">
+        <el-radio-button v-if="isPasswordSignupAllowed" label="password"
+          >账号密码注册</el-radio-button
+        >
+        <el-radio-button v-if="isEmailSignupAllowed" label="email">邮箱注册</el-radio-button>
+        <el-radio-button v-if="isOAuth2SignupAllowed" label="oauth2">第三方注册</el-radio-button>
+      </el-radio-group>
+    </div>
     <form @submit.prevent="" class="reg-box">
-      <div
-        v-if="settings?.emailWhitelistEnabled"
-        class="l-input m-0 -mb-[14px] flex justify-between mx-auto"
-        style="width: 70%"
-      >
+      <template v-if="registerType === 'email'">
+        <div
+          v-if="settings?.emailWhitelistEnabled"
+          class="l-input m-0 -mb-[14px] flex justify-between mx-auto"
+          style="width: 70%"
+        >
+          <input
+            v-model="formData.email"
+            class="bg-transparent transition-all duration-500 outline-none focus:outline-none w-3/5"
+            type="text"
+            placeholder="邮箱"
+            required
+            autocomplete="off"
+          />
+          <select class="w-3/2" v-model="emailProvider" placeholder="请选择">
+            <option v-for="i in settings.emailWhitelist" :key="i" :value="i">@{{ i }}</option>
+          </select>
+        </div>
         <input
+          v-else
+          class="l-input a-input"
+          type="email"
           v-model="formData.email"
-          class="bg-transparent transition-all duration-500 outline-none focus:outline-none w-3/5"
-          type="text"
           placeholder="邮箱"
           required
           autocomplete="off"
         />
-        <select class="w-3/2" v-model="emailProvider" placeholder="请选择">
-          <option v-for="i in settings.emailWhitelist" :key="i" :value="i">@{{ i }}</option>
-        </select>
-      </div>
-      <input
-        v-else
-        class="l-input a-input"
-        type="email"
-        v-model="formData.email"
-        placeholder="邮箱"
-        required
-        autocomplete="off"
-      />
-      <br />
-      <input
-        class="l-input a-input"
-        type="password"
-        v-model="formData.password"
-        placeholder="密码"
-        required
-        autocomplete="new-password"
-      />
-      <br />
-      <input
-        class="l-input a-input"
-        type="password"
-        v-model="confirmPwd"
-        placeholder="确认密码"
-        required
-      />
-      <br />
-      <input
-        class="l-input a-input"
-        type="text"
-        v-model="formData.answer"
-        placeholder="图形验证码"
-        required
-      />
-      <div v-if="captchaLoading">
-        <el-image>
-          <template #error>
-            <div>Loading...</div>
-          </template>
-        </el-image>
-      </div>
-
-      <el-image
-        v-else
-        class="cursor-pointer"
-        title="点击刷新"
-        :src="captcha?.captchaBase64"
-        @click="refreshRegCaptcha"
-      />
-      <div class="l-input m-0 my-[10px] flex justify-between mx-auto" style="width: 70%">
+        <br />
         <input
-          type="text"
-          class="bg-transparent transition-all duration-500 outline-none focus:outline-none w-3/5"
-          placeholder="邮箱验证码"
-          v-model="formData.captcha"
+          class="l-input a-input"
+          type="password"
+          v-model="formData.password"
+          placeholder="密码"
+          required
+          autocomplete="new-password"
+        />
+        <br />
+        <input
+          class="l-input a-input"
+          type="password"
+          v-model="confirmPwd"
+          placeholder="确认密码"
           required
         />
-        <button class="text-blue-500 w-2/5" @click="toSendRegCode" v-if="!sendRegCodeLoading">
-          发送验证码
+        <br />
+        <input
+          class="l-input a-input"
+          type="text"
+          v-model="formData.answer"
+          placeholder="图形验证码"
+          required
+        />
+        <div v-if="captchaLoading">
+          <el-image>
+            <template #error>
+              <div>Loading...</div>
+            </template>
+          </el-image>
+        </div>
+
+        <el-image
+          v-else
+          class="cursor-pointer"
+          title="点击刷新"
+          :src="captcha?.captchaBase64"
+          @click="refreshRegCaptcha"
+        />
+        <div class="l-input m-0 my-[10px] flex justify-between mx-auto" style="width: 70%">
+          <input
+            type="text"
+            class="bg-transparent transition-all duration-500 outline-none focus:outline-none w-3/5"
+            placeholder="邮箱验证码"
+            v-model="formData.captcha"
+            required
+          />
+          <button class="text-blue-500 w-2/5" @click="toSendRegCode" v-if="!sendRegCodeLoading">
+            发送验证码
+          </button>
+          <button class="text-blue-500 w-2/5" v-else disabled>正在发送...</button>
+        </div>
+      </template>
+      <template v-else-if="registerType === 'password'">
+        <input
+          class="l-input a-input"
+          type="text"
+          v-model="passwordFormData.username"
+          placeholder="用户名"
+          required
+          autocomplete="off"
+        />
+        <br />
+        <input
+          class="l-input a-input"
+          type="password"
+          v-model="passwordFormData.password"
+          placeholder="密码"
+          required
+          autocomplete="new-password"
+        />
+        <br />
+        <input
+          class="l-input a-input"
+          type="password"
+          v-model="confirmPwd"
+          placeholder="确认密码"
+          required
+        />
+      </template>
+      <template v-else-if="registerType === 'oauth2'">
+        <button
+          v-for="item in oauth2SignupEnabled?.signupEnabled"
+          :class="`inline-flex items-center btn ${
+            platforms[item] ? platforms[item].class : 'btn-black'
+          } m-[10px] hover:px-[10px]`"
+          @click="handleOAuth2Login(item)"
+        >
+          <el-image class="w-4 mr-2 rounded-lg" :src="getAppIcon(item)"> </el-image>
+          {{ platforms[item] ? platforms[item].name : item }}
         </button>
-        <button class="text-blue-500 w-2/5" v-else disabled>正在发送...</button>
-      </div>
+      </template>
       <div class="text-sm"><b>注意：</b>所有输入框最大只可输入32个字符</div>
-      <button class="btn m-[10px]" @click="toRegister" :disabled="regDisable">完成注册</button>
+      <button
+        v-if="registerType !== 'oauth2'"
+        class="btn m-[10px]"
+        @click="toRegister"
+        :disabled="regDisable"
+      >
+        完成注册
+      </button>
     </form>
   </div>
 </template>

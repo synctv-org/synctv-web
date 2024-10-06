@@ -84,7 +84,9 @@ export const useSettings = () => {
     ["enable_guest", { value: false, name: "允许访客用户" }],
     ["disable_user_signup", { value: false, name: "禁止用户注册" }],
     ["signup_need_review", { value: false, name: "注册需要审核" }],
-    ["user_max_room_count", { value: 0, append: "个", name: "用户最大创建房间数" }]
+    ["user_max_room_count", { value: 0, append: "个", name: "用户最大创建房间数" }],
+    ["enable_password_signup", { value: false, name: "允许用户使用密码注册" }],
+    ["password_signup_need_review", { value: false, name: "密码注册需要审核" }]
   ]);
 
   const defaultEmailSettings: Map<string, settingType> = new Map([
