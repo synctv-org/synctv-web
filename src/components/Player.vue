@@ -274,7 +274,7 @@ const mountPlayer = () => {
   art.on("destroy", () => {
     destroyOldCustomPlayLib(art);
   });
-  addKeyEvnet(art);
+  addHotKeyEvnet(art);
   setSubtitleOffsetRange(art);
   Emits("get-instance", art);
 };
@@ -289,8 +289,15 @@ const setSubtitleOffsetRange = (art: Artplayer) => {
   art.on("setting", setRange);
 };
 
-// 全局快捷键
-const addKeyEvnet = (art: Artplayer) => {
+const cleanHotKeyEvent = (art: Artplayer, keys: number[]) => {
+  keys.forEach((key) => {
+    art.hotkey.keys[key] = [];
+  });
+};
+
+const addHotKeyEvnet = (art: Artplayer) => {
+  cleanHotKeyEvent(art, [32, 37, 39]);
+
   let fastForwardTimer: number | null = null;
   let originalPlaybackRate: number | null = null;
   let isLongPress = false;
@@ -365,14 +372,14 @@ const addKeyEvnet = (art: Artplayer) => {
       window.removeEventListener("keydown", keydownEvent);
       window.removeEventListener("keyup", keyupEvent);
     });
-    art.on("blur", () => {
-      window.addEventListener("keydown", keydownEvent);
-      window.addEventListener("keyup", keyupEvent);
-    });
-    art.on("focus", () => {
-      window.removeEventListener("keydown", keydownEvent);
-      window.removeEventListener("keyup", keyupEvent);
-    });
+    // art.on("blur", () => {
+    //   window.addEventListener("keydown", keydownEvent);
+    //   window.addEventListener("keyup", keyupEvent);
+    // });
+    // art.on("focus", () => {
+    //   window.removeEventListener("keydown", keydownEvent);
+    //   window.removeEventListener("keyup", keyupEvent);
+    // });
   });
 };
 

@@ -88,7 +88,7 @@ export const newSyncPlugin = (
     let lastestSeek = 0;
 
     const publishSeek = () => {
-      console.group("广播视频空降");
+      console.groupCollapsed("广播视频空降");
       console.log("seek:", art.currentTime);
       console.log("rate:", art.playbackRate);
       console.log("playing:", !art.video.paused);
@@ -116,7 +116,7 @@ export const newSyncPlugin = (
     const setAndNoPublishSeek = (seek: number) => {
       lastestSeek = Date.now();
       if (art.option.isLive || Math.abs(art.currentTime - seek) < 2) return;
-      console.group("设置seek(非广播)");
+      console.groupCollapsed("设置seek(非广播)");
       console.log("seek:", seek);
       console.log("rate:", art.playbackRate);
       console.log("playing:", !art.video.paused);
@@ -125,7 +125,7 @@ export const newSyncPlugin = (
     };
 
     const publishPlay = () => {
-      console.group("广播视频播放");
+      console.groupCollapsed("广播视频播放");
       console.log("seek:", art.currentTime);
       console.log("rate:", art.playbackRate);
       console.log("playing:", !art.video.paused);
@@ -147,7 +147,7 @@ export const newSyncPlugin = (
 
     const setAndNoPublishPlay = async () => {
       if (!art.video.paused) return;
-      console.group("设置播放(非广播)");
+      console.groupCollapsed("设置播放(非广播)");
       console.log("seek:", art.currentTime);
       console.log("rate:", art.playbackRate);
       console.log("playing:", !art.video.paused);
@@ -156,7 +156,7 @@ export const newSyncPlugin = (
     };
 
     const publishPause = () => {
-      console.group("广播视频暂停");
+      console.groupCollapsed("广播视频暂停");
       console.log("seek:", art.currentTime);
       console.log("rate:", art.playbackRate);
       console.log("playing:", !art.video.paused);
@@ -178,7 +178,7 @@ export const newSyncPlugin = (
 
     const setAndNoPublishPause = () => {
       if (art.video.paused) return;
-      console.group("设置暂停(非广播)");
+      console.groupCollapsed("设置暂停(非广播)");
       console.log("seek:", art.currentTime);
       console.log("rate:", art.playbackRate);
       console.log("playing:", !art.video.paused);
@@ -187,7 +187,7 @@ export const newSyncPlugin = (
     };
 
     const publishRate = () => {
-      console.group("广播视频倍速");
+      console.groupCollapsed("广播视频倍速");
       console.log("seek:", art.currentTime);
       console.log("rate:", art.playbackRate);
       console.log("playing:", !art.video.paused);
@@ -211,7 +211,7 @@ export const newSyncPlugin = (
       art.once("video:ratechange", () => {
         art.on("video:ratechange", publishRate);
       });
-      console.group("设置倍速(非广播)");
+      console.groupCollapsed("设置倍速(非广播)");
       console.log("rate:", rate);
       console.groupEnd();
       art.playbackRate = rate;
@@ -226,7 +226,7 @@ export const newSyncPlugin = (
       ) {
         return;
       }
-      console.group("检查状态");
+      console.groupCollapsed("检查状态");
       console.log("seek:", art.currentTime);
       console.log("rate:", art.playbackRate);
       console.log("playing:", !art.video.paused);
@@ -245,7 +245,7 @@ export const newSyncPlugin = (
     };
 
     const checkExpire = () => {
-      console.group("检查过期");
+      console.groupCollapsed("检查过期");
       console.log("expireId:", dynamicCurrentExpireId());
       console.groupEnd();
       publishStatus(
@@ -258,7 +258,7 @@ export const newSyncPlugin = (
     };
 
     const setAndNoPublishStatus = async (status: MovieStatus) => {
-      console.group("设置状态(不广播)");
+      console.groupCollapsed("设置状态(不广播)");
       console.log("seek:", status.seek);
       console.log("rate:", status.rate);
       console.log("playing:", status.playing);
@@ -291,7 +291,7 @@ export const newSyncPlugin = (
 
     if (!art.option.isLive) {
       art.once("ready", async () => {
-        console.group("同步状态");
+        console.groupCollapsed("同步状态");
         console.log("seek:", initStatus.seek);
         console.log("rate:", initStatus.rate);
         console.log("playing:", initStatus.playing);

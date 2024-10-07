@@ -83,7 +83,7 @@ const sendElement = (msg: ElementMessage) => {
   if (!msg.time) {
     msg.time = Date.now();
   }
-  console.group("Ws Send");
+  console.groupCollapsed("Ws Send");
   console.log(msg);
   console.groupEnd();
   return send(ElementMessage.encode(msg).finish() as any, false);
@@ -298,8 +298,8 @@ const setPlayerStatus = (status: MovieStatus) => {
 };
 
 const handleElementMessage = (msg: ElementMessage) => {
-  console.group("Ws Message");
-  console.log(msg);
+  console.groupCollapsed("Ws Message");
+  console.info(msg);
   console.groupEnd();
   switch (msg.type) {
     case ElementMessageType.ERROR: {
