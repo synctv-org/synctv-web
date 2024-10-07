@@ -77,3 +77,8 @@ export const destroyOldCustomPlayLib = (art: any) => {
     }
   }
 };
+
+export const getFileExtension = (url: string) => {
+  const extension = url.split(".").pop();
+  return extension;
+};

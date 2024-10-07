@@ -145,6 +145,7 @@ const confirmCancelPlayback = async () => {
             </button>
           </b>
           <small class="truncate">{{ item.base!.url || item.id }}</small>
+          <small v-if="item.base!.type" class="ml-2 text-gray-500">[{{ item.base!.type }}]</small>
         </div>
 
         <div

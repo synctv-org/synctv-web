@@ -49,7 +49,7 @@ const { getMovies, getCurrentMovie } = useMovieApi(token.value, roomID.value);
 const { getMyInfo, myInfo } = useRoomApi();
 const { hasMemberPermission } = useRoomPermission();
 
-let player: Artplayer;
+let player: Artplayer | undefined;
 
 const sendDanmuku = (msg: string) => {
   if (!player || !player.plugins.artplayerPluginDanmuku) return;
@@ -275,6 +275,21 @@ const updateSources = async () => {
 
 const getPlayerInstance = (art: Artplayer) => {
   player = art;
+  listenPlayerType(player);
+};
+
+const playType = ref<string | undefined>();
+
+const listenPlayerType = (player: Artplayer) => {
+  player.once("ready", () => {
+    playType.value = player?.option.type;
+    player.on("restart", () => {
+      playType.value = player?.option.type;
+    });
+    player.on("destroy", () => {
+      playType.value = undefined;
+    });
+  });
 };
 
 const setPlayerStatus = (status: MovieStatus) => {
@@ -451,8 +466,9 @@ onMounted(async () => {
           class="card-title flex flex-wrap justify-between max-sm:text-sm max-sm:pb-4"
           v-if="playerOption.url"
         >
+          <el-tag v-if="playType">{{ playType }}</el-tag>
           {{ room.currentMovie.base!.name }}
-          <small>👁‍🗨 {{ room.peopleNum }} </small>
+          <small class="ml-2">👁‍🗨 {{ room.peopleNum }} </small>
         </div>
         <div class="card-title flex flex-wrap justify-between max-sm:text-sm" v-else>
           当前没有影片播放，快去添加几部吧~<small class="font-normal"

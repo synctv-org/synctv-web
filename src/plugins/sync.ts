@@ -88,19 +88,22 @@ export const newSyncPlugin = (
     let lastestSeek = 0;
 
     const publishSeek = () => {
+      console.group("广播视频空降");
+      console.log("seek:", art.currentTime);
+      console.log("rate:", art.playbackRate);
+      console.log("playing:", !art.video.paused);
+      console.groupEnd();
       publishStatus(
         ElementMessage.create({
           type: ElementMessageType.CHANGE_SEEK,
           time: Date.now(),
-          // seek event dont publish playing status
-          // because playing status will change when seeking
           changeMovieStatusReq: {
+            playing: !art.video.paused,
             seek: art.currentTime,
             rate: art.playbackRate
           }
         })
       );
-      console.log("视频空降，:", art.currentTime);
     };
 
     const __publishSeekDebounce = useDebounceFn(publishSeek, debounceTime);
@@ -113,11 +116,20 @@ export const newSyncPlugin = (
     const setAndNoPublishSeek = (seek: number) => {
       lastestSeek = Date.now();
       if (art.option.isLive || Math.abs(art.currentTime - seek) < 2) return;
+      console.group("设置seek(非广播)");
+      console.log("seek:", seek);
+      console.log("rate:", art.playbackRate);
+      console.log("playing:", !art.video.paused);
+      console.groupEnd();
       art.currentTime = seek;
     };
 
     const publishPlay = () => {
-      console.log("视频播放,seek:", art.currentTime);
+      console.group("广播视频播放");
+      console.log("seek:", art.currentTime);
+      console.log("rate:", art.playbackRate);
+      console.log("playing:", !art.video.paused);
+      console.groupEnd();
       publishStatus(
         ElementMessage.create({
           type: ElementMessageType.PLAY,
@@ -134,12 +146,21 @@ export const newSyncPlugin = (
     const publishPlayDebounce = playingStatusDebounce(publishPlay);
 
     const setAndNoPublishPlay = async () => {
-      if (art.playing) return;
+      if (!art.video.paused) return;
+      console.group("设置播放(非广播)");
+      console.log("seek:", art.currentTime);
+      console.log("rate:", art.playbackRate);
+      console.log("playing:", !art.video.paused);
+      console.groupEnd();
       await artPlay(art);
     };
 
     const publishPause = () => {
-      console.log("视频暂停,seek:", art.currentTime);
+      console.group("广播视频暂停");
+      console.log("seek:", art.currentTime);
+      console.log("rate:", art.playbackRate);
+      console.log("playing:", !art.video.paused);
+      console.groupEnd();
       publishStatus(
         ElementMessage.create({
           type: ElementMessageType.PAUSE,
@@ -156,23 +177,32 @@ export const newSyncPlugin = (
     const publishPauseDebounce = playingStatusDebounce(publishPause);
 
     const setAndNoPublishPause = () => {
-      if (!art.playing) return;
+      if (art.video.paused) return;
+      console.group("设置暂停(非广播)");
+      console.log("seek:", art.currentTime);
+      console.log("rate:", art.playbackRate);
+      console.log("playing:", !art.video.paused);
+      console.groupEnd();
       art.video.pause();
     };
 
     const publishRate = () => {
+      console.group("广播视频倍速");
+      console.log("seek:", art.currentTime);
+      console.log("rate:", art.playbackRate);
+      console.log("playing:", !art.video.paused);
+      console.groupEnd();
       publishStatus(
         ElementMessage.create({
           type: ElementMessageType.CHANGE_RATE,
           time: Date.now(),
           changeMovieStatusReq: {
-            playing: art.playing,
+            playing: !art.video.paused,
             seek: art.currentTime,
             rate: art.playbackRate
           }
         })
       );
-      console.log("视频倍速,seek:", art.currentTime);
     };
 
     const setAndNoPublishRate = (rate: number) => {
@@ -181,27 +211,43 @@ export const newSyncPlugin = (
       art.once("video:ratechange", () => {
         art.on("video:ratechange", publishRate);
       });
+      console.group("设置倍速(非广播)");
+      console.log("rate:", rate);
+      console.groupEnd();
       art.playbackRate = rate;
     };
 
     const checkStatus = () => {
       // 距离上一次seek超过10s后才会检查seek
-      if (Date.now() - lastestSeek < 10000 || art.option.isLive) return;
-      art.duration - art.currentTime > 5 &&
-        publishStatus(
-          ElementMessage.create({
-            type: ElementMessageType.CHECK_STATUS,
-            time: Date.now(),
-            checkStatusReq: {
-              playing: art.playing,
-              seek: art.currentTime,
-              rate: art.playbackRate
-            }
-          })
-        );
+      if (
+        Date.now() - lastestSeek < 10000 ||
+        art.option.isLive ||
+        art.duration - art.currentTime < 5
+      ) {
+        return;
+      }
+      console.group("检查状态");
+      console.log("seek:", art.currentTime);
+      console.log("rate:", art.playbackRate);
+      console.log("playing:", !art.video.paused);
+      console.groupEnd();
+      publishStatus(
+        ElementMessage.create({
+          type: ElementMessageType.CHECK_STATUS,
+          time: Date.now(),
+          checkStatusReq: {
+            playing: !art.video.paused,
+            seek: art.currentTime,
+            rate: art.playbackRate
+          }
+        })
+      );
     };
 
     const checkExpire = () => {
+      console.group("检查过期");
+      console.log("expireId:", dynamicCurrentExpireId());
+      console.groupEnd();
       publishStatus(
         ElementMessage.create({
           type: ElementMessageType.CHECK_EXPIRED,
@@ -212,6 +258,11 @@ export const newSyncPlugin = (
     };
 
     const setAndNoPublishStatus = async (status: MovieStatus) => {
+      console.group("设置状态(不广播)");
+      console.log("seek:", status.seek);
+      console.log("rate:", status.rate);
+      console.log("playing:", status.playing);
+      console.groupEnd();
       if (!art.option.isLive) {
         setAndNoPublishRate(status.rate);
         setAndNoPublishSeek(status.seek);
@@ -221,7 +272,7 @@ export const newSyncPlugin = (
 
     const currentStatus = (): MovieStatus => {
       return {
-        playing: art.playing,
+        playing: !art.video.paused,
         seek: art.currentTime,
         rate: art.playbackRate
       };
@@ -240,7 +291,11 @@ export const newSyncPlugin = (
 
     if (!art.option.isLive) {
       art.once("ready", async () => {
-        console.log("同步进度中...");
+        console.group("同步状态");
+        console.log("seek:", initStatus.seek);
+        console.log("rate:", initStatus.rate);
+        console.log("playing:", initStatus.playing);
+        console.groupEnd();
         art.currentTime = initStatus.seek;
         art.playbackRate = initStatus.rate;
         if (initStatus.playing) {
