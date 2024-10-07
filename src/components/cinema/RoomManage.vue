@@ -9,7 +9,7 @@ import { useSettings, type settingType } from "@/hooks/useSettings";
 import { useUpdateRoomSettings } from "@/hooks/useUpdateSettings";
 import { parsePermissions, strLengthLimit } from "@/utils";
 import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
-import { ROLE, RoomAdminPermission, RoomMemberPermission } from "@/types/Room";
+import { MEMBER_ROLE, RoomAdminPermission, RoomMemberPermission } from "@/types/Room";
 
 const open = ref(false);
 const roomID = useRouteParams<string>("roomId");
@@ -35,7 +35,7 @@ const can = (p: RoomAdminPermission) => {
   const myP = myInfo.value.adminPermissions;
   return hasAdminPermission(myP, p);
 };
-const isAdmin = computed(() => myInfo.value!.role >= ROLE.Admin);
+const isAdmin = computed(() => myInfo.value!.role >= MEMBER_ROLE.Admin);
 
 const { state, execute, isReady } = roomSettingsApi();
 const getRoomSettings = async () => {

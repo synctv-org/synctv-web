@@ -16,6 +16,7 @@ import {
 } from "@/services/apis/auth";
 import { strLengthLimit, getAppIcon } from "@/utils";
 import type { EmailRegForm, RegForm } from "@/types";
+import { ROLE } from "@/types/User";
 
 const {
   settings,
@@ -118,9 +119,35 @@ const toRegister = async () => {
       if (!userToken.value)
         return ElNotification({
           title: "错误",
-          message: "服务器并未返回token",
+          message: "服务器并未返回数据",
           type: "error"
         });
+      if (userToken.value.message) {
+        switch (userToken.value.role) {
+          case ROLE.Banned:
+            ElNotification({
+              title: "错误",
+              message: "您的账号已被封禁",
+              type: "error"
+            });
+            break;
+          case ROLE.Pending:
+            ElNotification({
+              title: "错误",
+              message: "您的账号正在审核中",
+              type: "warning"
+            });
+            break;
+          default:
+            ElNotification({
+              title: "错误",
+              message: userToken.value.message,
+              type: "error"
+            });
+            break;
+        }
+        return;
+      }
       ElNotification({
         title: "注册成功",
         message: "正在尝试自动登录",
@@ -169,12 +196,38 @@ const toRegister = async () => {
       const result = await passwordRegisterApi({
         data: passwordFormData.value
       });
-      if (!result || !result.value?.token)
+      if (!result.value)
         return ElNotification({
           title: "错误",
-          message: "注册失败",
+          message: "服务器并未返回数据",
           type: "error"
         });
+      if (result.value.message) {
+        switch (result.value.role) {
+          case ROLE.Banned:
+            ElNotification({
+              title: "错误",
+              message: "您的账号已被封禁",
+              type: "error"
+            });
+            break;
+          case ROLE.Pending:
+            ElNotification({
+              title: "错误",
+              message: "您的账号正在审核中",
+              type: "warning"
+            });
+            break;
+          default:
+            ElNotification({
+              title: "错误",
+              message: result.value.message,
+              type: "error"
+            });
+            break;
+        }
+        return;
+      }
       ElNotification({
         title: "注册成功",
         message: "正在尝试自动登录",

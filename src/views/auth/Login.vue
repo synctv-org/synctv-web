@@ -9,6 +9,7 @@ import { strLengthLimit, getAppIcon } from "@/utils";
 import { userStore } from "@/stores/user";
 import router from "@/router/index";
 import { oauth2Platforms } from "@/services/apis/auth";
+import { ROLE } from "@/types/User";
 
 const { settings, isAnySignupAllowed } = indexStore();
 
@@ -45,9 +46,36 @@ const login = async () => {
     if (!loginData.value)
       return ElNotification({
         title: "错误",
-        message: "服务器并未返回token",
+        message: "服务器并未返回数据",
         type: "error"
       });
+    switch (loginData.value.role) {
+      case ROLE.Banned:
+        ElNotification({
+          title: "错误",
+          message: "您的账号已被封禁",
+          type: "error"
+        });
+        break;
+      case ROLE.Pending:
+        ElNotification({
+          title: "错误",
+          message: "您的账号正在审核中",
+          type: "warning"
+        });
+        break;
+      case ROLE.User:
+      case ROLE.Admin:
+      case ROLE.Root:
+        break;
+      default:
+        ElNotification({
+          title: "错误",
+          message: loginData.value.message || "登录失败",
+          type: "error"
+        });
+        break;
+    }
 
     updateToken(loginData.value.token);
     localStorage.setItem("uname", formData.value.username);

@@ -1,18 +1,6 @@
 import { useDefineApi } from "@/stores/useDefineApi";
 import type { RegForm, EmailRegForm, PublicSettings } from "@/types";
-
-// 注册
-export const RegisterApi = useDefineApi<
-  {
-    data: RegForm;
-  },
-  {
-    token: string;
-  }
->({
-  url: "/api/user/signup",
-  method: "POST"
-});
+import type { ROLE } from "@/types/User";
 
 // 邮箱注册
 export const useEmailRegisterApi = useDefineApi<
@@ -21,6 +9,8 @@ export const useEmailRegisterApi = useDefineApi<
   },
   {
     token: string;
+    message: string;
+    role: ROLE;
   }
 >({
   url: "/api/user/signup/email",
@@ -38,6 +28,8 @@ export const LoginApi = useDefineApi<
   },
   {
     token: string;
+    message: string;
+    role: ROLE;
   }
 >({
   url: "/api/user/login",
@@ -89,6 +81,8 @@ export const oAuth2Callback = useDefineApi<
   {
     token: string;
     redirect: string;
+    message: string;
+    role: ROLE;
   }
 >({
   method: "POST"
@@ -175,6 +169,8 @@ export const usePasswordRegisterApi = useDefineApi<
   },
   {
     token: string;
+    message: string;
+    role: ROLE;
   }
 >({
   url: "/api/user/signup",

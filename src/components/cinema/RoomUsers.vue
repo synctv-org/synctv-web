@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { ElNotification, ElMessageBox } from "element-plus";
 import { Search } from "@element-plus/icons-vue";
-import { ROLE, memberRole, MEMBER_STATUS, memberStatus } from "@/types/Room";
+import { MEMBER_ROLE, memberRole, MEMBER_STATUS, memberStatus } from "@/types/Room";
 import {
   userListApi,
   banUserApi,
@@ -37,7 +37,7 @@ const can = (p: RoomAdminPermission) => {
 
 const rolesFilter = computed(() => {
   const v = Object.values(memberRole);
-  return v.filter((r) => r !== memberRole[ROLE.Unknown]);
+  return v.filter((r) => r !== memberRole[MEMBER_ROLE.Unknown]);
 });
 
 const memberStatusFilter = computed(() => {
@@ -45,7 +45,7 @@ const memberStatusFilter = computed(() => {
   return v.filter((r) => r !== memberStatus[MEMBER_STATUS.NotJoined]);
 });
 
-const isAdmin = computed(() => myInfo.value!.role >= ROLE.Admin);
+const isAdmin = computed(() => myInfo.value!.role >= MEMBER_ROLE.Admin);
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
@@ -337,7 +337,7 @@ const getMemberStatusColor = (status: MEMBER_STATUS) => {
                   )
               "
             >
-              {{ memberRole[scope.row.role as ROLE] }}</a
+              {{ memberRole[scope.row.role as MEMBER_ROLE] }}</a
             >
           </template>
         </el-table-column>
@@ -398,7 +398,7 @@ const getMemberStatusColor = (status: MEMBER_STATUS) => {
               <el-button
                 v-if="
                   can(RoomAdminPermission.PermissionBanRoomMember) &&
-                  scope.row.role !== ROLE.Creator &&
+                  scope.row.role !== MEMBER_ROLE.Creator &&
                   scope.row.userId !== myInfo?.userId
                 "
                 type="danger"
@@ -408,7 +408,7 @@ const getMemberStatusColor = (status: MEMBER_STATUS) => {
                 封禁
               </el-button>
               <el-button
-                v-if="scope.row.role < ROLE.Admin"
+                v-if="scope.row.role < MEMBER_ROLE.Admin"
                 type="primary"
                 @click="
                   setAdmin(
@@ -423,9 +423,9 @@ const getMemberStatusColor = (status: MEMBER_STATUS) => {
               </el-button>
               <el-button
                 v-else-if="
-                  scope.row.role === ROLE.Admin &&
-                  scope.row.role !== ROLE.Creator &&
-                  myInfo?.role === ROLE.Creator
+                  scope.row.role === MEMBER_ROLE.Admin &&
+                  scope.row.role !== MEMBER_ROLE.Creator &&
+                  myInfo?.role === MEMBER_ROLE.Creator
                 "
                 type="warning"
                 @click="
@@ -442,7 +442,7 @@ const getMemberStatusColor = (status: MEMBER_STATUS) => {
               <el-button
                 v-if="
                   can(RoomAdminPermission.PermissionApprovePendingMember) &&
-                  scope.row.role !== ROLE.Creator &&
+                  scope.row.role !== MEMBER_ROLE.Creator &&
                   scope.row.userId !== myInfo?.userId
                 "
                 type="danger"

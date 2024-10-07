@@ -77,13 +77,15 @@ export const useRoomApi = () => {
         switch (joinedRoom.value!.status) {
           case MEMBER_STATUS.Pending:
             ElNotification({
-              title: "等待管理员通过",
-              type: "success"
+              title: "错误",
+              message: "等待管理员通过",
+              type: "warning"
             });
             break;
           case MEMBER_STATUS.Banned:
             ElNotification({
-              title: "你已被管理员封禁",
+              title: "错误",
+              message: "你已被管理员封禁",
               type: "error"
             });
             break;
@@ -92,7 +94,16 @@ export const useRoomApi = () => {
               title: "加入成功",
               type: "success"
             });
+            if (formData.password)
+              localStorage.setItem(`room-${formData.roomId}-pwd`, formData.password);
             router.replace(`/cinema/${formData.roomId}`);
+            break;
+          default:
+            ElNotification({
+              title: "错误",
+              message: "未知错误",
+              type: "error"
+            });
             break;
         }
         return;
@@ -103,14 +114,46 @@ export const useRoomApi = () => {
           Authorization: token.value
         }
       });
-      if (formData.password) localStorage.setItem(`room-${formData.roomId}-pwd`, formData.password);
-
-      ElNotification({
-        title: "加入成功",
-        type: "success"
-      });
-
-      router.replace(`/cinema/${formData.roomId}`);
+      if (!joinRoomInfo.value) {
+        ElNotification({
+          title: "错误",
+          message: "服务器并未返回数据",
+          type: "error"
+        });
+        return;
+      }
+      switch (joinRoomInfo.value.status) {
+        case MEMBER_STATUS.Pending:
+          ElNotification({
+            title: "错误",
+            message: "等待管理员通过",
+            type: "warning"
+          });
+          break;
+        case MEMBER_STATUS.Banned:
+          ElNotification({
+            title: "错误",
+            message: "你已被管理员封禁",
+            type: "error"
+          });
+          break;
+        case MEMBER_STATUS.Active:
+          ElNotification({
+            title: "加入成功",
+            type: "success"
+          });
+          if (formData.password)
+            localStorage.setItem(`room-${formData.roomId}-pwd`, formData.password);
+          router.replace(`/cinema/${formData.roomId}`);
+          break;
+        default:
+          ElNotification({
+            title: "错误",
+            message: "未知错误",
+            type: "error"
+          });
+          break;
+      }
     } catch (err: any) {
       console.error(err);
       ElNotification({

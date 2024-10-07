@@ -1,6 +1,6 @@
 import { useDefineApi } from "@/stores/useDefineApi";
-import type { MyInfo, RoomInfo, RoomList } from "@/types/Room";
-import type { ROLE } from "@/types/Room";
+import type { MEMBER_ROLE, MEMBER_STATUS, MyInfo, RoomInfo, RoomList } from "@/types/Room";
+import type { ROLE } from "@/types/User";
 
 // 房间列表
 export const roomListApi = useDefineApi<
@@ -76,7 +76,12 @@ export const joinRoomApi = useDefineApi<
     };
   },
   // response
-  {}
+  {
+    status: MEMBER_STATUS;
+    role: MEMBER_ROLE;
+    permissions: number;
+    adminPermissions: number;
+  }
 >({
   url: "/api/room/login",
   method: "POST"

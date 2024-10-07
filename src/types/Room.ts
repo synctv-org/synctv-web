@@ -13,7 +13,7 @@ export interface RoomList {
 
 export interface JoinedRoomList extends RoomList {
   memberStatus: MEMBER_STATUS;
-  memberRole: ROLE;
+  memberRole: MEMBER_ROLE;
 }
 
 // 房间权限（默认用户）
@@ -54,7 +54,7 @@ export interface MyInfo {
   userId: string;
   roomId: string;
   joinAt: number;
-  role: ROLE;
+  role: MEMBER_ROLE;
   status: MEMBER_STATUS;
   permissions: RoomMemberPermission;
   adminPermissions: RoomAdminPermission;
@@ -71,7 +71,7 @@ export interface RoomInfo {
   member: {
     id: string;
     name: string;
-    role: ROLE;
+    role: MEMBER_ROLE;
     status: MEMBER_STATUS;
     permissions: RoomMemberPermission;
     adminPermissions: RoomAdminPermission;
@@ -90,18 +90,18 @@ export const roomStatus = {
   [RoomStatus.Active]: "Active"
 };
 
-export enum ROLE {
+export enum MEMBER_ROLE {
   Unknown = 0,
   Member = 1,
   Admin = 2,
   Creator = 3
 }
 
-export const memberRole: Record<ROLE, string> = {
-  [ROLE.Unknown]: "Unknown",
-  [ROLE.Member]: "Member",
-  [ROLE.Admin]: "Admin",
-  [ROLE.Creator]: "Creator"
+export const memberRole: Record<MEMBER_ROLE, string> = {
+  [MEMBER_ROLE.Unknown]: "Unknown",
+  [MEMBER_ROLE.Member]: "Member",
+  [MEMBER_ROLE.Admin]: "Admin",
+  [MEMBER_ROLE.Creator]: "Creator"
 };
 
 export enum MEMBER_STATUS {
