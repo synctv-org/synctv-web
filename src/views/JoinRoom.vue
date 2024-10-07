@@ -45,17 +45,19 @@ const init = () => {
     if (roomID) formData.value.roomId = roomID.value as string;
     if (pwd) formData.value.password = pwd.value as string;
   }
-  handleJoinRoom();
+  if (formData.value.roomId || formData.value.password) {
+    handleJoinRoom();
+  }
 };
 
 const handleJoinRoom = async () => {
   try {
     await joinRoom(formData.value.roomId, formData.value.password);
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     ElNotification({
       title: "错误",
-      message: error as string,
+      message: error.response.data.error,
       type: "error"
     });
   }
