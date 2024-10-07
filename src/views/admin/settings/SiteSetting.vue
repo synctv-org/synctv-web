@@ -16,7 +16,7 @@ const props = defineProps<{
   showType: settingGroupName;
 }>();
 
-const { token, info } = userStore();
+const { token } = userStore();
 const { updateSet, isUpdating } = useUpdateAdminSettings(token.value);
 
 const {
@@ -127,32 +127,51 @@ const getAllSettings = async () => {
 
 const { execute, isLoading: sendTestMailBtnLoading } = sendTestMailApi();
 const toSendTestMail = async () => {
-  const { value } = await ElMessageBox.prompt("如果为空，将发送到绑定的邮箱", "请输入邮箱地址", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消"
-  });
-  const regex =
-    /[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[\w](?:[\w-]*[\w])?\.)+[\w](?:[\w-]*[\w])?/;
-  if (value && !regex.test(value)) return ElMessage.error("请输入正确的邮箱地址");
-
   try {
-    ElMessage.info("邮件发送中");
-    await execute({
-      headers: {
-        Authorization: token.value
+    await ElMessageBox.prompt("如果为空，将发送到绑定的邮箱", "请输入邮箱地址", {
+      closeOnClickModal: false,
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      inputValidator: (value) => {
+        const regex =
+          /[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[\w](?:[\w-]*[\w])?\.)+[\w](?:[\w-]*[\w])?/;
+        return !value || regex.test(value);
       },
-      data: {
-        email: value ?? info.value?.email
+      inputErrorMessage: "请输入正确的邮箱地址",
+      beforeClose: async (action, instance, done) => {
+        if (action === "confirm") {
+          instance.confirmButtonLoading = true;
+          instance.confirmButtonText = "发送中...";
+          try {
+            await execute({
+              headers: {
+                Authorization: token.value
+              },
+              data: {
+                email: instance.inputValue
+              }
+            });
+            ElMessage.success("邮件发送成功");
+            done();
+          } catch (err: any) {
+            console.error(err);
+            ElNotification({
+              title: "邮件发送失败",
+              type: "error",
+              message: err.response?.data.error || err.message
+            });
+          }
+          instance.confirmButtonLoading = false;
+          instance.confirmButtonText = "确定";
+        } else {
+          done();
+        }
       }
     });
-    ElMessage.success("邮件发送成功");
-  } catch (err: any) {
-    console.error(err);
-    ElNotification({
-      title: "邮件发送失败",
-      type: "error",
-      message: err.response?.data.error || err.message
-    });
+  } catch (err) {
+    if (err !== "cancel") {
+      console.error(err);
+    }
   }
 };
 
@@ -195,9 +214,7 @@ onMounted(async () => {
           </el-form>
         </div>
         <div class="card-footer" v-if="props.showType === 'email'">
-          <el-button type="primary" @click="toSendTestMail" :loading="sendTestMailBtnLoading"
-            >发送测试邮件</el-button
-          >
+          <el-button type="primary" @click="toSendTestMail">发送测试邮件</el-button>
         </div>
       </div>
     </el-col>
