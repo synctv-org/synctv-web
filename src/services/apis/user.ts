@@ -214,3 +214,18 @@ export const joinedRoomApi = useDefineApi<
   url: "/api/user/room/joined",
   method: "GET"
 });
+
+export const deleteRoomApi = useDefineApi<
+  {
+    data: {
+      id: string;
+    };
+    headers: {
+      Authorization: string;
+    };
+  },
+  {}
+>({
+  url: "/api/user/room/delete",
+  method: "POST"
+});

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { ElNotification } from "element-plus";
+import { ElNotification, ElMessageBox } from "element-plus";
 import {
   roomStatus,
   type RoomList,
@@ -18,6 +18,7 @@ import { useTimeAgo } from "@vueuse/core";
 import { useRouter } from "vue-router";
 import { useRoomApi } from "@/hooks/useRoom";
 import { getObjValue } from "@/utils";
+import { deleteRoomApi } from "@/services/apis/user";
 
 const router = useRouter();
 const props = defineProps<{
@@ -26,7 +27,7 @@ const props = defineProps<{
   isJoinedRoom: boolean;
 }>();
 
-const { isLogin, info } = userStore();
+const { isLogin, info, token } = userStore();
 const thisRoomList = ref<RoomList[] | JoinedRoomList[]>([]);
 const formData = ref<{
   roomId: string;
@@ -144,6 +145,42 @@ const getMemberStatusColor = (status: MEMBER_STATUS) => {
       return "text-green-500";
     default:
       return "text-gray-500";
+  }
+};
+
+const deleteRoom = async (roomId: string) => {
+  try {
+    await ElMessageBox.confirm("确定要删除这个房间吗？", "警告", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    });
+
+    await deleteRoomApi().execute({
+      headers: {
+        Authorization: token.value
+      },
+      data: {
+        id: roomId
+      }
+    });
+
+    ElNotification({
+      title: "成功",
+      message: "房间已删除",
+      type: "success"
+    });
+
+    getRoomList(true);
+  } catch (err: any) {
+    if (err !== "cancel") {
+      console.error(err);
+      ElNotification({
+        title: "删除房间失败",
+        message: err.response?.data.error || err.message,
+        type: "error"
+      });
+    }
   }
 };
 </script>
@@ -274,6 +311,11 @@ const getMemberStatusColor = (status: MEMBER_STATUS) => {
             <button class="btn btn-dense" @click="joinThisRoom(item)">
               加入房间
               <PlayIcon class="inline-block" width="18px" />
+            </button>
+          </div>
+          <div v-if="isMyRoom" class="flex mt-2 my-3 w-full justify-around items-center">
+            <button class="btn btn-danger btn-dense" @click="deleteRoom(item.roomId)">
+              删除房间
             </button>
           </div>
         </div>
