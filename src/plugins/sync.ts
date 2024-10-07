@@ -258,7 +258,7 @@ export const newSyncPlugin = (
     };
 
     const setAndNoPublishStatus = async (status: MovieStatus) => {
-      console.groupCollapsed("设置状态(不广播)");
+      console.groupCollapsed("设置状态(非广播)");
       console.log("seek:", status.seek);
       console.log("rate:", status.rate);
       console.log("playing:", status.playing);
