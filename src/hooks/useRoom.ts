@@ -59,7 +59,7 @@ export const useRoomApi = () => {
         return;
       }
 
-      return await _joinRoom(roomId, pwd, needPwdHandler);
+      return await _joinRoom(roomId, pwd, needPwdHandler, thisRoomInfo.value.needPassword);
     } else {
       router.replace({
         name: "login",
@@ -88,78 +88,21 @@ export const useRoomApi = () => {
     if (!roomId) {
       ElNotification({
         title: "错误",
-        message: "请填写表单完整",
+        message: "房间号不能为空",
         type: "error"
       });
       return;
     }
-    try {
-      await reqJoinedRoomApi({
-        params: {
-          roomId: roomId
-        },
-        headers: {
-          Authorization: token.value
-        }
-      });
-      if (joinedRoom.value!.joined) {
-        switch (joinedRoom.value!.status) {
-          case MEMBER_STATUS.Pending:
-            ElNotification({
-              title: "错误",
-              message: "等待管理员通过",
-              type: "warning"
-            });
-            break;
-          case MEMBER_STATUS.Banned:
-            ElNotification({
-              title: "错误",
-              message: "你已被管理员封禁",
-              type: "error"
-            });
-            break;
-          case MEMBER_STATUS.Active:
-            ElNotification({
-              title: "加入成功",
-              type: "success"
-            });
-            if (password) localStorage.setItem(`room-${roomId}-pwd`, password);
-            router.replace(`/cinema/${roomId}`);
-            break;
-          default:
-            ElNotification({
-              title: "错误",
-              message: "未知错误",
-              type: "error"
-            });
-            break;
-        }
-        return;
+    await reqJoinedRoomApi({
+      params: {
+        roomId: roomId
+      },
+      headers: {
+        Authorization: token.value
       }
-
-      if (mustPwd && !password) {
-        if (needPwdHandler) {
-          needPwdHandler();
-          return;
-        }
-        throw new Error("该房间需要密码，请输入密码");
-      }
-
-      await reqJoinRoomApi({
-        data: { roomId, password: password! },
-        headers: {
-          Authorization: token.value
-        }
-      });
-      if (!joinRoomInfo.value) {
-        ElNotification({
-          title: "错误",
-          message: "服务器并未返回数据",
-          type: "error"
-        });
-        return;
-      }
-      switch (joinRoomInfo.value.status) {
+    });
+    if (joinedRoom.value!.joined) {
+      switch (joinedRoom.value!.status) {
         case MEMBER_STATUS.Pending:
           ElNotification({
             title: "错误",
@@ -190,13 +133,61 @@ export const useRoomApi = () => {
           });
           break;
       }
-    } catch (err: any) {
-      console.error(err);
+      return;
+    }
+
+    if (mustPwd && !password) {
+      if (needPwdHandler) {
+        needPwdHandler();
+        return;
+      }
+      throw new Error("该房间需要密码，请输入密码");
+    }
+
+    await reqJoinRoomApi({
+      data: { roomId, password: password! },
+      headers: {
+        Authorization: token.value
+      }
+    });
+    if (!joinRoomInfo.value) {
       ElNotification({
         title: "错误",
-        message: err.response.data.error || err.message,
+        message: "服务器并未返回数据",
         type: "error"
       });
+      return;
+    }
+    switch (joinRoomInfo.value.status) {
+      case MEMBER_STATUS.Pending:
+        ElNotification({
+          title: "错误",
+          message: "等待管理员通过",
+          type: "warning"
+        });
+        break;
+      case MEMBER_STATUS.Banned:
+        ElNotification({
+          title: "错误",
+          message: "你已被管理员封禁",
+          type: "error"
+        });
+        break;
+      case MEMBER_STATUS.Active:
+        ElNotification({
+          title: "加入成功",
+          type: "success"
+        });
+        if (password) localStorage.setItem(`room-${roomId}-pwd`, password);
+        router.replace(`/cinema/${roomId}`);
+        break;
+      default:
+        ElNotification({
+          title: "错误",
+          message: "未知错误",
+          type: "error"
+        });
+        break;
     }
   };
 

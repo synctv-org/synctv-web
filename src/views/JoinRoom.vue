@@ -23,6 +23,7 @@ const props = defineProps<{
     roomId: string;
     password: string;
   };
+  disableInitReq?: boolean;
 }>();
 
 const roomIdCanEdit = !props.item?.roomId;
@@ -45,7 +46,7 @@ const init = () => {
     if (roomID) formData.value.roomId = roomID.value as string;
     if (pwd) formData.value.password = pwd.value as string;
   }
-  if (formData.value.roomId || formData.value.password) {
+  if (!props.disableInitReq && (formData.value.roomId || formData.value.password)) {
     handleJoinRoom();
   }
 };

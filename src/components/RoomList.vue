@@ -347,6 +347,6 @@ const deleteRoom = async (roomId: string) => {
         <span class="truncate">加入房间</span>
       </div>
     </template>
-    <JoinRoom :item="formData" ref="joinRoomC" />
+    <JoinRoom :item="formData" ref="joinRoomC" :disableInitReq="true" />
   </el-dialog>
 </template>
