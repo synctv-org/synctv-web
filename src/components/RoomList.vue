@@ -11,23 +11,20 @@ import {
   MEMBER_STATUS
 } from "@/types/Room";
 import JoinRoom from "@/views/JoinRoom.vue";
-import { indexStore } from "@/stores";
 import { userStore } from "@/stores/user";
 import { Search } from "@element-plus/icons-vue";
 import { useTimeAgo } from "@vueuse/core";
-import { useRouter } from "vue-router";
 import { useRoomApi } from "@/hooks/useRoom";
 import { getObjValue } from "@/utils";
 import { deleteRoomApi } from "@/services/apis/user";
 
-const router = useRouter();
 const props = defineProps<{
   isMyRoom: boolean;
   isHot: boolean;
   isJoinedRoom: boolean;
 }>();
 
-const { isLogin, info, token } = userStore();
+const { token } = userStore();
 const thisRoomList = ref<RoomList[] | JoinedRoomList[]>([]);
 const formData = ref<{
   roomId: string;
@@ -189,10 +186,11 @@ const deleteRoom = async (roomId: string) => {
   <div class="card mx-auto">
     <div class="card-title flex flex-wrap justify-between items-center">
       <div class="max-sm:mb-3"><slot name="title"></slot>（{{ thisRoomList.length }}）</div>
-      <div class="text-base -my-2" v-if="!isHot">
-        排序方式：<el-select
+      <div class="w-auto text-base -my-2" v-if="!isHot">
+        <span>排序方式：</span>
+        <el-select
           v-model="sort"
-          class="m-2"
+          class="m-2 w-[130px]"
           placeholder="排序方式"
           @change="getRoomList(false)"
         >
@@ -281,7 +279,7 @@ const deleteRoom = async (roomId: string) => {
           <div class="overflow-hidden text-ellipsis m-auto p-2 w-full">
             <b class="block text-base font-semibold truncate"> {{ item["roomName"] }}</b>
           </div>
-          <div class="overflow-hidden text-ellipsis text-sm m-auto">
+          <div class="overflow-hidden text-ellipsis text-sm m-auto flex flex-col gap-1">
             <div>
               在线人数：<span :class="item.peopleNum > 0 ? 'text-green-500' : 'text-red-500'">{{
                 item["peopleNum"]
@@ -291,6 +289,9 @@ const deleteRoom = async (roomId: string) => {
               状态：<span :class="getStatusColor(item.status)">{{
                 getObjValue(roomStatus, item.status)
               }}</span>
+              <el-tag class="ml-2" disabled :type="item.needPassword ? 'danger' : 'success'">
+                {{ item.needPassword ? "有密码" : "无密码" }}
+              </el-tag>
             </div>
             <div v-if="!isMyRoom" class="truncate">创建者：{{ item.creator }}</div>
             <div>创建时间：{{ useTimeAgo(new Date(item.createdAt)).value }}</div>
@@ -304,18 +305,18 @@ const deleteRoom = async (roomId: string) => {
               我的身份：{{ memberRole[(item as JoinedRoomList).memberRole] }}
             </div>
           </div>
-          <div class="flex mt-2 my-3 w-full justify-around items-center">
-            <el-tag disabled :type="item.needPassword ? 'danger' : 'success'">
-              {{ item.needPassword ? "有密码" : "无密码" }}
-            </el-tag>
-            <button class="btn btn-dense" @click="joinThisRoom(item)">
+          <div class="flex my-3 w-full justify-around items-center">
+            <button
+              v-if="isMyRoom"
+              class="btn btn-error btn-dense flex items-center"
+              @click="deleteRoom(item.roomId)"
+            >
+              <TrashIcon class="inline-block" width="18px" />
+              删除房间
+            </button>
+            <button class="btn btn-dense flex items-center" @click="joinThisRoom(item)">
               加入房间
               <PlayIcon class="inline-block" width="18px" />
-            </button>
-          </div>
-          <div v-if="isMyRoom" class="flex mt-2 my-3 w-full justify-around items-center">
-            <button class="btn btn-danger btn-dense" @click="deleteRoom(item.roomId)">
-              删除房间
             </button>
           </div>
         </div>
