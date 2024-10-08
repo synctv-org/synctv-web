@@ -8,11 +8,13 @@ import { userStore } from "@/stores/user";
 import { useRouter } from "vue-router";
 import { checkRoomPasswordApi, roomInfoApi } from "@/services/apis/room";
 import { ElMessage } from "element-plus";
+import type { RoomInfo } from "@/types/Room";
 
 const props = defineProps<{
   roomId: string;
   token: string;
   status: WebSocketStatus;
+  info: RoomInfo;
 }>();
 
 const roomPwd = useLocalStorage(`room-${props.roomId}-pwd`, "");
@@ -28,23 +30,11 @@ const roomUsersDrawer = ref<InstanceType<typeof RoomUsers>>();
 const showShareOptions = ref(false);
 const inputPassword = ref(roomPwd.value);
 const isPasswordCorrect = ref(true);
-const isPasswordRequired = ref(false);
 
 const { execute: checkRoomPassword } = checkRoomPasswordApi();
-const { execute: roomInfo } = roomInfoApi();
-
-onMounted(async () => {
-  const rinfo = await roomInfo({
-    headers: {
-      Authorization: props.token,
-      "X-Room-Id": props.roomId
-    }
-  });
-  isPasswordRequired.value = rinfo.value?.needPassword ?? false;
-});
 
 const shareRoom = async () => {
-  if (!isPasswordRequired.value) {
+  if (!props.info.needPassword) {
     await shareWithoutPassword();
   } else {
     showShareOptions.value = true;
@@ -133,7 +123,7 @@ const goToLogin = () => router.push("/login");
       <div class="flex flex-col gap-4">
         <button class="btn btn-primary" @click="shareWithoutPassword">不携带密码分享</button>
         <button class="btn btn-success" @click="shareWithPassword">携带密码分享</button>
-        <div v-if="isPasswordRequired && (!isPasswordCorrect || !roomPwd)" class="mt-2">
+        <div v-if="props.info.needPassword && (!isPasswordCorrect || !roomPwd)" class="mt-2">
           <input
             v-model="inputPassword"
             type="password"

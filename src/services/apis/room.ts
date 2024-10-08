@@ -1,5 +1,12 @@
 import { useDefineApi } from "@/stores/useDefineApi";
-import type { MEMBER_ROLE, MEMBER_STATUS, MyInfo, RoomInfo, RoomList } from "@/types/Room";
+import type {
+  MEMBER_ROLE,
+  MEMBER_STATUS,
+  MyInfo,
+  RoomInfo,
+  RoomList,
+  RoomStatus
+} from "@/types/Room";
 import type { ROLE } from "@/types/User";
 
 // 房间列表
@@ -54,6 +61,7 @@ export const checkRoomApi = useDefineApi<
   },
   {
     name: string;
+    status: RoomStatus;
     creator: string;
     needPassword: boolean;
     peopleNum: number;

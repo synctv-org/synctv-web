@@ -8,7 +8,7 @@ import { userRoomListApi } from "@/services/apis/admin";
 import { joinRoomApi, checkRoomApi, roomListApi, hotRoom, myInfoApi } from "@/services/apis/room";
 import { strLengthLimit } from "@/utils";
 import { storeToRefs } from "pinia";
-import { RoomMemberPermission, RoomAdminPermission, MEMBER_STATUS } from "@/types/Room";
+import { RoomMemberPermission, RoomAdminPermission, MEMBER_STATUS, RoomStatus } from "@/types/Room";
 
 // 获取用户信息
 const { info, token, isLogin } = userStore();
@@ -16,13 +16,39 @@ const { myInfo } = storeToRefs(roomStore());
 
 export const useRoomApi = () => {
   const { state: thisRoomInfo, execute: reqCheckRoomApi } = checkRoomApi();
-  const joinRoom = async (roomId: string, pwd: string) => {
+  const joinRoom = async (roomId: string, pwd?: string, needPwdHandler?: () => void) => {
     await reqCheckRoomApi({
       params: {
         roomId: roomId
       }
     });
     if (!thisRoomInfo.value) return;
+
+    switch (thisRoomInfo.value.status) {
+      case RoomStatus.Pending:
+        ElNotification({
+          title: "错误",
+          message: "房间正在审核中",
+          type: "error"
+        });
+        return;
+      case RoomStatus.Banned:
+        ElNotification({
+          title: "错误",
+          message: "房间已被封禁",
+          type: "error"
+        });
+        return;
+      case RoomStatus.Active:
+        break;
+      default:
+        ElNotification({
+          title: "错误",
+          message: "未知错误",
+          type: "error"
+        });
+        return;
+    }
 
     if (thisRoomInfo.value.enabledGuest) {
       router.replace(`/cinema/${roomId}`);
@@ -33,11 +59,7 @@ export const useRoomApi = () => {
         return;
       }
 
-      if (thisRoomInfo.value.needPassword && !pwd) {
-        throw new Error("该房间需要密码，请输入密码");
-      }
-
-      return await _joinRoom({ roomId, password: pwd });
+      return await _joinRoom(roomId, pwd, needPwdHandler);
     } else {
       router.replace({
         name: "login",
@@ -45,15 +67,25 @@ export const useRoomApi = () => {
           redirect: router.currentRoute.value.fullPath
         }
       });
-      throw new Error("请先登录");
+      ElNotification({
+        title: "错误",
+        message: "请先登录",
+        type: "error"
+      });
+      return;
     }
   };
 
   // 加入房间
   const { state: joinRoomInfo, execute: reqJoinRoomApi } = joinRoomApi();
   const { state: joinedRoom, execute: reqJoinedRoomApi } = joinedRoomApi();
-  const _joinRoom = async (formData: { roomId: string; password: string }) => {
-    if (!formData.roomId) {
+  const _joinRoom = async (
+    roomId: string,
+    password?: string,
+    needPwdHandler?: () => void,
+    mustPwd?: boolean
+  ) => {
+    if (!roomId) {
       ElNotification({
         title: "错误",
         message: "请填写表单完整",
@@ -61,13 +93,10 @@ export const useRoomApi = () => {
       });
       return;
     }
-    for (const key in formData) {
-      strLengthLimit(key, 32);
-    }
     try {
       await reqJoinedRoomApi({
         params: {
-          roomId: formData.roomId
+          roomId: roomId
         },
         headers: {
           Authorization: token.value
@@ -94,9 +123,8 @@ export const useRoomApi = () => {
               title: "加入成功",
               type: "success"
             });
-            if (formData.password)
-              localStorage.setItem(`room-${formData.roomId}-pwd`, formData.password);
-            router.replace(`/cinema/${formData.roomId}`);
+            if (password) localStorage.setItem(`room-${roomId}-pwd`, password);
+            router.replace(`/cinema/${roomId}`);
             break;
           default:
             ElNotification({
@@ -108,8 +136,17 @@ export const useRoomApi = () => {
         }
         return;
       }
+
+      if (mustPwd && !password) {
+        if (needPwdHandler) {
+          needPwdHandler();
+          return;
+        }
+        throw new Error("该房间需要密码，请输入密码");
+      }
+
       await reqJoinRoomApi({
-        data: formData,
+        data: { roomId, password: password! },
         headers: {
           Authorization: token.value
         }
@@ -142,9 +179,8 @@ export const useRoomApi = () => {
             title: "加入成功",
             type: "success"
           });
-          if (formData.password)
-            localStorage.setItem(`room-${formData.roomId}-pwd`, formData.password);
-          router.replace(`/cinema/${formData.roomId}`);
+          if (password) localStorage.setItem(`room-${roomId}-pwd`, password);
+          router.replace(`/cinema/${roomId}`);
           break;
         default:
           ElNotification({

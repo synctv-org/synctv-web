@@ -84,7 +84,9 @@ const joinThisRoom = async (item: RoomList) => {
   formData.value.roomId = item.roomId;
 
   try {
-    await joinRoom(formData.value.roomId, formData.value.password);
+    await joinRoom(formData.value.roomId, formData.value.password, () => {
+      openJoinRoomDialog();
+    });
   } catch (error) {
     if (JoinRoomDialog.value) {
       ElNotification({

@@ -57,7 +57,7 @@ const handleJoinRoom = async () => {
     console.error(error);
     ElNotification({
       title: "错误",
-      message: error.response.data.error,
+      message: error.message,
       type: "error"
     });
   }

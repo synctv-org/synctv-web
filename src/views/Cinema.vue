@@ -13,7 +13,6 @@ import { useWebSocket, useResizeObserver, useLocalStorage } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
 import { roomStore } from "@/stores/room";
 import { ElNotification, ElMessage } from "element-plus";
-import router from "@/router";
 import { useMovieApi } from "@/hooks/useMovie";
 import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
@@ -32,6 +31,7 @@ import artplayerPluginAudioTrack from "@/plugins/audio";
 import { artplayPluginSource } from "@/plugins/source";
 import { currentMovieApi } from "@/services/apis/movie";
 import { userStore } from "@/stores/user";
+import { roomInfoApi } from "@/services/apis/room";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
@@ -47,6 +47,7 @@ onBeforeUnmount(() => {
 
 const { getMovies, getCurrentMovie } = useMovieApi(token.value, roomID.value);
 const { getMyInfo, myInfo } = useRoomApi();
+const { state: roomInfo, execute: reqRoomInfoApi } = roomInfoApi();
 const { hasMemberPermission } = useRoomPermission();
 
 let player: Artplayer | undefined;
@@ -416,6 +417,21 @@ const p = async () => {
 };
 
 onMounted(async () => {
+  // 获取房间信息
+  try {
+    await reqRoomInfoApi({
+      headers: { Authorization: token.value, "X-Room-Id": roomID.value }
+    });
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "错误",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+    return;
+  }
+
   // 获取用户信息
   try {
     if (!myInfo.value) await getMyInfo(roomID.value);
@@ -522,7 +538,7 @@ onMounted(async () => {
   <el-row :gutter="20">
     <!-- 房间信息 -->
     <el-col :lg="6" :md="8" :sm="9" :xs="24" class="mb-5 max-sm:mb-2">
-      <RoomInfo :status="status" :token="token" :roomId="roomID" />
+      <RoomInfo v-if="roomInfo" :status="status" :token="token" :roomId="roomID" :info="roomInfo" />
     </el-col>
 
     <!-- 影片列表 -->
