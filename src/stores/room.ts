@@ -5,7 +5,7 @@ import { useRouteParams } from "@vueuse/router";
 import { useLocalStorage } from "@vueuse/core";
 import type { CurrentMovie, MovieInfo } from "@/types/Movie";
 import { userStore } from "@/stores/user";
-import type { MovieStatus } from "@/proto/message";
+import type { Status } from "@/proto/message";
 import type { MyInfo } from "@/types/Room";
 import type { MoviePath } from "@/services/apis/movie";
 const { token: userToken } = userStore();
@@ -43,10 +43,10 @@ export const roomStore = defineStore("roomStore", () => {
     creator: "",
     subPath: ""
   });
-  const currentStatus = ref<MovieStatus>({
-    playing: false,
-    seek: 0,
-    rate: 1
+  const currentStatus = ref<Status>({
+    isPlaying: false,
+    currentTime: 0,
+    playbackRate: 1
   });
   const currentExpireId = ref<number>(0);
 

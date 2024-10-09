@@ -17,7 +17,7 @@ import { useMovieApi } from "@/hooks/useMovie";
 import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUint8Array, formatTime } from "@/utils";
-import { ElementMessage, ElementMessageType, MovieStatus } from "@/proto/message";
+import { MessageType, Message, Status } from "@/proto/message";
 import type { options } from "@/components/Player.vue";
 import RoomInfo from "@/components/cinema/RoomInfo.vue";
 import MovieList from "@/components/cinema/MovieList.vue";
@@ -80,14 +80,14 @@ const { status, data, send, open } = useWebSocket(
   }
 );
 
-const sendElement = (msg: ElementMessage) => {
-  if (!msg.time) {
-    msg.time = Date.now();
+const sendElement = (msg: Message) => {
+  if (!msg.timestamp) {
+    msg.timestamp = Date.now();
   }
   console.groupCollapsed("Ws Send");
   console.log(msg);
   console.groupEnd();
-  return send(ElementMessage.encode(msg).finish() as any, false);
+  return send(Message.encode(msg).finish() as any, false);
 };
 
 // 消息列表
@@ -104,9 +104,9 @@ const sendChatText = (msg: string, onSuccess?: () => any, onFailed?: () => any) 
 
   strLengthLimit(msg, 4096);
   sendElement(
-    ElementMessage.create({
-      type: ElementMessageType.CHAT_MESSAGE,
-      chatReq: msg
+    Message.create({
+      type: MessageType.CHAT,
+      chatContent: msg
     })
   );
   if (onSuccess) onSuccess();
@@ -293,76 +293,63 @@ const listenPlayerType = (player: Artplayer) => {
   });
 };
 
-const setPlayerStatus = (status: MovieStatus) => {
+const setPlayerStatus = (status: Status) => {
   if (!player) return;
   player.plugins["syncPlugin"].setAndNoPublishStatus(status);
 };
 
-const handleElementMessage = (msg: ElementMessage) => {
+const handleElementMessage = (msg: Message) => {
   console.groupCollapsed("Ws Message");
   console.info(msg);
   console.groupEnd();
   switch (msg.type) {
-    case ElementMessageType.ERROR: {
-      console.error(msg.error);
+    case MessageType.ERROR: {
+      console.error(msg.errorMessage);
       ElNotification({
         title: "错误",
-        message: msg.error,
+        message: msg.errorMessage,
         type: "error"
       });
       break;
     }
 
     // 聊天消息
-    case ElementMessageType.CHAT_MESSAGE: {
-      if (!msg.chatResp) {
+    case MessageType.CHAT: {
+      if (!msg.chatContent) {
         return;
       }
       const currentTime = formatTime(new Date()); // 格式化时间
-      const senderName = msg.chatResp.sender?.username;
-      const messageContent = `${senderName}: ${msg.chatResp.message}`;
+      const senderName = msg.sender?.username;
+      const messageContent = `${senderName}: ${msg.chatContent}`;
       const messageWithTime = `${messageContent} <small>[${currentTime}]</small>`;
       // 添加消息到消息列表
       sendMsg(messageWithTime);
       sendDanmuku(messageContent);
       break;
     }
-    case ElementMessageType.PLAY:
-    case ElementMessageType.PAUSE:
-    case ElementMessageType.CHANGE_SEEK:
-    case ElementMessageType.CHANGE_RATE:
-    case ElementMessageType.TOO_FAST:
-    case ElementMessageType.TOO_SLOW:
-    case ElementMessageType.SYNC_MOVIE_STATUS: {
+    case MessageType.STATUS:
+    case MessageType.CHECK_STATUS:
+    case MessageType.SYNC: {
+      console.log(msg.type);
       switch (msg.type) {
-        case ElementMessageType.TOO_FAST:
+        case MessageType.CHECK_STATUS:
           ElNotification({
-            title: "播放速度过快",
+            title: "状态不同步，同步中...",
             type: "warning"
           });
           break;
-        case ElementMessageType.TOO_SLOW:
+        case MessageType.SYNC:
           ElNotification({
-            title: "播放速度落后",
-            type: "warning"
-          });
-          break;
-        case ElementMessageType.SYNC_MOVIE_STATUS:
-          ElNotification({
-            title: "播放状态同步中",
+            title: "同步成功",
             type: "success"
           });
           break;
       }
-      setPlayerStatus(msg.movieStatusChanged!.status!);
+      setPlayerStatus(msg.playbackStatus!);
       break;
     }
 
-    case ElementMessageType.CHECK_STATUS: {
-      break;
-    }
-
-    case ElementMessageType.CURRENT_EXPIRED: {
+    case MessageType.EXPIRED: {
       ElNotification({
         title: "链接过期,刷新中",
         type: "info"
@@ -372,19 +359,35 @@ const handleElementMessage = (msg: ElementMessage) => {
     }
 
     // 设置正在播放的影片
-    case ElementMessageType.CURRENT_CHANGED: {
+    case MessageType.CURRENT: {
       getCurrentMovie();
       break;
     }
 
     // 播放列表更新
-    case ElementMessageType.MOVIES_CHANGED: {
-      getMovies();
+    case MessageType.MOVIES: {
+      // 如果有权限则获取
+      if (can(RoomMemberPermission.PermissionGetMovieList)) getMovies();
       break;
     }
 
-    case ElementMessageType.PEOPLE_CHANGED: {
-      room.peopleNum = msg.peopleChanged!;
+    case MessageType.VIEWER_COUNT: {
+      room.peopleNum = msg.viewerCount!;
+      break;
+    }
+
+    case MessageType.MY_STATUS: {
+      try {
+        getMyInfo(roomID.value);
+      } catch (err: any) {
+        console.error(err);
+        ElNotification({
+          title: "错误",
+          message: err.response.data.error || err.message,
+          type: "error"
+        });
+        return;
+      }
       break;
     }
   }
@@ -461,7 +464,7 @@ onMounted(async () => {
       async () => {
         try {
           const arr = await blobToUint8Array(data.value);
-          handleElementMessage(ElementMessage.decode(arr));
+          handleElementMessage(Message.decode(arr));
         } catch (err: any) {
           console.error(err);
           ElMessage.error(err.message);
