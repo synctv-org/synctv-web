@@ -287,10 +287,12 @@ const deleteRoom = async (roomId: string) => {
                 item["peopleNum"]
               }}</span>
             </div>
-            <div v-if="isMyRoom || isJoinedRoom">
-              状态：<span :class="getStatusColor(item.status)">{{
-                getObjValue(roomStatus, item.status)
-              }}</span>
+            <div>
+              <span v-if="isMyRoom || isJoinedRoom">
+                状态：<span :class="getStatusColor(item.status)">{{
+                  getObjValue(roomStatus, item.status)
+                }}</span>
+              </span>
               <el-tag class="ml-2" disabled :type="item.needPassword ? 'danger' : 'success'">
                 {{ item.needPassword ? "有密码" : "无密码" }}
               </el-tag>
@@ -314,10 +316,10 @@ const deleteRoom = async (roomId: string) => {
               @click="deleteRoom(item.roomId)"
             >
               <TrashIcon class="inline-block" width="18px" />
-              删除房间
+              删除
             </button>
             <button class="btn btn-dense flex items-center" @click="joinThisRoom(item)">
-              加入房间
+              加入
               <PlayIcon class="inline-block" width="18px" />
             </button>
           </div>

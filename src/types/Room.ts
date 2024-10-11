@@ -8,7 +8,7 @@ export interface RoomList {
   creator: string;
   createdAt: number;
   creatorId: string;
-  status: number;
+  status: RoomStatus;
 }
 
 export interface JoinedRoomList extends RoomList {
