@@ -6,9 +6,9 @@ import RoomManage from "@/components/cinema/RoomManage.vue";
 import RoomUsers from "@/components/cinema/RoomUsers.vue";
 import { userStore } from "@/stores/user";
 import { useRouter } from "vue-router";
-import { checkRoomPasswordApi, roomInfoApi } from "@/services/apis/room";
-import { ElMessage } from "element-plus";
+import { checkRoomPasswordApi } from "@/services/apis/room";
 import type { RoomInfo } from "@/types/Room";
+import { toCopy } from "@/utils";
 
 const props = defineProps<{
   roomId: string;
@@ -42,8 +42,7 @@ const shareRoom = async () => {
 };
 
 const shareWithoutPassword = async () => {
-  await navigator.clipboard.writeText(shareURL.value);
-  ElMessage.success("链接已复制到剪贴板");
+  await toCopy(shareURL.value, "链接已复制到剪贴板");
   showShareOptions.value = false;
 };
 
@@ -57,11 +56,10 @@ const shareWithPassword = async () => {
   });
 
   if (isCorrect.value?.valid) {
-    await navigator.clipboard.writeText(shareURLWithPwd.value);
-    ElMessage.success("带密码的链接已复制到剪贴板");
-    showShareOptions.value = false;
     isPasswordCorrect.value = true;
     roomPwd.value = inputPassword.value;
+    await toCopy(shareURLWithPwd.value, "带密码的链接已复制到剪贴板");
+    showShareOptions.value = false;
   } else {
     isPasswordCorrect.value = false;
     inputPassword.value = "";
@@ -116,7 +114,7 @@ const goToLogin = () => router.push("/login");
   <!-- 分享选项对话框 -->
   <div
     v-if="showShareOptions"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]"
   >
     <div class="bg-white p-4 rounded-lg">
       <h3 class="text-lg font-bold mb-4">选择分享方式</h3>

@@ -1,5 +1,6 @@
 import { RoomAdminPermission, RoomMemberPermission } from "@/types/Room";
-import { ElMessage } from "element-plus";
+import { useClipboard } from "@vueuse/core";
+import { ElMessage, ElMessageBox } from "element-plus";
 
 export const debounces = (delay: number): Function => {
   let timerId: ReturnType<typeof setTimeout> | null = null;
@@ -81,4 +82,25 @@ export const destroyOldCustomPlayLib = (art: any) => {
 export const getFileExtension = (url: string) => {
   const extension = url.split(".").pop();
   return extension;
+};
+
+const { copy, copied, isSupported } = useClipboard();
+export const toCopy = async (sth: any, sucText?: string) => {
+  try {
+    if (!isSupported.value) {
+      const input = document.createElement("input");
+      input.setAttribute("value", sth);
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+      return ElMessage.success(sucText ?? "复制成功");
+    } else {
+      await copy(sth);
+      if (copied.value) return ElMessage.success(sucText ?? "复制成功");
+    }
+  } catch (err: any) {
+    console.error(err);
+    ElMessageBox.alert(sth, "复制失败，请手动复制以下内容");
+  }
 };
