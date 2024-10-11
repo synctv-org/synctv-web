@@ -305,7 +305,7 @@ export const Message: MessageFns<Message> = {
       writer.uint32(8).int32(message.type);
     }
     if (message.timestamp !== 0) {
-      writer.uint32(16).int64(message.timestamp);
+      writer.uint32(17).sfixed64(message.timestamp);
     }
     if (message.sender !== undefined) {
       Sender.encode(message.sender, writer.uint32(26).fork()).join();
@@ -320,7 +320,7 @@ export const Message: MessageFns<Message> = {
       Status.encode(message.playbackStatus, writer.uint32(50).fork()).join();
     }
     if (message.expirationId !== undefined) {
-      writer.uint32(56).uint64(message.expirationId);
+      writer.uint32(57).fixed64(message.expirationId);
     }
     if (message.viewerCount !== undefined) {
       writer.uint32(64).int64(message.viewerCount);
@@ -344,11 +344,11 @@ export const Message: MessageFns<Message> = {
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 17) {
             break;
           }
 
-          message.timestamp = longToNumber(reader.int64());
+          message.timestamp = longToNumber(reader.sfixed64());
           continue;
         }
         case 3: {
@@ -384,11 +384,11 @@ export const Message: MessageFns<Message> = {
           continue;
         }
         case 7: {
-          if (tag !== 56) {
+          if (tag !== 57) {
             break;
           }
 
-          message.expirationId = longToNumber(reader.uint64());
+          message.expirationId = longToNumber(reader.fixed64());
           continue;
         }
         case 8: {
