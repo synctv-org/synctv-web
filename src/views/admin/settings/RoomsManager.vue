@@ -239,10 +239,10 @@ onMounted(async () => {
             {{ scope.row.creator }}
           </template>
         </el-table-column>
-        <el-table-column prop="peopleNum" label="在线人数" min-width="80" max-width="120">
+        <el-table-column prop="viewerCount" label="在线人数" min-width="80" max-width="120">
           <template #default="scope">
-            <el-tag disabled :type="scope.row.peopleNum > 0 ? 'success' : 'danger'">
-              {{ scope.row.peopleNum }}
+            <el-tag disabled :type="scope.row.viewerCount > 0 ? 'success' : 'danger'">
+              {{ scope.row.viewerCount }}
             </el-tag>
           </template>
         </el-table-column>

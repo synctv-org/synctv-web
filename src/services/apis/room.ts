@@ -53,6 +53,16 @@ export const createRoomApi = useDefineApi<
   method: "POST"
 });
 
+export interface CheckRoomResponse {
+  name: string;
+  status: RoomStatus;
+  creator: string;
+  creatorId: string;
+  needPassword: boolean;
+  viewerCount: number;
+  enabledGuest: boolean;
+}
+
 // 检查房间状态
 export const checkRoomApi = useDefineApi<
   {
@@ -60,14 +70,7 @@ export const checkRoomApi = useDefineApi<
       roomId: string;
     };
   },
-  {
-    name: string;
-    status: RoomStatus;
-    creator: string;
-    needPassword: boolean;
-    peopleNum: number;
-    enabledGuest: boolean;
-  }
+  CheckRoomResponse
 >({
   url: "/api/room/check"
 });

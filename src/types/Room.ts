@@ -3,7 +3,7 @@
 export interface RoomList {
   roomId: string;
   roomName: string;
-  peopleNum: number;
+  viewerCount: number;
   needPassword: boolean;
   creator: string;
   createdAt: number;
@@ -63,7 +63,7 @@ export interface MyInfo {
 export interface RoomInfo {
   id: string;
   roomName: string;
-  peopleNum: number;
+  viewerCount: number;
   needPassword: boolean;
   creator: string;
   createdAt: number;

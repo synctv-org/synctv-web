@@ -82,8 +82,8 @@ onUnmounted(() => {
         </div>
         <div class="overflow-hidden text-ellipsis text-sm p-2">
           <div>
-            在线人数：<span :class="item.peopleNum > 0 ? 'text-green-500' : 'text-red-500'">{{
-              item["peopleNum"]
+            在线人数：<span :class="item.viewerCount > 0 ? 'text-green-500' : 'text-red-500'">{{
+              item["viewerCount"]
             }}</span>
           </div>
           <div class="truncate">创建者：{{ item.creator }}</div>

@@ -1,6 +1,7 @@
 import { useDefineApi } from "@/stores/useDefineApi";
 import type { JoinedRoomList, MEMBER_STATUS, RoomList } from "@/types/Room";
 import type { BaseUserInfo } from "@/types/User";
+import type { CheckRoomResponse } from "./room";
 
 // 获取个人信息
 export const userInfo = useDefineApi<
@@ -209,9 +210,10 @@ export const joinedRoomApi = useDefineApi<
   {
     joined: boolean;
     status: MEMBER_STATUS;
+    room: CheckRoomResponse;
   }
 >({
-  url: "/api/user/room/joined",
+  url: "/api/room/joined",
   method: "GET"
 });
 

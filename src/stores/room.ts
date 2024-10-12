@@ -54,7 +54,7 @@ export const roomStore = defineStore("roomStore", () => {
   const play = ref(true);
 
   // 在线人数
-  const peopleNum = ref(1);
+  const viewerCount = ref(1);
 
   const folder = ref<MoviePath[]>();
 
@@ -75,7 +75,7 @@ export const roomStore = defineStore("roomStore", () => {
     currentStatus,
     currentExpireId,
     play,
-    peopleNum,
+    viewerCount,
     login,
     myInfo,
     roomID,

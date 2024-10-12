@@ -291,8 +291,8 @@ const exitRoom = async (roomId: string) => {
             <b class="block text-base font-semibold truncate"> {{ item["roomName"] }}</b>
           </div>
           <div class="overflow-hidden text-ellipsis p-2 text-sm w-full">
-            在线人数：<span :class="item.peopleNum > 0 ? 'text-green-500' : 'text-red-500'">{{
-              item["peopleNum"]
+            在线人数：<span :class="item.viewerCount > 0 ? 'text-green-500' : 'text-red-500'">{{
+              item["viewerCount"]
             }}</span>
 
             <div>创建者：{{ item.creator }}</div>
@@ -319,8 +319,8 @@ const exitRoom = async (roomId: string) => {
           </div>
           <div class="overflow-hidden text-ellipsis text-sm m-auto flex flex-col gap-1">
             <div>
-              在线人数：<span :class="item.peopleNum > 0 ? 'text-green-500' : 'text-red-500'">{{
-                item["peopleNum"]
+              在线人数：<span :class="item.viewerCount > 0 ? 'text-green-500' : 'text-red-500'">{{
+                item["viewerCount"]
               }}</span>
             </div>
             <div>

@@ -372,7 +372,7 @@ const handleElementMessage = (msg: Message) => {
     }
 
     case MessageType.VIEWER_COUNT: {
-      room.peopleNum = msg.viewerCount!;
+      room.viewerCount = msg.viewerCount!;
       break;
     }
 
@@ -487,11 +487,11 @@ onMounted(async () => {
         >
           <el-tag v-if="playType">{{ playType }}</el-tag>
           {{ room.currentMovie.base!.name }}
-          <small class="ml-2">👁‍🗨 {{ room.peopleNum }} </small>
+          <small class="ml-2">👁‍🗨 {{ room.viewerCount }} </small>
         </div>
         <div class="card-title flex flex-wrap justify-between max-sm:text-sm" v-else>
           当前没有影片播放，快去添加几部吧~<small class="font-normal"
-            >👁‍🗨 {{ room.peopleNum }}
+            >👁‍🗨 {{ room.viewerCount }}
           </small>
         </div>
         <div class="card-body max-sm:p-0 pb-4" ref="playArea" v-if="playerOption.url">
