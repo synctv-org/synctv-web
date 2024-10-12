@@ -55,27 +55,31 @@ const menuLinks = computed(() => {
   }
 
   if (isLogin.value) {
-    const loginLinks = route.path.startsWith("/cinema")
-      ? [
-          {
-            name: "影厅",
-            to: "/cinema/" + route.params.roomId
-          }
-        ]
-      : [
-          {
-            name: "加入房间",
-            to: "/joinRoom"
-          },
-          {
-            name: "创建房间",
-            to: "/createRoom"
-          },
-          {
-            name: "个人中心",
-            to: "/user/me"
-          }
-        ];
+    const loginLinks = [];
+
+    if (route.path.startsWith("/cinema")) {
+      loginLinks.unshift({
+        name: "影厅",
+        to: "/cinema/" + route.params.roomId
+      });
+    } else {
+      loginLinks.unshift(
+        {
+          name: "加入房间",
+          to: "/joinRoom"
+        },
+        {
+          name: "创建房间",
+          to: "/createRoom"
+        }
+      );
+    }
+
+    loginLinks.push({
+      name: "个人中心",
+      to: "/user/me"
+    });
+
     if (info.value?.role! >= ROLE.Admin) {
       loginLinks.push({
         name: "管理后台",
