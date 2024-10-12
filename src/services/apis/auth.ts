@@ -69,6 +69,11 @@ export const loginWithOAuth2 = useDefineApi<
   method: "POST"
 });
 
+export enum OAuth2CallbackType {
+  AUTH = "auth",
+  BIND = "bind"
+}
+
 // oauth2 callback
 export const oAuth2Callback = useDefineApi<
   {
@@ -79,6 +84,7 @@ export const oAuth2Callback = useDefineApi<
     url: string;
   },
   {
+    type: OAuth2CallbackType;
     token: string;
     redirect: string;
     message: string;
