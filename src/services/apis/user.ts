@@ -229,3 +229,19 @@ export const deleteRoomApi = useDefineApi<
   url: "/api/user/room/delete",
   method: "POST"
 });
+
+// 退出房间
+export const exitRoomApi = useDefineApi<
+  {
+    data: {
+      id: string;
+    };
+    headers: {
+      Authorization: string;
+    };
+  },
+  {}
+>({
+  url: "/api/user/room/exit",
+  method: "POST"
+});

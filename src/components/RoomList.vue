@@ -16,7 +16,7 @@ import { Search } from "@element-plus/icons-vue";
 import { useTimeAgo } from "@vueuse/core";
 import { useRoomApi } from "@/hooks/useRoom";
 import { getObjValue } from "@/utils";
-import { deleteRoomApi } from "@/services/apis/user";
+import { deleteRoomApi, exitRoomApi } from "@/services/apis/user";
 
 const props = defineProps<{
   isMyRoom: boolean;
@@ -182,6 +182,42 @@ const deleteRoom = async (roomId: string) => {
     }
   }
 };
+
+const exitRoom = async (roomId: string) => {
+  try {
+    await ElMessageBox.confirm("确定要退出这个房间吗？", "警告", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    });
+
+    await exitRoomApi().execute({
+      headers: {
+        Authorization: token.value
+      },
+      data: {
+        id: roomId
+      }
+    });
+
+    ElNotification({
+      title: "成功",
+      message: "已退出房间",
+      type: "success"
+    });
+
+    getRoomList(true);
+  } catch (err: any) {
+    if (err !== "cancel") {
+      console.error(err);
+      ElNotification({
+        title: "退出房间失败",
+        message: err.response?.data.error || err.message,
+        type: "error"
+      });
+    }
+  }
+};
 </script>
 
 <template>
@@ -317,6 +353,14 @@ const deleteRoom = async (roomId: string) => {
             >
               <TrashIcon class="inline-block" width="18px" />
               删除
+            </button>
+            <button
+              v-if="isJoinedRoom"
+              class="btn btn-error btn-dense flex items-center"
+              @click="exitRoom(item.roomId)"
+            >
+              <TrashIcon class="inline-block" width="18px" />
+              退出
             </button>
             <button class="btn btn-dense flex items-center" @click="joinThisRoom(item)">
               加入
