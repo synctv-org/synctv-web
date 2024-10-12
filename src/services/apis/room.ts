@@ -46,6 +46,7 @@ export const createRoomApi = useDefineApi<
   // response 服务器返回的 data: {}里面的内容
   {
     roomId: string;
+    status: RoomStatus;
   }
 >({
   url: "/api/room/create",

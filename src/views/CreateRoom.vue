@@ -5,6 +5,7 @@ import router from "@/router/index";
 import { createRoomApi } from "@/services/apis/room";
 import { strLengthLimit } from "@/utils";
 import { userStore } from "@/stores/user";
+import { RoomStatus } from "@/types/Room";
 
 const { state: createRoomInfo, execute: reqCreateRoomApi } = createRoomApi();
 
@@ -40,17 +41,41 @@ const operateRoom = async () => {
     if (!createRoomInfo.value)
       return ElNotification({
         title: "错误",
-        message: "服务器并未返回token",
+        message: "服务器并未返回房间信息",
         type: "error"
       });
-    if (formData.value.password)
-      localStorage.setItem(`room-${createRoomInfo.value.roomId}-pwd`, formData.value.password);
-    ElNotification({
-      title: "创建成功",
-      type: "success"
-    });
 
-    router.replace(`/cinema/${createRoomInfo.value.roomId}`);
+    switch (createRoomInfo.value.status) {
+      case RoomStatus.Active:
+        if (formData.value.password)
+          localStorage.setItem(`room-${createRoomInfo.value.roomId}-pwd`, formData.value.password);
+        ElNotification({
+          title: "创建成功",
+          type: "success"
+        });
+        router.replace(`/cinema/${createRoomInfo.value.roomId}`);
+        break;
+      case RoomStatus.Pending:
+        ElNotification({
+          title: "创建成功",
+          message: "房间正在审核中，请等待管理员审核",
+          type: "warning"
+        });
+        break;
+      case RoomStatus.Banned:
+        ElNotification({
+          title: "创建失败",
+          message: "房间被封禁",
+          type: "error"
+        });
+        break;
+      default:
+        ElNotification({
+          title: "创建失败",
+          message: "未知错误",
+          type: "error"
+        });
+    }
   } catch (err: any) {
     console.error(err);
     ElNotification({
