@@ -1,32 +1,33 @@
 <script lang="ts" setup>
 import { computed, ref } from "vue";
-import { ElNotification } from "element-plus";
+import { ElNotification, ElMessageBox } from "element-plus";
 import { Search } from "@element-plus/icons-vue";
-import { useLocalStorage } from "@vueuse/core";
-import { useRouteParams } from "@vueuse/router";
-import { ROLE, role, MEMBER_STATUS, memberStatus } from "@/types/Room";
+import { MEMBER_ROLE, memberRole, MEMBER_STATUS, memberStatus } from "@/types/Room";
 import {
   userListApi,
   banUserApi,
-  unBanUserApi,
+  unbanUserApi,
   setAdminApi,
   setMemberApi,
-  approveUserApi
+  approveUserApi,
+  deleteUserApi
 } from "@/services/apis/room";
 import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
 import { RoomAdminPermission, RoomMemberPermission } from "@/types/Room";
 import UserPermission from "./UserPermission.vue";
 
 const open = ref(false);
-const roomID = useRouteParams<string>("roomId");
-const roomToken = useLocalStorage(`room-${roomID.value}-token`, "");
+const Props = defineProps<{
+  token: string;
+  roomId: string;
+}>();
 const openDrawer = async () => {
   open.value = true;
   await getUserListApi();
 };
 
 const userPermissionDialog = ref<InstanceType<typeof UserPermission>>();
-const { myInfo } = useRoomApi(roomID.value);
+const { myInfo } = useRoomApi();
 const { hasAdminPermission } = useRoomPermission();
 const can = (p: RoomAdminPermission) => {
   if (!myInfo.value) return;
@@ -35,16 +36,16 @@ const can = (p: RoomAdminPermission) => {
 };
 
 const rolesFilter = computed(() => {
-  const v = Object.values(role);
-  return v.filter((r) => r !== role[ROLE.Unknown]);
+  const v = Object.values(memberRole);
+  return v.filter((r) => r !== memberRole[MEMBER_ROLE.Unknown]);
 });
 
 const memberStatusFilter = computed(() => {
   const v = Object.values(memberStatus);
-  return v.filter((r) => r !== memberStatus[MEMBER_STATUS.Unknown]);
+  return v.filter((r) => r !== memberStatus[MEMBER_STATUS.NotJoined]);
 });
 
-const isAdmin = computed(() => myInfo.value!.role >= ROLE.Admin);
+const isAdmin = computed(() => myInfo.value!.role >= MEMBER_ROLE.Admin);
 const totalItems = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
@@ -60,7 +61,8 @@ const getUserListApi = async () => {
     const url = isAdmin.value ? "/api/room/admin/members" : "/api/room/members";
     await reqUserListApi({
       headers: {
-        Authorization: roomToken.value
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
       },
       params: {
         page: currentPage.value,
@@ -94,7 +96,8 @@ const approveUser = async (id: string) => {
   try {
     await reqApproveUserApi({
       headers: {
-        Authorization: roomToken.value
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
       },
       data: {
         id: id
@@ -115,18 +118,55 @@ const approveUser = async (id: string) => {
   }
 };
 
+// 删除用户
+const { execute: reqDeleteUserApi, isLoading: deleteUserLoading } = deleteUserApi();
+const deleteUser = async (id: string) => {
+  try {
+    await ElMessageBox.confirm("确定要删除该用户吗？", "警告", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    });
+
+    await reqDeleteUserApi({
+      headers: {
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
+      },
+      data: {
+        id: id
+      }
+    });
+    ElNotification({
+      title: "删除成功",
+      type: "success"
+    });
+    await getUserListApi();
+  } catch (err: any) {
+    if (err !== "cancel") {
+      console.error(err);
+      ElNotification({
+        title: "错误",
+        type: "error",
+        message: err.response?.data.error || err.message
+      });
+    }
+  }
+};
+
 // 封禁 / 解封 用户
 const banUser = async (id: string, is: boolean) => {
   try {
     const config = {
       headers: {
-        Authorization: roomToken.value
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
       },
       data: {
         id: id
       }
     };
-    is ? await banUserApi().execute(config) : await unBanUserApi().execute(config);
+    is ? await banUserApi().execute(config) : await unbanUserApi().execute(config);
     ElNotification({
       title: `${is ? "封禁" : "解封"}成功`,
       type: "success"
@@ -152,7 +192,8 @@ const setAdmin = async (
   try {
     const config = {
       headers: {
-        Authorization: roomToken.value
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
       },
       data: {
         id: id
@@ -187,6 +228,19 @@ const setAdmin = async (
 defineExpose({
   openDrawer
 });
+
+const getMemberStatusColor = (status: MEMBER_STATUS) => {
+  switch (status) {
+    case MEMBER_STATUS.Banned:
+      return "text-red-500";
+    case MEMBER_STATUS.Pending:
+      return "text-yellow-500";
+    case MEMBER_STATUS.Active:
+      return "text-green-500";
+    default:
+      return "text-gray-500";
+  }
+};
 </script>
 
 <template>
@@ -255,7 +309,7 @@ defineExpose({
         style="width: 100%"
         :loading="userListLoading"
       >
-        <el-table-column prop="username" label="用户名" width="160" />
+        <el-table-column prop="username" label="用户名" width="100" />
         <el-table-column prop="id" label="ID" width="50">
           <template #default="scope">
             <CopyButton size="small" :value="scope.row.userId" />
@@ -283,91 +337,119 @@ defineExpose({
                   )
               "
             >
-              {{ role[scope.row.role as ROLE] }}</a
+              {{ memberRole[scope.row.role as MEMBER_ROLE] }}</a
             >
           </template>
         </el-table-column>
-        <el-table-column prop="role" label="状态" width="90">
+        <el-table-column prop="role" label="状态" width="80">
           <template #default="scope">
-            {{ memberStatus[scope.row.status as MEMBER_STATUS] }}
+            <span :class="getMemberStatusColor(scope.row.status)">
+              {{ memberStatus[scope.row.status as MEMBER_STATUS] }}
+            </span>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="加入时间" width="160">
+        <el-table-column prop="createdAt" label="加入时间" width="150">
           <template #default="scope">
             {{ new Date(scope.row.joinAt).toLocaleString() }}
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作">
           <template #default="scope" v-if="isAdmin">
-            <el-button
-              v-if="
-                can(RoomAdminPermission.PermissionApprovePendingMember) &&
-                scope.row.status === MEMBER_STATUS.Pending
-              "
-              type="success"
-              @click="approveUser(scope.row.userId)"
-            >
-              允许加入
-            </el-button>
-            <div v-else>
+            <div v-if="scope.row.status === MEMBER_STATUS.Pending">
               <el-button
-                v-if="
-                  can(RoomAdminPermission.PermissionBanRoomMember) &&
-                  scope.row.status === MEMBER_STATUS.Banned
-                "
+                v-if="can(RoomAdminPermission.PermissionBanRoomMember)"
+                type="danger"
+                @click="banUser(scope.row.userId, true)"
+              >
+                封禁
+              </el-button>
+              <el-button
+                v-if="can(RoomAdminPermission.PermissionApprovePendingMember)"
+                type="success"
+                @click="approveUser(scope.row.userId)"
+              >
+                允许
+              </el-button>
+              <el-button
+                v-if="can(RoomAdminPermission.PermissionApprovePendingMember)"
+                type="danger"
+                @click="deleteUser(scope.row.userId)"
+              >
+                删除
+              </el-button>
+            </div>
+            <div v-else-if="scope.row.status === MEMBER_STATUS.Banned">
+              <el-button
+                v-if="can(RoomAdminPermission.PermissionBanRoomMember)"
                 type="warning"
                 @click="banUser(scope.row.userId, false)"
               >
                 解封
               </el-button>
-
-              <div v-else class="phone-button">
-                <el-button
-                  v-if="
-                    can(RoomAdminPermission.PermissionBanRoomMember) &&
-                    scope.row.role !== ROLE.Creator &&
-                    scope.row.userId !== myInfo?.userId
-                  "
-                  type="danger"
-                  plain
-                  @click="banUser(scope.row.userId, true)"
-                >
-                  封禁
-                </el-button>
-
-                <el-button
-                  v-if="scope.row.role < ROLE.Admin"
-                  type="primary"
-                  @click="
-                    setAdmin(
-                      scope.row.userId,
-                      scope.row.permissions,
-                      scope.row.adminPermissions,
-                      true
-                    )
-                  "
-                >
-                  设为管理
-                </el-button>
-                <el-button
-                  v-else-if="
-                    scope.row.role === ROLE.Admin &&
-                    scope.row.role !== ROLE.Creator &&
-                    myInfo?.role === ROLE.Creator
-                  "
-                  type="warning"
-                  @click="
-                    setAdmin(
-                      scope.row.userId,
-                      scope.row.permissions,
-                      scope.row.adminPermissions,
-                      false
-                    )
-                  "
-                >
-                  取消管理
-                </el-button>
-              </div>
+              <el-button
+                v-if="can(RoomAdminPermission.PermissionApprovePendingMember)"
+                type="danger"
+                @click="deleteUser(scope.row.userId)"
+              >
+                删除
+              </el-button>
+            </div>
+            <div v-else>
+              <el-button
+                v-if="
+                  can(RoomAdminPermission.PermissionBanRoomMember) &&
+                  scope.row.role !== MEMBER_ROLE.Creator &&
+                  scope.row.userId !== myInfo?.userId
+                "
+                type="danger"
+                plain
+                @click="banUser(scope.row.userId, true)"
+              >
+                封禁
+              </el-button>
+              <el-button
+                v-if="scope.row.role < MEMBER_ROLE.Admin"
+                type="primary"
+                @click="
+                  setAdmin(
+                    scope.row.userId,
+                    scope.row.permissions,
+                    scope.row.adminPermissions,
+                    true
+                  )
+                "
+              >
+                设为管理
+              </el-button>
+              <el-button
+                v-else-if="
+                  scope.row.role === MEMBER_ROLE.Admin &&
+                  scope.row.role !== MEMBER_ROLE.Creator &&
+                  myInfo?.role === MEMBER_ROLE.Creator
+                "
+                type="warning"
+                @click="
+                  setAdmin(
+                    scope.row.userId,
+                    scope.row.permissions,
+                    scope.row.adminPermissions,
+                    false
+                  )
+                "
+              >
+                取消管理
+              </el-button>
+              <el-button
+                v-if="
+                  can(RoomAdminPermission.PermissionApprovePendingMember) &&
+                  scope.row.role !== MEMBER_ROLE.Creator &&
+                  scope.row.userId !== myInfo?.userId
+                "
+                type="danger"
+                @click="deleteUser(scope.row.userId)"
+              >
+                删除
+              </el-button>
             </div>
           </template>
         </el-table-column>
@@ -412,5 +494,10 @@ defineExpose({
   </el-drawer>
 
   <!-- 用户权限编辑对话框 -->
-  <UserPermission ref="userPermissionDialog" @updateUserList="getUserListApi" />
+  <UserPermission
+    ref="userPermissionDialog"
+    @updateUserList="getUserListApi"
+    :token="token"
+    :roomId="roomId"
+  />
 </template>

@@ -43,7 +43,6 @@ const operateRoom = async () => {
         message: "服务器并未返回token",
         type: "error"
       });
-    localStorage.setItem(`room-${createRoomInfo.value.roomId}-token`, createRoomInfo.value?.token);
     if (formData.value.password)
       localStorage.setItem(`room-${createRoomInfo.value.roomId}-pwd`, formData.value.password);
     ElNotification({

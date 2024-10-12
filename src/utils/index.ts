@@ -1,5 +1,6 @@
 import { RoomAdminPermission, RoomMemberPermission } from "@/types/Room";
-import { ElMessage } from "element-plus";
+import { useClipboard } from "@vueuse/core";
+import { ElMessage, ElMessageBox } from "element-plus";
 
 export const debounces = (delay: number): Function => {
   let timerId: ReturnType<typeof setTimeout> | null = null;
@@ -40,14 +41,6 @@ export const blobToUint8Array = (blob: Blob): Promise<Uint8Array> => {
   });
 };
 
-export const decodeJWT = (jwt: string) => {
-  const parts = jwt.split(".");
-  if (parts.length !== 3) {
-    throw new Error("非 JWT 格式！");
-  }
-  return JSON.parse(atob(parts[1]));
-};
-
 export const getAppIcon = (appName: string): string => {
   const href = new URL(`/src/assets/appIcons/${appName}.svg`, import.meta.url).href;
   return href.endsWith("undefined") ? getAppIcon("default") : href;
@@ -83,5 +76,31 @@ export const destroyOldCustomPlayLib = (art: any) => {
       art[key].destroy();
       art[key] = undefined;
     }
+  }
+};
+
+export const getFileExtension = (url: string) => {
+  const extension = url.split(".").pop();
+  return extension;
+};
+
+const { copy, copied, isSupported } = useClipboard();
+export const toCopy = async (sth: any, sucText?: string) => {
+  try {
+    if (!isSupported.value) {
+      const input = document.createElement("input");
+      input.setAttribute("value", sth);
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+      return ElMessage.success(sucText ?? "复制成功");
+    } else {
+      await copy(sth);
+      if (copied.value) return ElMessage.success(sucText ?? "复制成功");
+    }
+  } catch (err: any) {
+    console.error(err);
+    ElMessageBox.alert(sth, "复制失败，请手动复制以下内容");
   }
 };

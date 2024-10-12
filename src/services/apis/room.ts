@@ -1,6 +1,13 @@
 import { useDefineApi } from "@/stores/useDefineApi";
-import type { MyInfo, RoomList } from "@/types/Room";
-import type { ROLE } from "@/types/Room";
+import type {
+  MEMBER_ROLE,
+  MEMBER_STATUS,
+  MyInfo,
+  RoomInfo,
+  RoomList,
+  RoomStatus
+} from "@/types/Room";
+import type { ROLE } from "@/types/User";
 
 // 房间列表
 export const roomListApi = useDefineApi<
@@ -39,7 +46,6 @@ export const createRoomApi = useDefineApi<
   // response 服务器返回的 data: {}里面的内容
   {
     roomId: string;
-    token: string;
   }
 >({
   url: "/api/room/create",
@@ -54,9 +60,12 @@ export const checkRoomApi = useDefineApi<
     };
   },
   {
+    name: string;
+    status: RoomStatus;
     creator: string;
     needPassword: boolean;
     peopleNum: number;
+    enabledGuest: boolean;
   }
 >({
   url: "/api/room/check"
@@ -76,30 +85,13 @@ export const joinRoomApi = useDefineApi<
   },
   // response
   {
-    roomId: string;
-    token: string;
+    status: MEMBER_STATUS;
+    role: MEMBER_ROLE;
+    permissions: number;
+    adminPermissions: number;
   }
 >({
   url: "/api/room/login",
-  method: "POST"
-});
-
-// 加入房间（访客）
-export const guestJoinRoomApi = useDefineApi<
-  // request
-  {
-    data: {
-      roomId: string;
-      password: string;
-    };
-  },
-  // response
-  {
-    roomId: string;
-    token: string;
-  }
->({
-  url: "/api/room/guest",
   method: "POST"
 });
 
@@ -114,22 +106,6 @@ export const delRoomApi = useDefineApi<
   {}
 >({
   url: "/api/room/admin/delete",
-  method: "POST"
-});
-
-// 更新房间密码
-export const updateRoomPasswordApi = useDefineApi<
-  {
-    data: {
-      password: string;
-    };
-    headers: { Authorization: string };
-  },
-  {
-    token: string;
-  }
->({
-  url: "/api/room/admin/pwd",
   method: "POST"
 });
 
@@ -155,6 +131,7 @@ export const roomSettingsApi = useDefineApi<
   {
     headers: {
       Authorization: string;
+      "X-Room-Id": string;
     };
   },
   {
@@ -175,25 +152,12 @@ export const roomSettingsApi = useDefineApi<
   method: "GET"
 });
 
-// 修改房间设置
-export const updateSettingApi = useDefineApi<
-  {
-    headers: {
-      Authorization: string;
-    };
-    data: Record<string, any>;
-  },
-  any
->({
-  url: "/api/room/admin/settings",
-  method: "POST"
-});
-
 // 房间内用户列表
 export const userListApi = useDefineApi<
   {
     headers: {
       Authorization: string;
+      "X-Room-Id": string;
     };
     params: {
       page: number;
@@ -223,11 +187,91 @@ export const userListApi = useDefineApi<
   }
 >({});
 
+// 我的信息
+export const myInfoApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+      "X-Room-Id": string;
+    };
+  },
+  MyInfo
+>({
+  url: "/api/room/me",
+  method: "GET"
+});
+
+// 房间信息
+export const roomInfoApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+      "X-Room-Id": string;
+    };
+  },
+  RoomInfo
+>({
+  url: "/api/room/info",
+  method: "GET"
+});
+
+// 更新房间密码
+export const updateRoomPasswordApi = useDefineApi<
+  {
+    data: {
+      password: string;
+    };
+    headers: {
+      Authorization: string;
+      "X-Room-Id": string;
+    };
+  },
+  {}
+>({
+  url: "/api/room/admin/pwd",
+  method: "POST"
+});
+
+// 检查房间密码
+export const checkRoomPasswordApi = useDefineApi<
+  {
+    data: {
+      password: string;
+    };
+    headers: {
+      Authorization: string;
+      "X-Room-Id": string;
+    };
+  },
+  {
+    valid: boolean;
+  }
+>({
+  url: "/api/room/pwd/check",
+  method: "POST"
+});
+
+// 修改房间设置
+export const updateSettingApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+      "X-Room-Id": string;
+    };
+    data: Record<string, any>;
+  },
+  any
+>({
+  url: "/api/room/admin/settings",
+  method: "POST"
+});
+
 // 封禁用户
 export const banUserApi = useDefineApi<
   {
     headers: {
       Authorization: string;
+      "X-Room-Id": string;
     };
     data: {
       id: string;
@@ -240,10 +284,11 @@ export const banUserApi = useDefineApi<
 });
 
 // 解封用户
-export const unBanUserApi = useDefineApi<
+export const unbanUserApi = useDefineApi<
   {
     headers: {
       Authorization: string;
+      "X-Room-Id": string;
     };
     data: {
       id: string;
@@ -260,6 +305,7 @@ export const approveUserApi = useDefineApi<
   {
     headers: {
       Authorization: string;
+      "X-Room-Id": string;
     };
     data: {
       id: string;
@@ -271,11 +317,28 @@ export const approveUserApi = useDefineApi<
   method: "POST"
 });
 
+export const deleteUserApi = useDefineApi<
+  {
+    headers: {
+      Authorization: string;
+      "X-Room-Id": string;
+    };
+    data: {
+      id: string;
+    };
+  },
+  any
+>({
+  url: "/api/room/admin/members/delete",
+  method: "POST"
+});
+
 // 设置为管理员
 export const setAdminApi = useDefineApi<
   {
     headers: {
       Authorization: string;
+      "X-Room-Id": string;
     };
     data: {
       id: string;
@@ -292,6 +355,7 @@ export const setMemberApi = useDefineApi<
   {
     headers: {
       Authorization: string;
+      "X-Room-Id": string;
     };
     data: {
       id: string;
@@ -308,6 +372,7 @@ export const setMemberPermitApi = useDefineApi<
   {
     headers: {
       Authorization: string;
+      "X-Room-Id": string;
     };
     data: {
       id: string;
@@ -325,6 +390,7 @@ export const setAdminPermitApi = useDefineApi<
   {
     headers: {
       Authorization: string;
+      "X-Room-Id": string;
     };
     data: {
       id: string;
@@ -335,17 +401,4 @@ export const setAdminPermitApi = useDefineApi<
 >({
   url: "/api/room/admin/members/admin/permissions",
   method: "POST"
-});
-
-// 我的信息
-export const myInfoApi = useDefineApi<
-  {
-    headers: {
-      Authorization: string;
-    };
-  },
-  MyInfo
->({
-  url: "/api/room/me",
-  method: "GET"
 });

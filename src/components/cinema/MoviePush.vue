@@ -22,6 +22,7 @@ const embyDialog = ref<InstanceType<typeof emby>>();
 
 const Props = defineProps<{
   token: string;
+  roomId: string;
 }>();
 
 const room = roomStore();
@@ -350,9 +351,9 @@ const pushMovie = async () => {
     await reqPushMovieApi({
       data: {
         ...newMovieInfo.value,
-        parentId: room.movieList[room.movieList.length - 1].id
+        parentId: room.lastFolderId
       },
-      headers: { Authorization: Props.token }
+      headers: { Authorization: Props.token, "X-Room-Id": Props.roomId }
     });
 
     ElNotification({
@@ -571,16 +572,17 @@ const getBiliBiliVendors = async () => {
   <!-- B站视频解析对话框 -->
   <bilibiliParse
     ref="bilibiliParseDialog"
+    :room-id="roomId"
     :newMovieInfo="newMovieInfo"
     :token="token"
     :vendor="biliVendor"
   />
 
   <!-- AList 文件列表 -->
-  <alist ref="alistDialog" :room-token="token" />
+  <alist ref="alistDialog" :token="token" :room-id="roomId" />
 
   <!-- Emby 文件列表 -->
-  <emby ref="embyDialog" :room-token="token" />
+  <emby ref="embyDialog" :token="token" :room-id="roomId" />
 </template>
 
 <style lang="less" scoped>

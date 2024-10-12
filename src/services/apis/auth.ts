@@ -1,18 +1,6 @@
 import { useDefineApi } from "@/stores/useDefineApi";
 import type { RegForm, EmailRegForm, PublicSettings } from "@/types";
-
-// 注册
-export const RegisterApi = useDefineApi<
-  {
-    data: RegForm;
-  },
-  {
-    token: string;
-  }
->({
-  url: "/api/user/signup",
-  method: "POST"
-});
+import type { ROLE } from "@/types/User";
 
 // 邮箱注册
 export const useEmailRegisterApi = useDefineApi<
@@ -21,6 +9,8 @@ export const useEmailRegisterApi = useDefineApi<
   },
   {
     token: string;
+    message: string;
+    role: ROLE;
   }
 >({
   url: "/api/user/signup/email",
@@ -32,11 +22,14 @@ export const LoginApi = useDefineApi<
   {
     data: {
       username: string;
+      email: string;
       password: string;
     };
   },
   {
     token: string;
+    message: string;
+    role: ROLE;
   }
 >({
   url: "/api/user/login",
@@ -50,8 +43,14 @@ export const logOutApi = useDefineApi<{ headers: { Authorization: string } }, an
 });
 
 // 获取可用的oauth2平台
-export const OAuth2Platforms = useDefineApi<any, { enabled: string[] | null }>({
+export const OAuth2Platforms = useDefineApi<any, { enabled: string[] }>({
   url: "/oauth2/enabled",
+  method: "GET"
+});
+
+// 获取可注册的oauth2平台
+export const OAuth2SignupEnabled = useDefineApi<any, { signupEnabled: string[] }>({
+  url: "/oauth2/enabled/signup",
   method: "GET"
 });
 
@@ -82,6 +81,8 @@ export const oAuth2Callback = useDefineApi<
   {
     token: string;
     redirect: string;
+    message: string;
+    role: ROLE;
   }
 >({
   method: "POST"
@@ -161,3 +162,68 @@ export const resetPasswordApi = useDefineApi<
   url: "/api/user/retrieve/email",
   method: "POST"
 });
+
+export const usePasswordRegisterApi = useDefineApi<
+  {
+    data: RegForm;
+  },
+  {
+    token: string;
+    message: string;
+    role: ROLE;
+  }
+>({
+  url: "/api/user/signup",
+  method: "POST"
+});
+
+export const oauth2Platforms: { [key: string]: { name: string; class: string } } = {
+  github: {
+    name: "Github",
+    class: "btn-white"
+  },
+  microsoft: {
+    name: "Microsoft",
+    class: "btn-default"
+  },
+  google: {
+    name: "Google",
+    class: "btn-white"
+  },
+  "feishu-sso": {
+    name: "飞书SSO",
+    class: "btn-white"
+  },
+  authing: {
+    name: "Authing",
+    class: "btn-white"
+  },
+  xiaomi: {
+    name: "小米",
+    class: "btn-white"
+  },
+  discord: {
+    name: "Discord",
+    class: "btn-white"
+  },
+  baidu: {
+    name: "百度",
+    class: "btn-white"
+  },
+  "baidu-netdisk": {
+    name: "百度网盘",
+    class: "btn-white"
+  },
+  gitee: {
+    name: "Gitee",
+    class: "btn-error"
+  },
+  gitlab: {
+    name: "GitLab",
+    class: "btn-error"
+  },
+  qq: {
+    name: "QQ",
+    class: "btn-default"
+  }
+};

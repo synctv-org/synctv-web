@@ -8,6 +8,7 @@ import { roomStore } from "@/stores/room";
 import { userStore } from "@/stores/user";
 
 const Props = defineProps<{
+  roomId: string;
   newMovieInfo: BaseMovieInfo;
   token: string;
   vendor: string;
@@ -117,7 +118,7 @@ const submit = async () => {
   try {
     if (selectedItems.value.length === 0) return ElMessage.error("请选择视频");
     await reqPushMoviesApi({
-      headers: { Authorization: Props.token },
+      headers: { Authorization: Props.token, "X-Room-Id": Props.roomId },
       data: selectedItems.value.map(
         (item) =>
           <BaseMovieInfo>{
@@ -134,7 +135,7 @@ const submit = async () => {
               },
               backend: Props.vendor
             },
-            parentId: room.movieList[room.movieList.length - 1].id
+            parentId: room.lastFolderId
           }
       )
     });
@@ -167,7 +168,7 @@ defineExpose({
     class="rounded-lg dark:bg-zinc-800 w-full xl:w-7/12 lg:w-3/7 md:w-8/12 sm:w-full"
     @closed="cancel"
   >
-    <h1 class="-mt-8 text-xl font-medium">{{ state?.title }}</h1>
+    <h1 class="-mt-2 text-xl font-medium">{{ state?.title }}</h1>
     <p class="mt-2">UP 主 / 主演 ：{{ state?.actors }}</p>
     <p>
       <b>说明：</b>

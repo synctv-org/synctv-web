@@ -6,7 +6,7 @@ import { userStore } from "@/stores/user";
 import {
   userListApi,
   banUserApi,
-  unBanUserApi,
+  unbanUserApi,
   addAdminApi,
   delAdminApi,
   approveUserApi,
@@ -80,7 +80,7 @@ const banUser = async (id: string, is: boolean) => {
         id: id
       }
     };
-    is ? await banUserApi().execute(config) : await unBanUserApi().execute(config);
+    is ? await banUserApi().execute(config) : await unbanUserApi().execute(config);
     ElNotification({
       title: `${is ? "封禁" : "解封"}成功`,
       type: "success"
@@ -234,8 +234,8 @@ onMounted(async () => {
     </div>
     <div class="card-body">
       <el-table :data="state?.list" v-loading="userListLoading" style="width: 100%">
-        <el-table-column prop="username" label="用户名" width="200" />
-        <el-table-column prop="id" label="ID" width="120">
+        <el-table-column prop="username" label="用户名" min-width="80" max-width="200" />
+        <el-table-column prop="id" label="ID" min-width="120" max-width="200">
           <template #default="scope">
             <div class="flex overflow-hidden text-ellipsis max-w-[100px]">
               <span class="truncate">{{ scope.row.id }}</span>
@@ -243,63 +243,62 @@ onMounted(async () => {
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="role" label="权限组" width="70">
+        <el-table-column prop="role" label="权限组" min-width="60" max-width="120">
           <template #default="scope">
             {{ getRole(scope.row.role) }}
           </template>
         </el-table-column>
-        <el-table-column prop="roomList" label="房间列表" width="120">
+        <el-table-column prop="roomList" label="房间列表" min-width="60" max-width="200">
           <template #default="scope">
             <el-button type="primary" plain @click="getUserRoom(scope.row.id)"> 查看 </el-button>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="注册时间" width="160">
+        <el-table-column prop="createdAt" label="注册时间" min-width="120" max-width="250">
           <template #default="scope">
             {{ new Date(scope.row.createdAt).toLocaleString() }}
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作">
+        <el-table-column fixed="right" label="操作" min-width="250" max-width="350">
           <template #default="scope">
-            <el-button
-              v-if="scope.row.role === ROLE.Pending"
-              type="success"
-              @click="approve(scope.row.id)"
-              :loading="approveLoading"
-            >
-              通过注册
-            </el-button>
-            <div v-else>
+            <div v-if="scope.row.role === ROLE.Pending">
+              <el-button type="success" @click="approve(scope.row.id)" :loading="approveLoading">
+                通过注册
+              </el-button>
+              <el-button type="danger" @click="banUser(scope.row.id, true)"> 禁止注册 </el-button>
+              <el-popconfirm title="你确定要删除这个用户吗？" @confirm="delUser(scope.row.id)">
+                <template #reference>
+                  <el-button type="danger"> 删除 </el-button>
+                </template>
+              </el-popconfirm>
+            </div>
+            <div v-else-if="scope.row.role === ROLE.Banned">
+              <el-button type="warning" @click="banUser(scope.row.id, false)"> 解封 </el-button>
+              <el-popconfirm title="你确定要删除这个用户吗？" @confirm="delUser(scope.row.id)">
+                <template #reference>
+                  <el-button type="danger"> 删除 </el-button>
+                </template>
+              </el-popconfirm>
+            </div>
+            <div v-else class="phone-button">
+              <el-button type="danger" plain @click="banUser(scope.row.id, true)"> 封禁 </el-button>
+
               <el-button
-                v-if="scope.row.role === ROLE.Banned"
-                type="warning"
-                @click="banUser(scope.row.id, false)"
+                v-if="scope.row.role < ROLE.Admin"
+                type="primary"
+                @click="setAdmin(scope.row.id, true)"
               >
-                解封
+                设为管理
               </el-button>
 
-              <div v-else class="phone-button">
-                <el-button type="danger" plain @click="banUser(scope.row.id, true)">
-                  封禁
-                </el-button>
+              <el-button v-else type="warning" @click="setAdmin(scope.row.id, false)">
+                取消管理
+              </el-button>
 
-                <el-button
-                  v-if="scope.row.role < ROLE.Admin"
-                  type="primary"
-                  @click="setAdmin(scope.row.id, true)"
-                >
-                  设为管理
-                </el-button>
-
-                <el-button v-else type="warning" @click="setAdmin(scope.row.id, false)">
-                  取消管理
-                </el-button>
-
-                <el-popconfirm title="你确定要删除这个用户吗？" @confirm="delUser(scope.row.id)">
-                  <template #reference>
-                    <el-button type="danger"> 删除 </el-button>
-                  </template>
-                </el-popconfirm>
-              </div>
+              <el-popconfirm title="你确定要删除这个用户吗？" @confirm="delUser(scope.row.id)">
+                <template #reference>
+                  <el-button type="danger"> 删除 </el-button>
+                </template>
+              </el-popconfirm>
             </div>
           </template>
         </el-table-column>

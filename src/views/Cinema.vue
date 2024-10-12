@@ -13,12 +13,11 @@ import { useWebSocket, useResizeObserver, useLocalStorage } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
 import { roomStore } from "@/stores/room";
 import { ElNotification, ElMessage } from "element-plus";
-import router from "@/router";
 import { useMovieApi } from "@/hooks/useMovie";
 import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUint8Array, formatTime } from "@/utils";
-import { ElementMessage, ElementMessageType, MovieStatus } from "@/proto/message";
+import { MessageType, Message, Status } from "@/proto/message";
 import type { options } from "@/components/Player.vue";
 import RoomInfo from "@/components/cinema/RoomInfo.vue";
 import MovieList from "@/components/cinema/MovieList.vue";
@@ -28,26 +27,30 @@ import { RoomMemberPermission } from "@/types/Room";
 import artplayerPluginAss from "@/plugins/artplayer-plugin-ass";
 import { newSyncPlugin } from "@/plugins/sync";
 import artplayerPluginQuality from "@/plugins/quality";
+import artplayerPluginAudioTrack from "@/plugins/audio";
 import { artplayPluginSource } from "@/plugins/source";
 import { currentMovieApi } from "@/services/apis/movie";
+import { userStore } from "@/stores/user";
+import { roomInfoApi } from "@/services/apis/room";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
+const { info, token, isLogin } = userStore();
 // 获取房间信息
 const room = roomStore();
 const roomID = useRouteParams<string>("roomId");
-const roomToken = useLocalStorage<string>(`room-${roomID.value}-token`, "");
 
 const watchers: WatchStopHandle[] = [];
 onBeforeUnmount(() => {
   watchers.forEach((w) => w());
 });
 
-const { getMovies, getCurrentMovie } = useMovieApi(roomToken.value);
-const { getMyInfo, myInfo } = useRoomApi(roomID.value);
+const { getMovies, getCurrentMovie } = useMovieApi(token.value, roomID.value);
+const { getMyInfo, myInfo } = useRoomApi();
+const { state: roomInfo, execute: reqRoomInfoApi } = roomInfoApi();
 const { hasMemberPermission } = useRoomPermission();
 
-let player: Artplayer;
+let player: Artplayer | undefined;
 
 const sendDanmuku = (msg: string) => {
   if (!player || !player.plugins.artplayerPluginDanmuku) return;
@@ -62,9 +65,9 @@ const sendDanmuku = (msg: string) => {
 
 const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
 const { status, data, send, open } = useWebSocket(
-  `${wsProtocol}//${window.location.host}/api/room/ws`,
+  `${wsProtocol}//${window.location.host}/api/room/ws?roomId=${roomID.value}`,
   {
-    protocols: [roomToken.value],
+    ...(token.value ? { protocols: [token.value] } : {}),
     autoReconnect: {
       retries: 3,
       delay: 1000,
@@ -77,14 +80,14 @@ const { status, data, send, open } = useWebSocket(
   }
 );
 
-const sendElement = (msg: ElementMessage) => {
-  if (!msg.time) {
-    msg.time = Date.now();
+const sendElement = (msg: Message) => {
+  if (!msg.timestamp) {
+    msg.timestamp = Date.now();
   }
-  console.log(`-----Ws Send Start-----`);
+  console.groupCollapsed("Ws Send");
   console.log(msg);
-  console.log(`-----Ws Send End-----`);
-  return send(ElementMessage.encode(msg).finish());
+  console.groupEnd();
+  return send(Message.encode(msg).finish() as any, false);
 };
 
 // 消息列表
@@ -101,9 +104,9 @@ const sendChatText = (msg: string, onSuccess?: () => any, onFailed?: () => any) 
 
   strLengthLimit(msg, 4096);
   sendElement(
-    ElementMessage.create({
-      type: ElementMessageType.CHAT_MESSAGE,
-      chatReq: msg
+    Message.create({
+      type: MessageType.CHAT,
+      chatContent: msg
     })
   );
   if (onSuccess) onSuccess();
@@ -159,7 +162,9 @@ const playerOption = computed<options>(() => {
       // WARN: room.currentStatus 变了会导致重载
       newSyncPlugin(sendElement, room.currentStatus, () => room.currentExpireId),
       // 画质
-      artplayerPluginQuality()
+      artplayerPluginQuality(),
+      // 音轨
+      artplayerPluginAudioTrack()
     ]
   };
 
@@ -227,7 +232,7 @@ const { state: currentMovie, execute: reqCurrentMovieApi } = currentMovieApi();
 const updateSources = async () => {
   try {
     await reqCurrentMovieApi({
-      headers: { Authorization: roomToken.value }
+      headers: { Authorization: token.value, "X-Room-Id": roomID.value }
     });
     if (!currentMovie.value) return;
     if (currentMovie.value.movie.base.url.startsWith("/")) {
@@ -271,78 +276,80 @@ const updateSources = async () => {
 
 const getPlayerInstance = (art: Artplayer) => {
   player = art;
+  listenPlayerType(player);
 };
 
-const setPlayerStatus = (status: MovieStatus) => {
+const playType = ref<string | undefined>();
+
+const listenPlayerType = (player: Artplayer) => {
+  player.once("ready", () => {
+    playType.value = player?.option.type;
+    player.on("restart", () => {
+      playType.value = player?.option.type;
+    });
+    player.on("destroy", () => {
+      playType.value = undefined;
+    });
+  });
+};
+
+const setPlayerStatus = (status: Status) => {
   if (!player) return;
   player.plugins["syncPlugin"].setAndNoPublishStatus(status);
 };
 
-const handleElementMessage = (msg: ElementMessage) => {
-  console.log(`-----Ws Message Start-----`);
-  console.log(msg);
-  console.log(`-----Ws Message End-----`);
+const handleElementMessage = (msg: Message) => {
+  console.groupCollapsed("Ws Message");
+  console.info(msg);
+  console.groupEnd();
   switch (msg.type) {
-    case ElementMessageType.ERROR: {
-      console.error(msg.error);
+    case MessageType.ERROR: {
+      console.error(msg.errorMessage);
       ElNotification({
         title: "错误",
-        message: msg.error,
+        message: msg.errorMessage,
         type: "error"
       });
       break;
     }
 
     // 聊天消息
-    case ElementMessageType.CHAT_MESSAGE: {
-      if (!msg.chatResp) {
+    case MessageType.CHAT: {
+      if (!msg.chatContent) {
         return;
       }
       const currentTime = formatTime(new Date()); // 格式化时间
-      const senderName = msg.chatResp.sender?.username;
-      const messageContent = `${senderName}: ${msg.chatResp.message}`;
+      const senderName = msg.sender?.username;
+      const messageContent = `${senderName}: ${msg.chatContent}`;
       const messageWithTime = `${messageContent} <small>[${currentTime}]</small>`;
       // 添加消息到消息列表
       sendMsg(messageWithTime);
       sendDanmuku(messageContent);
       break;
     }
-    case ElementMessageType.PLAY:
-    case ElementMessageType.PAUSE:
-    case ElementMessageType.CHANGE_SEEK:
-    case ElementMessageType.CHANGE_RATE:
-    case ElementMessageType.TOO_FAST:
-    case ElementMessageType.TOO_SLOW:
-    case ElementMessageType.SYNC_MOVIE_STATUS: {
+    case MessageType.STATUS:
+    case MessageType.CHECK_STATUS:
+    case MessageType.SYNC: {
+      console.log(msg.type);
       switch (msg.type) {
-        case ElementMessageType.TOO_FAST:
+        case MessageType.CHECK_STATUS:
           ElNotification({
-            title: "播放速度过快",
+            title: "状态不同步，同步中...",
             type: "warning"
           });
           break;
-        case ElementMessageType.TOO_SLOW:
+        case MessageType.SYNC:
           ElNotification({
-            title: "播放速度落后",
-            type: "warning"
-          });
-          break;
-        case ElementMessageType.SYNC_MOVIE_STATUS:
-          ElNotification({
-            title: "播放状态同步中",
+            title: "同步成功",
             type: "success"
           });
           break;
       }
-      setPlayerStatus(msg.movieStatusChanged!.status!);
+      setPlayerStatus(msg.playbackStatus!);
       break;
     }
 
-    case ElementMessageType.CHECK_STATUS: {
-      break;
-    }
-
-    case ElementMessageType.CURRENT_EXPIRED: {
+    case MessageType.EXPIRED: {
       ElNotification({
         title: "链接过期,刷新中",
         type: "info"
@@ -352,22 +359,35 @@ const handleElementMessage = (msg: ElementMessage) => {
     }
 
     // 设置正在播放的影片
-    case ElementMessageType.CURRENT_CHANGED: {
+    case MessageType.CURRENT: {
       getCurrentMovie();
       break;
     }
 
     // 播放列表更新
-    case ElementMessageType.MOVIES_CHANGED: {
-      getMovies(
-        room.movieList[room.movieList.length - 1].id,
-        room.movieList[room.movieList.length - 1].subPath
-      );
+    case MessageType.MOVIES: {
+      // 如果有权限则获取
+      if (can(RoomMemberPermission.PermissionGetMovieList)) getMovies();
       break;
     }
 
-    case ElementMessageType.PEOPLE_CHANGED: {
-      room.peopleNum = msg.peopleChanged!;
+    case MessageType.VIEWER_COUNT: {
+      room.peopleNum = msg.viewerCount!;
+      break;
+    }
+
+    case MessageType.MY_STATUS: {
+      try {
+        getMyInfo(roomID.value);
+      } catch (err: any) {
+        console.error(err);
+        ElNotification({
+          title: "错误",
+          message: err.response.data.error || err.message,
+          type: "error"
+        });
+        return;
+      }
       break;
     }
   }
@@ -400,18 +420,33 @@ const p = async () => {
 };
 
 onMounted(async () => {
-  if (roomToken.value === "") {
-    router.push({
-      name: "joinRoom",
-      params: {
-        roomId: roomID.value
-      }
+  // 获取房间信息
+  try {
+    await reqRoomInfoApi({
+      headers: { Authorization: token.value, "X-Room-Id": roomID.value }
+    });
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "错误",
+      message: err.response.data.error || err.message,
+      type: "error"
     });
     return;
   }
 
   // 获取用户信息
-  if (!myInfo.value) await getMyInfo(roomToken.value);
+  try {
+    if (!myInfo.value) await getMyInfo(roomID.value);
+  } catch (err: any) {
+    console.error(err);
+    ElNotification({
+      title: "错误",
+      message: err.response.data.error || err.message,
+      type: "error"
+    });
+    return;
+  }
 
   // 从 sessionStorage 获取存储的聊天消息
   const storedMessages = sessionStorage.getItem(`chatMessages-${roomID}`);
@@ -429,7 +464,7 @@ onMounted(async () => {
       async () => {
         try {
           const arr = await blobToUint8Array(data.value);
-          handleElementMessage(ElementMessage.decode(arr));
+          handleElementMessage(Message.decode(arr));
         } catch (err: any) {
           console.error(err);
           ElMessage.error(err.message);
@@ -450,8 +485,9 @@ onMounted(async () => {
           class="card-title flex flex-wrap justify-between max-sm:text-sm max-sm:pb-4"
           v-if="playerOption.url"
         >
+          <el-tag v-if="playType">{{ playType }}</el-tag>
           {{ room.currentMovie.base!.name }}
-          <small>👁‍🗨 {{ room.peopleNum }} </small>
+          <small class="ml-2">👁‍🗨 {{ room.peopleNum }} </small>
         </div>
         <div class="card-title flex flex-wrap justify-between max-sm:text-sm" v-else>
           当前没有影片播放，快去添加几部吧~<small class="font-normal"
@@ -505,7 +541,7 @@ onMounted(async () => {
   <el-row :gutter="20">
     <!-- 房间信息 -->
     <el-col :lg="6" :md="8" :sm="9" :xs="24" class="mb-5 max-sm:mb-2">
-      <RoomInfo :status="status" />
+      <RoomInfo v-if="roomInfo" :status="status" :token="token" :roomId="roomID" :info="roomInfo" />
     </el-col>
 
     <!-- 影片列表 -->
@@ -517,7 +553,7 @@ onMounted(async () => {
       :xs="24"
       class="mb-5 max-sm:mb-2"
     >
-      <MovieList @send-msg="sendMsg" />
+      <MovieList @send-msg="sendMsg" :token="token" :roomId="roomID" />
     </el-col>
 
     <!-- 添加影片 -->
@@ -528,15 +564,7 @@ onMounted(async () => {
       :xs="24"
       class="mb-5 max-sm:mb-2"
     >
-      <MoviePush
-        @getMovies="
-          getMovies(
-            room.movieList[room.movieList.length - 1].id,
-            room.movieList[room.movieList.length - 1].subPath
-          )
-        "
-        :token="roomToken"
-      />
+      <MoviePush @getMovies="getMovies()" :token="token" :roomId="roomID" />
     </el-col>
   </el-row>
 </template>

@@ -31,7 +31,7 @@
     "nprogress": "^0.2.0",
     "pinia": "^2.2.2",
     "qrcode-vue3": "^1.6.8",
-    "ts-proto": "^2.0.3",
+    "ts-proto": "^2.2.2",
     "vue": "^3.4.38",
     "vue-router": "^4.4.3"
   },

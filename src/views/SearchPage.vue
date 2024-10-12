@@ -20,7 +20,7 @@ const formData = ref<{
 });
 
 const { totalItems, currentPage, pageSize, keyword, search, getRoomList, roomList, joinRoom } =
-  useRoomApi(formData.value.roomId);
+  useRoomApi();
 
 const { settings } = indexStore();
 const JoinRoomDialog = ref(false);
@@ -42,7 +42,7 @@ const openJoinRoomDialog = async (item: RoomList) => {
   formData.value.roomId = item.roomId;
 
   info.value?.username === item.creator || !item.needPassword
-    ? await joinRoom(formData.value)
+    ? await joinRoom(item.roomId, "")
     : (JoinRoomDialog.value = true);
 };
 

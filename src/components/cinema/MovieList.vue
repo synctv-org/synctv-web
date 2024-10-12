@@ -15,11 +15,14 @@ import { ArrowRight, FolderOpened } from "@element-plus/icons-vue";
 const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
 const customSubtitlesDialog = ref<InstanceType<typeof customSubtitles>>();
 
+const Props = defineProps<{
+  token: string;
+  roomId: string;
+}>();
+
 // 获取房间信息
 const room = roomStore();
-const roomID = useRouteParams<string>("roomId");
-const roomToken = useLocalStorage<string>(`room-${roomID.value}-token`, "");
-const { myInfo } = useRoomApi(roomID.value);
+const { myInfo } = useRoomApi();
 const { hasMemberPermission } = useRoomPermission();
 const can = (p: RoomMemberPermission) => {
   if (!myInfo.value) return;
@@ -47,11 +50,10 @@ const {
   clearMovieListLoading,
   getLiveInfo,
   liveInfo,
-  subPath,
   // movieList,
   switchDir,
   dynamic
-} = useMovieApi(roomToken.value);
+} = useMovieApi(Props.token, Props.roomId);
 
 // 打开编辑对话框
 const editDialog = ref(false);
@@ -94,9 +96,9 @@ const confirmCancelPlayback = async () => {
 
     <div class="card-body">
       <el-breadcrumb :separator-icon="ArrowRight">
-        <el-breadcrumb-item v-for="item in room.movieList" :key="item.id">
+        <el-breadcrumb-item v-for="item in room.folder" :key="item.id">
           <el-button link @click="switchDir(item.id, item.subPath)">
-            {{ item.label }}
+            {{ item.name }}
           </el-button>
         </el-breadcrumb-item>
       </el-breadcrumb>
@@ -143,6 +145,7 @@ const confirmCancelPlayback = async () => {
             </button>
           </b>
           <small class="truncate">{{ item.base!.url || item.id }}</small>
+          <small v-if="item.base!.type" class="ml-2 text-gray-500">[{{ item.base!.type }}]</small>
         </div>
 
         <div
@@ -257,18 +260,8 @@ const confirmCancelPlayback = async () => {
         :pager-count="5"
         layout="sizes, prev, pager, next, jumper"
         :total="room.totalMovies"
-        @size-change="
-          getMovies(
-            room.movieList[room.movieList.length - 1].id,
-            room.movieList[room.movieList.length - 1].subPath
-          )
-        "
-        @current-change="
-          getMovies(
-            room.movieList[room.movieList.length - 1].id,
-            room.movieList[room.movieList.length - 1].subPath
-          )
-        "
+        @size-change="getMovies()"
+        @current-change="getMovies()"
       />
 
       <div></div>
@@ -301,17 +294,7 @@ const confirmCancelPlayback = async () => {
             <button class="btn btn-error mx-2">清空当前目录</button>
           </template>
         </el-popconfirm>
-        <button
-          class="btn btn-success"
-          @click="
-            getMovies(
-              room.movieList[room.movieList.length - 1].id,
-              room.movieList[room.movieList.length - 1].subPath
-            )
-          "
-        >
-          更新列表
-        </button>
+        <button class="btn btn-success" @click="getMovies()">更新列表</button>
       </div>
     </div>
   </div>

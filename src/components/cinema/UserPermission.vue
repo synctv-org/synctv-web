@@ -23,10 +23,13 @@ const openDialog = async (
   userId.value = uid;
 };
 
+const Props = defineProps<{
+  token: string;
+  roomId: string;
+}>();
+
 const emit = defineEmits(["updateUserList"]);
 
-const roomID = useRouteParams<string>("roomId");
-const roomToken = useLocalStorage(`room-${roomID.value}-token`, "");
 const {
   roomMemberPermissionKeys,
   roomMemberPermissionKeysTranslate,
@@ -54,7 +57,8 @@ const setPermit = async () => {
     saveBtnLoading.value = true;
     const config = {
       headers: {
-        Authorization: roomToken.value
+        Authorization: Props.token,
+        "X-Room-Id": Props.roomId
       },
       data: {
         id: userId.value

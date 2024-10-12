@@ -1,5 +1,6 @@
 export interface RegForm {
-  email: string;
+  username?: string;
+  email?: string;
   password: string;
 }
 
@@ -8,9 +9,14 @@ export interface EmailRegForm extends RegForm {
 }
 
 export interface PublicSettings {
+  passwordDisableSignup: boolean;
+
   emailEnable: boolean;
-  emailDisableUserSignup: boolean;
+  emailDisableSignup: boolean;
   emailWhitelistEnabled: boolean;
   emailWhitelist: string[];
+
+  oauth2DisableSignup: boolean;
+
   guestEnable: boolean;
 }

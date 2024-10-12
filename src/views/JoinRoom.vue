@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useRouteParams, useRouteQuery } from "@vueuse/router";
 import { useRoomApi } from "@/hooks/useRoom";
 import { indexStore } from "@/stores";
 import { userStore } from "@/stores/user";
+import { ElNotification } from "element-plus";
 
 const { settings } = indexStore();
-const { isLogin } = userStore();
 const route = useRoute();
+const router = useRouter();
 const roomID = useRouteParams("roomId");
 const pwd = useRouteQuery("pwd");
 
@@ -22,7 +23,10 @@ const props = defineProps<{
     roomId: string;
     password: string;
   };
+  disableInitReq?: boolean;
 }>();
+
+const roomIdCanEdit = !props.item?.roomId;
 
 const formData = ref<{
   roomId: string;
@@ -32,16 +36,32 @@ const formData = ref<{
   password: pwd.value as string
 });
 
-const { joinRoom, guestJoinRoom } = useRoomApi(formData.value.roomId);
+const { joinRoom } = useRoomApi();
 
 const init = () => {
-  if (props.item) formData.value = props.item;
-  else {
+  if (props.item) {
+    formData.value.roomId = props.item.roomId;
+    formData.value.password = props.item.password;
+  } else {
     if (roomID) formData.value.roomId = roomID.value as string;
     if (pwd) formData.value.password = pwd.value as string;
   }
-  const { checkRoom } = useRoomApi(formData.value.roomId);
-  if (formData.value.roomId) checkRoom(pwd.value as string);
+  if (!props.disableInitReq && (formData.value.roomId || formData.value.password)) {
+    handleJoinRoom();
+  }
+};
+
+const handleJoinRoom = async () => {
+  try {
+    await joinRoom(formData.value.roomId, formData.value.password);
+  } catch (error: any) {
+    console.error(error);
+    ElNotification({
+      title: "错误",
+      message: error.message,
+      type: "error"
+    });
+  }
 };
 
 defineExpose({ init });
@@ -53,7 +73,7 @@ onMounted(() => {
 
 <template>
   <div :class="isModal ? 'room-dialog' : 'room'">
-    <form @submit.prevent="" :class="!isModal && 'sm:w-96 ' + 'w-full'">
+    <form @submit.prevent="handleJoinRoom" :class="!isModal && 'sm:w-96 ' + 'w-full'">
       <input
         class="l-input"
         type="text"
@@ -61,6 +81,7 @@ onMounted(() => {
         placeholder="房间ID"
         required
         autocomplete="off"
+        :readonly="!roomIdCanEdit"
       />
       <br />
       <input
@@ -72,14 +93,7 @@ onMounted(() => {
       />
       <br />
 
-      <button
-        v-if="settings?.guestEnable && !isLogin"
-        class="btn btn-success my-[10px]"
-        @click="guestJoinRoom(formData)"
-      >
-        以访客身份加入
-      </button>
-      <button v-else class="btn my-[10px]" @click="joinRoom(formData)">加入</button>
+      <button class="btn my-[10px]" type="submit">加入</button>
       <div class="text-sm">
         <b>注意：</b>所有输入框最大只可输入32个字符
         <br />

@@ -1,4 +1,4 @@
-import type { MovieStatus } from "@/proto/message";
+import type { Status } from "@/proto/message";
 
 export interface MovieInfo {
   id: string;
@@ -10,7 +10,7 @@ export interface MovieInfo {
 
 export interface CurrentMovie {
   movie: MovieInfo;
-  status: MovieStatus;
+  status: Status;
   expireId: number;
 }
 

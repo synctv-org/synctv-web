@@ -1,5 +1,5 @@
 import { useDefineApi } from "@/stores/useDefineApi";
-import type { RoomList } from "@/types/Room";
+import type { JoinedRoomList, MEMBER_STATUS, RoomList } from "@/types/Room";
 import type { BaseUserInfo } from "@/types/User";
 
 // 获取个人信息
@@ -33,6 +33,29 @@ export const myRoomListApi = useDefineApi<
   }
 >({
   url: "/api/user/rooms",
+  method: "GET"
+});
+
+// 我加入的房间，列表
+export const myJoinedRoomListApi = useDefineApi<
+  {
+    params: {
+      page: number;
+      max: number;
+      sort: string;
+      order: string;
+      search: string;
+      keyword: string;
+      status: string;
+    };
+    headers: { Authorization: string };
+  },
+  {
+    list: JoinedRoomList[] | null;
+    total: number;
+  }
+>({
+  url: "/api/user/rooms/joined",
   method: "GET"
 });
 
@@ -171,5 +194,38 @@ export const unbindEmailApi = useDefineApi<
   any
 >({
   url: "/api/user/unbind/email",
+  method: "POST"
+});
+
+export const joinedRoomApi = useDefineApi<
+  {
+    params: {
+      roomId: string;
+    };
+    headers: {
+      Authorization: string;
+    };
+  },
+  {
+    joined: boolean;
+    status: MEMBER_STATUS;
+  }
+>({
+  url: "/api/user/room/joined",
+  method: "GET"
+});
+
+export const deleteRoomApi = useDefineApi<
+  {
+    data: {
+      id: string;
+    };
+    headers: {
+      Authorization: string;
+    };
+  },
+  {}
+>({
+  url: "/api/user/room/delete",
   method: "POST"
 });

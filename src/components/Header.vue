@@ -10,7 +10,7 @@ import { ROLE } from "@/types/User";
 
 const mobileMenu = ref(false);
 const route = useRoute();
-const { settings } = indexStore();
+const { settings, isAnySignupAllowed } = indexStore();
 const { isLogin, info } = userStore();
 
 const menuLinks = computed(() => {
@@ -35,7 +35,7 @@ const menuLinks = computed(() => {
     }
   ];
 
-  if (settings?.emailEnable && !settings.emailDisableUserSignup)
+  if (isAnySignupAllowed)
     links.push({
       name: "注册",
       to: "/auth/register"
@@ -70,6 +70,10 @@ const menuLinks = computed(() => {
           {
             name: "创建房间",
             to: "/createRoom"
+          },
+          {
+            name: "个人中心",
+            to: "/user/me"
           }
         ];
     if (info.value?.role! >= ROLE.Admin) {

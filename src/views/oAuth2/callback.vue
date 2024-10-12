@@ -6,6 +6,7 @@ import { userStore } from "@/stores/user";
 import router from "@/router/index";
 import { oAuth2Callback } from "@/services/apis/auth";
 import { userInfo } from "@/services/apis/user";
+import { ROLE } from "@/types/User";
 
 const { getUserInfo: updateUserInfo, updateToken } = userStore();
 
@@ -24,10 +25,44 @@ const redirect = async () => {
       url: "/oauth2/callback/" + platform.value
     });
 
-    if (loginData.value) {
-      updateToken(loginData.value.token);
-      await getUserInfo();
+    if (!loginData.value) {
+      ElNotification({
+        title: "错误",
+        message: "服务器并未返回数据",
+        type: "error"
+      });
+      return;
     }
+
+    switch (loginData.value.role) {
+      case ROLE.Banned:
+        ElNotification({
+          title: "错误",
+          message: "您的账号已被封禁",
+          type: "error"
+        });
+        break;
+      case ROLE.Pending:
+        ElNotification({
+          title: "错误",
+          message: "您的账号正在审核中",
+          type: "warning"
+        });
+        break;
+      case ROLE.User:
+      case ROLE.Admin:
+      case ROLE.Root:
+        break;
+      default:
+        ElNotification({
+          title: "错误",
+          message: loginData.value.message || "登录失败",
+          type: "error"
+        });
+        break;
+    }
+    updateToken(loginData.value.token);
+    await getUserInfo();
   } catch (err: any) {
     console.error(err);
     ElNotification({

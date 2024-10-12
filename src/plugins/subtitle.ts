@@ -1,7 +1,6 @@
 import type Artplayer from "artplayer";
 import type { ComponentOption } from "artplayer/types/component";
 import type { Events } from "artplayer/types/events";
-import { ElMessage } from "element-plus";
 
 const newSubtitleHtml = (name: string): HTMLElement => {
   const SubtitleHtml = document.createElement("span");

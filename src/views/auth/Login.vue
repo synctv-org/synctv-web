@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { ElNotification, ElMessage } from "element-plus";
+import { ElNotification, ElMessage, ElTabs, ElTabPane } from "element-plus";
 import { indexStore } from "@/stores";
 import { OAuth2Platforms, loginWithOAuth2, LoginApi } from "@/services/apis/auth";
 import { userInfo } from "@/services/apis/user";
@@ -8,65 +8,18 @@ import { useRouteQuery } from "@vueuse/router";
 import { strLengthLimit, getAppIcon } from "@/utils";
 import { userStore } from "@/stores/user";
 import router from "@/router/index";
+import { oauth2Platforms } from "@/services/apis/auth";
+import { ROLE } from "@/types/User";
 
-const platforms: { [key: string]: { name: string; class: string } } = {
-  github: {
-    name: "Github",
-    class: "btn-white"
-  },
-  microsoft: {
-    name: "Microsoft",
-    class: "btn-default"
-  },
-  google: {
-    name: "Google",
-    class: "btn-white"
-  },
-  "feishu-sso": {
-    name: "飞书SSO",
-    class: "btn-white"
-  },
-  authing: {
-    name: "Authing",
-    class: "btn-white"
-  },
-  xiaomi: {
-    name: "小米",
-    class: "btn-white"
-  },
-  discord: {
-      name: "Discord",
-      class: "btn-white"
-  },
-  baidu: {
-    name: "百度",
-    class: "btn-white"
-  },
-  "baidu-netdisk": {
-    name: "百度网盘",
-    class: "btn-white"
-  },
-  gitee: {
-    name: "Gitee",
-    class: "btn-error"
-  },
-  gitlab: {
-    name: "GitLab",
-    class: "btn-error"
-  },
-  qq: {
-    name: "QQ",
-    class: "btn-default"
-  }
-};
-
-const { settings } = indexStore();
+const { settings, isAnySignupAllowed } = indexStore();
 
 const formData = ref({
   username: localStorage.getItem("uname") || "",
+  email: localStorage.getItem("email") || "",
   password: localStorage.getItem("password") || ""
 });
 const savePwd = ref(false);
+const activeTab = ref("username");
 
 const redirect = useRouteQuery("redirect");
 console.log("redirect: ", (redirect.value as string) ?? "");
@@ -74,25 +27,59 @@ console.log("redirect: ", (redirect.value as string) ?? "");
 const { getUserInfo: updateUserInfo, updateToken } = userStore();
 const { execute: reqLoginApi, state: loginData } = LoginApi();
 const login = async () => {
-  if (!formData.value?.username || !formData.value?.password)
-    return ElMessage.error("请填写表单完整");
+  if (activeTab.value === "username" && (!formData.value.username || !formData.value.password))
+    return ElMessage.error("请填写用户名和密码");
+  if (activeTab.value === "email" && (!formData.value.email || !formData.value.password))
+    return ElMessage.error("请填写邮箱和密码");
 
   try {
     for (const key in formData.value) {
       strLengthLimit(key, 32);
     }
     await reqLoginApi({
-      data: formData.value
+      data: {
+        username: activeTab.value === "username" ? formData.value.username : "",
+        email: activeTab.value === "email" ? formData.value.email : "",
+        password: formData.value.password
+      }
     });
     if (!loginData.value)
       return ElNotification({
         title: "错误",
-        message: "服务器并未返回token",
+        message: "服务器并未返回数据",
         type: "error"
       });
+    switch (loginData.value.role) {
+      case ROLE.Banned:
+        ElNotification({
+          title: "错误",
+          message: "您的账号已被封禁",
+          type: "error"
+        });
+        break;
+      case ROLE.Pending:
+        ElNotification({
+          title: "错误",
+          message: "您的账号正在审核中",
+          type: "warning"
+        });
+        break;
+      case ROLE.User:
+      case ROLE.Admin:
+      case ROLE.Root:
+        break;
+      default:
+        ElNotification({
+          title: "错误",
+          message: loginData.value.message || "登录失败",
+          type: "error"
+        });
+        break;
+    }
 
     updateToken(loginData.value.token);
     localStorage.setItem("uname", formData.value.username);
+    localStorage.setItem("email", formData.value.email);
     localStorage.setItem("password", savePwd.value ? formData.value.password : "");
 
     const state = await userInfo().execute({
@@ -104,6 +91,7 @@ const login = async () => {
     if (state.value) {
       updateUserInfo(state.value);
       localStorage.setItem("uname", state.value.username);
+      localStorage.setItem("email", state.value.email);
       ElNotification({
         title: "登录成功",
         type: "success"
@@ -115,7 +103,7 @@ const login = async () => {
     console.error(err);
     ElNotification({
       title: "错误",
-      message: err.response.data.error || err.message,
+      message: err.response?.data?.error || err.message,
       type: "error"
     });
   }
@@ -129,7 +117,7 @@ const getOAuth2Platforms = async () => {
     console.error(err);
     ElNotification({
       title: "错误",
-      message: err.response.data.error || err.message,
+      message: err.response?.data?.error || err.message,
       type: "error"
     });
   }
@@ -149,7 +137,7 @@ const useOAuth2 = async (platform: string) => {
     console.error(err);
     ElNotification({
       title: "错误",
-      message: err.response.data.error || err.message,
+      message: err.response?.data?.error || err.message,
       type: "error"
     });
   }
@@ -162,14 +150,29 @@ onMounted(async () => {
 
 <template>
   <div class="room">
-    <form @submit.prevent="" class="login-box">
-      <input
-        class="l-input"
-        type="text"
-        v-model="formData.username"
-        placeholder="用户名"
-        required
-      />
+    <form @submit.prevent="login" class="login-box">
+      <el-tabs v-model="activeTab">
+        <el-tab-pane label="用户名登录" name="username">
+          <input
+            v-if="activeTab === 'username'"
+            class="l-input"
+            type="text"
+            v-model="formData.username"
+            placeholder="用户名"
+            required
+          />
+        </el-tab-pane>
+        <el-tab-pane label="邮箱登录" name="email">
+          <input
+            v-if="activeTab === 'email'"
+            class="l-input"
+            type="email"
+            v-model="formData.email"
+            placeholder="邮箱"
+            required
+          />
+        </el-tab-pane>
+      </el-tabs>
       <br />
       <input
         class="l-input"
@@ -192,8 +195,8 @@ onMounted(async () => {
           >重置密码</a
         >
       </div>
-      <button class="btn m-[10px]" @click="login">登录</button>
-      <div v-if="settings?.emailEnable">
+      <button type="submit" class="btn m-[10px]">登录</button>
+      <div v-if="isAnySignupAllowed">
         还没有账号？<a class="ml-2" href="javascript:;" @click="router.push('/auth/register')"
           >立即注册</a
         >
@@ -208,12 +211,12 @@ onMounted(async () => {
       <button
         v-for="item in OAuth2Platforms_?.enabled"
         :class="`inline-flex items-center btn ${
-          platforms[item] ? platforms[item].class : 'btn-black'
+          oauth2Platforms[item] ? oauth2Platforms[item].class : 'btn-black'
         } m-[10px] hover:px-[10px]`"
         @click="useOAuth2(item)"
       >
         <el-image class="w-4 mr-2 rounded-lg" :src="getAppIcon(item)"> </el-image>
-        {{ platforms[item] ? platforms[item].name : item }}
+        {{ oauth2Platforms[item] ? oauth2Platforms[item].name : item }}
       </button>
     </div>
   </div>

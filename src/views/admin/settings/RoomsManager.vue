@@ -6,7 +6,7 @@ import { userStore } from "@/stores/user";
 import {
   roomListApi,
   banRoomApi,
-  unBanRoomApi,
+  unbanRoomApi,
   approveRoomApi,
   delRoomApi
 } from "@/services/apis/admin";
@@ -19,6 +19,19 @@ const props = defineProps<{
 }>();
 
 const getStatus = (rawStatus: RoomStatus) => roomStatus[rawStatus];
+
+const getStatusColor = (status: RoomStatus) => {
+  switch (status) {
+    case RoomStatus.Banned:
+      return "danger";
+    case RoomStatus.Pending:
+      return "warning";
+    case RoomStatus.Active:
+      return "success";
+    default:
+      return "info";
+  }
+};
 
 const { token } = userStore();
 const totalItems = ref(0);
@@ -61,7 +74,7 @@ const getRoomListApi = async () => {
 
 // 封禁 / 解封 房间
 const { execute: ban, isLoading: banLoading } = banRoomApi();
-const { execute: unBan, isLoading: unBanLoading } = unBanRoomApi();
+const { execute: unBan, isLoading: unbanLoading } = unbanRoomApi();
 const banRoom = async (id: string, is: boolean) => {
   try {
     const config = {
@@ -129,7 +142,6 @@ const deleteRoom = async (roomID: string) => {
       title: "删除成功",
       type: "success"
     });
-    localStorage.removeItem(`room-${roomID}-token`);
     localStorage.removeItem(`room-${roomID}-pwd`);
 
     getRoomListApi();
@@ -213,8 +225,8 @@ onMounted(async () => {
     </div>
     <div class="card-body">
       <el-table :data="state?.list" v-loading="roomListLoading" style="width: 100%">
-        <el-table-column prop="roomName" label="房间名" width="150" />
-        <el-table-column prop="roomId" label="ID" width="120">
+        <el-table-column prop="roomName" label="房间名" min-width="120" max-width="200" />
+        <el-table-column prop="roomId" label="ID" min-width="120" max-width="200">
           <template #default="scope">
             <div class="flex overflow-hidden text-ellipsis max-w-[100px]">
               <span class="truncate">{{ scope.row.roomId }}</span>
@@ -222,37 +234,47 @@ onMounted(async () => {
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="creator" label="创建人">
+        <el-table-column prop="creator" label="创建人" min-width="120" max-width="200">
           <template #default="scope">
             {{ scope.row.creator }}
           </template>
         </el-table-column>
-        <el-table-column prop="peopleNum" label="在线人数" width="80">
+        <el-table-column prop="peopleNum" label="在线人数" min-width="80" max-width="120">
           <template #default="scope">
             <el-tag disabled :type="scope.row.peopleNum > 0 ? 'success' : 'danger'">
               {{ scope.row.peopleNum }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="needPassword" label="密码保护" width="100">
+        <el-table-column prop="needPassword" label="密码保护" min-width="100" max-width="150">
           <template #default="scope">
             <el-tag disabled :type="scope.row.needPassword ? 'danger' : 'success'">
               {{ scope.row.needPassword ? "有密码" : "无密码" }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间">
+        <el-table-column prop="createdAt" label="创建时间" min-width="120" max-width="250">
           <template #default="scope">
             {{ useTimeAgo(new Date(scope.row.createdAt)).value }}
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="status" label="状态" min-width="100" max-width="150">
           <template #default="scope">
-            {{ getStatus(scope.row.status) }}
+            <el-tag :type="getStatusColor(scope.row.status)">
+              {{ getStatus(scope.row.status) }}
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作">
+        <el-table-column fixed="right" label="操作" min-width="250" max-width="350">
           <template #default="scope">
+            <el-button
+              v-if="scope.row.status === RoomStatus.Pending"
+              type="success"
+              :loading="banLoading"
+              @click="approveCreate(scope.row.roomId)"
+            >
+              允许
+            </el-button>
             <el-button
               v-if="scope.row.status !== RoomStatus.Banned"
               type="danger"
@@ -264,18 +286,10 @@ onMounted(async () => {
             <el-button
               v-else
               type="warning"
-              :loading="unBanLoading"
+              :loading="unbanLoading"
               @click="banRoom(scope.row.roomId, false)"
             >
               解封
-            </el-button>
-            <el-button
-              v-if="scope.row.status === RoomStatus.Pending"
-              type="success"
-              :loading="banLoading"
-              @click="approveCreate(scope.row.roomId)"
-            >
-              允许创建
             </el-button>
             <el-popconfirm
               width="220"
@@ -285,7 +299,7 @@ onMounted(async () => {
               @confirm="deleteRoom(scope.row.roomId)"
             >
               <template #reference>
-                <el-button plain type="danger" :loading="delRoomBtnLoading">删除房间</el-button>
+                <el-button plain type="danger" :loading="delRoomBtnLoading">删除</el-button>
               </template>
             </el-popconfirm>
           </template>

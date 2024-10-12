@@ -16,6 +16,8 @@ Artplayer.USE_RAF = true;
 Artplayer.DBCLICK_FULLSCREEN = false;
 Artplayer.SEEK_STEP = 5;
 Artplayer.PLAYBACK_RATE = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4, 5].reverse();
+Artplayer.FAST_FORWARD_VALUE = 3; // 设置长按倍速的速率
+Artplayer.FAST_FORWARD_TIME = 1000; // 设置长按加速的延迟时间（毫秒）
 
 let art: Artplayer;
 
@@ -225,7 +227,7 @@ const newPlayerOption = (html: HTMLDivElement): Option => {
     miniProgressBar: true, // 迷你进度条,播放器失去焦点后且正在播放时出现
     playsInline: true, // 在移动端是否使用 playsInline 模式
     lock: true, // 移动端显示锁定按钮
-    fastForward: false, // 移动端添加长按视频快进功能
+    fastForward: true, // 移动端添加长按视频快进功能
     autoPlayback: false, // 使用自动回放功能
     autoOrientation: false, // 移动端的网页全屏时，根据视频尺寸和视口尺寸，旋转播放器
     airplay: false, // 隔空播放
@@ -272,20 +274,71 @@ const mountPlayer = () => {
   art.on("destroy", () => {
     destroyOldCustomPlayLib(art);
   });
-  addKeyEvnet(art);
+  addHotKeyEvnet(art);
+  setSubtitleOffsetRange(art);
   Emits("get-instance", art);
 };
 
-// 全局快捷键
-const addKeyEvnet = (art: Artplayer) => {
-  const event = (e: KeyboardEvent) => {
+const setSubtitleOffsetRange = (art: Artplayer) => {
+  const setRange = () => {
+    const { $range } = art.setting.find("subtitle-offset");
+    $range.min = "-5";
+    $range.max = "5";
+    $range.step = "0.1";
+  };
+  art.on("setting", setRange);
+};
+
+const cleanHotKeyEvent = (art: Artplayer, keys: number[]) => {
+  keys.forEach((key) => {
+    art.hotkey.keys[key] = [];
+  });
+};
+
+const addHotKeyEvnet = (art: Artplayer) => {
+  cleanHotKeyEvent(art, [32, 37, 39]);
+
+  let fastForwardTimer: number | null = null;
+  let originalPlaybackRate: number | null = null;
+  let isLongPress = false;
+
+  const newStartFastForward = (rate: number) => {
+    return () => {
+      originalPlaybackRate = art.playbackRate;
+      art.playbackRate = rate;
+      isLongPress = true;
+    };
+  };
+
+  const stopFastForward = () => {
+    if (fastForwardTimer) {
+      clearTimeout(fastForwardTimer);
+      fastForwardTimer = null;
+    }
+    if (originalPlaybackRate) {
+      art.playbackRate = originalPlaybackRate;
+    }
+    isLongPress = false;
+  };
+
+  const keydownEvent = (e: KeyboardEvent) => {
     if (document.activeElement !== document.body && document.activeElement) return;
     switch (e.key) {
       case "ArrowLeft":
-        art.seek = art.currentTime - Artplayer.SEEK_STEP;
+        if (!fastForwardTimer) {
+          fastForwardTimer = window.setTimeout(
+            newStartFastForward(1 / Artplayer.FAST_FORWARD_VALUE),
+            Artplayer.FAST_FORWARD_TIME
+          );
+        }
         break;
       case "ArrowRight":
-        art.seek = art.currentTime + Artplayer.SEEK_STEP;
+        if (!fastForwardTimer) {
+          fastForwardTimer = window.setTimeout(
+            newStartFastForward(Artplayer.FAST_FORWARD_VALUE),
+            Artplayer.FAST_FORWARD_TIME
+          );
+        }
         break;
       case " ":
         art.toggle();
@@ -293,17 +346,40 @@ const addKeyEvnet = (art: Artplayer) => {
         break;
     }
   };
-  art.on("ready", () => {
-    window.addEventListener("keydown", event);
-    art.on("destroy", () => {
-      window.removeEventListener("keydown", event);
+
+  const keyupEvent = (e: KeyboardEvent) => {
+    if (document.activeElement !== document.body && document.activeElement) return;
+    switch (e.key) {
+      case "ArrowLeft":
+        if (!isLongPress) {
+          art.seek = art.currentTime - Artplayer.SEEK_STEP;
+        }
+        stopFastForward();
+        break;
+      case "ArrowRight":
+        if (!isLongPress) {
+          art.seek = art.currentTime + Artplayer.SEEK_STEP;
+        }
+        stopFastForward();
+        break;
+    }
+  };
+
+  art.once("ready", () => {
+    window.addEventListener("keydown", keydownEvent);
+    window.addEventListener("keyup", keyupEvent);
+    art.once("destroy", () => {
+      window.removeEventListener("keydown", keydownEvent);
+      window.removeEventListener("keyup", keyupEvent);
     });
-    art.on("blur", () => {
-      window.addEventListener("keydown", event);
-    });
-    art.on("focus", () => {
-      window.removeEventListener("keydown", event);
-    });
+    // art.on("blur", () => {
+    //   window.addEventListener("keydown", keydownEvent);
+    //   window.addEventListener("keyup", keyupEvent);
+    // });
+    // art.on("focus", () => {
+    //   window.removeEventListener("keydown", keydownEvent);
+    //   window.removeEventListener("keyup", keyupEvent);
+    // });
   });
 };
 

@@ -10,6 +10,9 @@ import {
 import { userStore } from "@/stores/user";
 import { getAppIcon } from "@/utils";
 import BindEmail from "@/components/user/dialogs/email.vue";
+import { indexStore } from "@/stores";
+
+const { settings } = indexStore();
 
 const { token, info, getUserInfo } = userStore();
 const bindEmailDialog = ref<InstanceType<typeof BindEmail>>();
@@ -134,10 +137,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card mb-5">
+  <div class="card mb-5" v-if="settings?.emailEnable || info?.email">
     <div class="card-title">邮箱绑定</div>
     <div class="card-body pb-4">
-      <p class="-mt-2 mb-2">绑定邮箱后，可以使用该邮箱进行重置密码操作</p>
+      <p v-if="!info?.email" class="-mt-2 mb-2">绑定邮箱后，可以使用该邮箱进行重置密码操作</p>
       <div>
         <h3 v-if="info?.email">
           <b>当前绑定邮箱：</b>
@@ -147,11 +150,21 @@ onMounted(async () => {
               <a class="text-red-500" href="javascript:;">💥解除绑定</a>
             </template>
           </el-popconfirm>
-          <a href="javascript:;" @click="bindEmailDialog?.openDialog" style="margin-left: 10px"
+          <a
+            v-if="settings?.emailEnable"
+            href="javascript:;"
+            @click="bindEmailDialog?.openDialog"
+            style="margin-left: 10px"
             >换绑</a
           >
         </h3>
-        <a v-else href="javascript:;" @click="bindEmailDialog?.openDialog">立即绑定</a>
+        <a
+          v-else
+          v-if="settings?.emailEnable"
+          href="javascript:;"
+          @click="bindEmailDialog?.openDialog"
+          >立即绑定</a
+        >
       </div>
     </div>
   </div>

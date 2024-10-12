@@ -1,170 +1,193 @@
 import { ref } from "vue";
 import { ElNotification } from "element-plus";
-import { indexStore } from "@/stores";
 import { userStore } from "@/stores/user";
 import { roomStore } from "@/stores/room";
 import router from "@/router";
-import { myRoomListApi } from "@/services/apis/user";
+import { myRoomListApi, joinedRoomApi, myJoinedRoomListApi } from "@/services/apis/user";
 import { userRoomListApi } from "@/services/apis/admin";
-import {
-  joinRoomApi,
-  checkRoomApi,
-  roomListApi,
-  hotRoom,
-  myInfoApi,
-  guestJoinRoomApi
-} from "@/services/apis/room";
+import { joinRoomApi, checkRoomApi, roomListApi, hotRoom, myInfoApi } from "@/services/apis/room";
 import { strLengthLimit } from "@/utils";
 import { storeToRefs } from "pinia";
-import { RoomMemberPermission, RoomAdminPermission } from "@/types/Room";
-
-const { settings } = indexStore();
+import { RoomMemberPermission, RoomAdminPermission, MEMBER_STATUS, RoomStatus } from "@/types/Room";
 
 // 获取用户信息
 const { info, token, isLogin } = userStore();
 const { myInfo } = storeToRefs(roomStore());
 
-export const useRoomApi = (roomId: string) => {
-  // 检查房间状态
+export const useRoomApi = () => {
   const { state: thisRoomInfo, execute: reqCheckRoomApi } = checkRoomApi();
-  const checkRoom = async (pwd: string) => {
-    try {
-      await reqCheckRoomApi({
-        params: {
-          roomId: roomId
+  const joinRoom = async (roomId: string, pwd?: string, needPwdHandler?: () => void) => {
+    await reqCheckRoomApi({
+      params: {
+        roomId: roomId
+      }
+    });
+    if (!thisRoomInfo.value) return;
+
+    switch (thisRoomInfo.value.status) {
+      case RoomStatus.Pending:
+        ElNotification({
+          title: "错误",
+          message: "房间正在审核中",
+          type: "error"
+        });
+        return;
+      case RoomStatus.Banned:
+        ElNotification({
+          title: "错误",
+          message: "房间已被封禁",
+          type: "error"
+        });
+        return;
+      case RoomStatus.Active:
+        break;
+      default:
+        ElNotification({
+          title: "错误",
+          message: "未知错误",
+          type: "error"
+        });
+        return;
+    }
+
+    if (thisRoomInfo.value.enabledGuest) {
+      router.replace(`/cinema/${roomId}`);
+      return;
+    } else if (isLogin.value) {
+      if (info.value?.username === thisRoomInfo.value.creator) {
+        router.replace(`/cinema/${roomId}`);
+        return;
+      }
+
+      return await _joinRoom(roomId, pwd, needPwdHandler, thisRoomInfo.value.needPassword);
+    } else {
+      router.replace({
+        name: "login",
+        query: {
+          redirect: router.currentRoute.value.fullPath
         }
       });
-      if (!thisRoomInfo.value) return;
-
-      if (isLogin.value) {
-        if (info.value?.username === thisRoomInfo.value.creator) {
-          return await joinRoom({ roomId, password: pwd });
-        }
-
-        if (thisRoomInfo.value.needPassword) {
-          if (pwd) return await joinRoom({ roomId, password: pwd });
-        }
-      } else if (settings?.guestEnable) {
-        if (thisRoomInfo.value.needPassword) {
-          if (pwd) return await guestJoinRoom({ roomId, password: pwd });
-        } else {
-          return await guestJoinRoom({
-            roomId,
-            password: pwd
-          });
-        }
-      } else {
-        router.replace({
-          name: "login",
-          query: {
-            redirect: router.currentRoute.value.fullPath
-          }
-        });
-        throw new Error("请先登录");
-      }
-    } catch (err: any) {
-      console.error(err);
       ElNotification({
         title: "错误",
-        message: err.response?.data.error || err.message,
+        message: "请先登录",
         type: "error"
       });
+      return;
     }
   };
 
   // 加入房间
   const { state: joinRoomInfo, execute: reqJoinRoomApi } = joinRoomApi();
-  const joinRoom = async (formData: { roomId: string; password: string }) => {
-    if (!formData.roomId) {
+  const { state: joinedRoom, execute: reqJoinedRoomApi } = joinedRoomApi();
+  const _joinRoom = async (
+    roomId: string,
+    password?: string,
+    needPwdHandler?: () => void,
+    mustPwd?: boolean
+  ) => {
+    if (!roomId) {
       ElNotification({
         title: "错误",
-        message: "请填写表单完整",
+        message: "房间号不能为空",
         type: "error"
       });
       return;
     }
-    for (const key in formData) {
-      strLengthLimit(key, 32);
+    await reqJoinedRoomApi({
+      params: {
+        roomId: roomId
+      },
+      headers: {
+        Authorization: token.value
+      }
+    });
+    if (joinedRoom.value!.joined) {
+      switch (joinedRoom.value!.status) {
+        case MEMBER_STATUS.Pending:
+          ElNotification({
+            title: "错误",
+            message: "等待管理员通过",
+            type: "warning"
+          });
+          break;
+        case MEMBER_STATUS.Banned:
+          ElNotification({
+            title: "错误",
+            message: "你已被管理员封禁",
+            type: "error"
+          });
+          break;
+        case MEMBER_STATUS.Active:
+          ElNotification({
+            title: "加入成功",
+            type: "success"
+          });
+          if (password) localStorage.setItem(`room-${roomId}-pwd`, password);
+          router.replace(`/cinema/${roomId}`);
+          break;
+        default:
+          ElNotification({
+            title: "错误",
+            message: "未知错误",
+            type: "error"
+          });
+          break;
+      }
+      return;
     }
-    try {
-      await reqJoinRoomApi({
-        data: formData,
-        headers: {
-          Authorization: token.value
-        }
-      });
-      if (!joinRoomInfo.value)
-        return ElNotification({
-          title: "错误",
-          message: "服务器并未返回token",
-          type: "error"
-        });
-      localStorage.setItem(`room-${joinRoomInfo.value.roomId}-token`, joinRoomInfo.value?.token);
-      if (formData.password)
-        localStorage.setItem(`room-${joinRoomInfo.value.roomId}-pwd`, formData.password);
 
-      await getMyInfo(joinRoomInfo.value.token);
-      ElNotification({
-        title: "加入成功",
-        type: "success"
-      });
+    if (mustPwd && !password) {
+      if (needPwdHandler) {
+        needPwdHandler();
+        return;
+      }
+      throw new Error("该房间需要密码，请输入密码");
+    }
 
-      router.replace(`/cinema/${joinRoomInfo.value.roomId}`);
-    } catch (err: any) {
-      console.error(err);
+    await reqJoinRoomApi({
+      data: { roomId, password: password! },
+      headers: {
+        Authorization: token.value
+      }
+    });
+    if (!joinRoomInfo.value) {
       ElNotification({
         title: "错误",
-        message: err.response.data.error || err.message,
-        type: "error"
-      });
-    }
-  };
-
-  // 加入房间（访客）
-  const { state: guestJoinRoomInfo, execute: reqGuestJoinRoomApi } = guestJoinRoomApi();
-  const guestJoinRoom = async (formData: { roomId: string; password: string }) => {
-    if (!formData.roomId) {
-      ElNotification({
-        title: "错误",
-        message: "请填写表单完整",
+        message: "服务器并未返回数据",
         type: "error"
       });
       return;
     }
-    for (const key in formData) {
-      strLengthLimit(key, 32);
-    }
-    try {
-      await reqGuestJoinRoomApi({
-        data: formData
-      });
-      if (!guestJoinRoomInfo.value)
-        return ElNotification({
+    switch (joinRoomInfo.value.status) {
+      case MEMBER_STATUS.Pending:
+        ElNotification({
           title: "错误",
-          message: "服务器并未返回token",
+          message: "等待管理员通过",
+          type: "warning"
+        });
+        break;
+      case MEMBER_STATUS.Banned:
+        ElNotification({
+          title: "错误",
+          message: "你已被管理员封禁",
           type: "error"
         });
-      localStorage.setItem(
-        `room-${guestJoinRoomInfo.value.roomId}-token`,
-        guestJoinRoomInfo.value?.token
-      );
-      if (formData.password)
-        localStorage.setItem(`room-${guestJoinRoomInfo.value.roomId}-pwd`, formData.password);
-
-      await getMyInfo(guestJoinRoomInfo.value.token);
-      ElNotification({
-        title: "加入成功",
-        type: "success"
-      });
-
-      router.replace(`/cinema/${guestJoinRoomInfo.value.roomId}`);
-    } catch (err: any) {
-      console.error(err);
-      ElNotification({
-        title: "错误",
-        message: err.response.data.error || err.message,
-        type: "error"
-      });
+        break;
+      case MEMBER_STATUS.Active:
+        ElNotification({
+          title: "加入成功",
+          type: "success"
+        });
+        if (password) localStorage.setItem(`room-${roomId}-pwd`, password);
+        router.replace(`/cinema/${roomId}`);
+        break;
+      default:
+        ElNotification({
+          title: "错误",
+          message: "未知错误",
+          type: "error"
+        });
+        break;
     }
   };
 
@@ -231,6 +254,44 @@ export const useRoomApi = (roomId: string) => {
 
       if (myRoomList.value) {
         totalItems.value = myRoomList.value.total;
+      }
+
+      showMsg &&
+        ElNotification({
+          title: "更新列表成功",
+          type: "success"
+        });
+    } catch (err: any) {
+      console.error(err.message);
+      ElNotification({
+        title: "错误",
+        message: err.response.data.error || err.message,
+        type: "error"
+      });
+    }
+  };
+
+  // 我加入的房间列表
+  const { state: myJoinedRoomList, execute: reqMyJoinedRoomList } = myJoinedRoomListApi();
+  const getMyJoinedRoomList = async (showMsg = false) => {
+    try {
+      await reqMyJoinedRoomList({
+        params: {
+          page: currentPage.value,
+          max: pageSize.value,
+          sort: sort.value,
+          order: order.value,
+          search: search.value,
+          keyword: keyword.value,
+          status: status.value
+        },
+        headers: {
+          Authorization: token.value
+        }
+      });
+
+      if (myJoinedRoomList.value) {
+        totalItems.value = myJoinedRoomList.value.total;
       }
 
       showMsg &&
@@ -323,31 +384,21 @@ export const useRoomApi = (roomId: string) => {
 
   // 我的信息
   const { state: _myInfo, execute: reqMyInfoApi } = myInfoApi();
-  const getMyInfo = async (roomToken: string) => {
-    try {
-      await reqMyInfoApi({
-        headers: {
-          Authorization: roomToken
-        }
-      });
-
-      if (_myInfo.value) {
-        myInfo.value = _myInfo.value;
+  const getMyInfo = async (roomId: string) => {
+    await reqMyInfoApi({
+      headers: {
+        Authorization: token.value,
+        "X-Room-Id": roomId
       }
-    } catch (err: any) {
-      console.error(err.message);
-      ElNotification({
-        title: "错误",
-        message: err.response.data.error || err.message,
-        type: "error"
-      });
+    });
+
+    if (_myInfo.value) {
+      myInfo.value = _myInfo.value;
     }
   };
 
   return {
-    checkRoom,
     thisRoomInfo,
-
     joinRoom,
     joinRoomInfo,
 
@@ -365,6 +416,9 @@ export const useRoomApi = (roomId: string) => {
     getMyRoomList,
     myRoomList,
 
+    getMyJoinedRoomList,
+    myJoinedRoomList,
+
     getUserRoomList,
     userRoomList,
     userRoomListLoading,
@@ -373,10 +427,7 @@ export const useRoomApi = (roomId: string) => {
     hotRoomList,
 
     getMyInfo,
-    myInfo,
-
-    guestJoinRoom,
-    guestJoinRoomInfo
+    myInfo
   };
 };
 
