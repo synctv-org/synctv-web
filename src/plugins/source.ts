@@ -1,4 +1,4 @@
-import type Artplayer from "artplayer";
+import Artplayer from "artplayer";
 import { destroyOldCustomPlayLib } from "@/utils";
 
 interface artplayPluginSource {
@@ -33,13 +33,22 @@ export function artplayPluginSource(sources: artplayPluginSource[]) {
         if (art.controls["source"]) art.controls.remove("source");
         if (art.setting.find("source")) art.setting.remove("source");
       } else {
-        art.controls.update({
-          name: "source",
-          position: "right",
-          html: "源",
-          selector: newSources,
-          onSelect
-        });
+        const isMobile = Artplayer.utils.isMobile;
+        const updateControls = () => {
+          if (!isMobile || art.fullscreen) {
+            art.controls.update({
+              name: "source",
+              position: "right",
+              html: "源",
+              selector: newSources,
+              onSelect
+            });
+          } else if (art.controls["source"]) {
+            art.controls.remove("source");
+          }
+        };
+
+        updateControls();
         art.setting.update({
           name: "source",
           position: "right",
@@ -47,6 +56,10 @@ export function artplayPluginSource(sources: artplayPluginSource[]) {
           selector: newSources,
           onSelect
         });
+
+        if (isMobile) {
+          art.on("fullscreen", updateControls);
+        }
       }
     };
     const updateSources = (newSources: artplayPluginSource[]) => {

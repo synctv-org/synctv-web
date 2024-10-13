@@ -2,7 +2,7 @@ import { debounces } from "@/utils";
 import { useDebounceFn } from "@vueuse/core";
 import { type WatchStopHandle } from "vue";
 import { Message, MessageType, Status } from "@/proto/message";
-import type Artplayer from "artplayer";
+import Artplayer from "artplayer";
 import { ElNotification } from "element-plus";
 
 const artPlay = async (art: Artplayer) => {
@@ -43,9 +43,6 @@ interface syncPlugin {
 const debounceTime = 500;
 
 const newSyncControl = (art: Artplayer, publishStatus: (msg: Message) => boolean) => {
-  if (art.controls.syncControl) {
-    art.controls.remove("syncControl");
-  }
   const syncControl = () => {
     publishStatus(
       Message.create({
@@ -53,13 +50,16 @@ const newSyncControl = (art: Artplayer, publishStatus: (msg: Message) => boolean
       })
     );
   };
+
   art.controls.add({
-    name: "syncControl",
+    name: "syncPlugin",
     html: "同步",
     position: "right",
     click: syncControl
   });
+
   art.setting.add({
+    name: "syncPlugin",
     html: "同步状态",
     selector: [
       {

@@ -32,6 +32,7 @@ import { artplayPluginSource } from "@/plugins/source";
 import { currentMovieApi } from "@/services/apis/movie";
 import { userStore } from "@/stores/user";
 import { roomInfoApi } from "@/services/apis/room";
+import { artplayerSubtitle } from "@/plugins/subtitle";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
@@ -201,7 +202,7 @@ const playerOption = computed<options>(() => {
       }
     }
 
-    option.plugins!.push(newLazyInitSubtitlePlugin(subtitle));
+    option.plugins!.push(artplayerSubtitle(subtitle));
     // return;
     useAssPlugin &&
       option.plugins!.push(
@@ -214,19 +215,6 @@ const playerOption = computed<options>(() => {
 
   return option;
 });
-
-const newLazyInitSubtitlePlugin = (subtitle: Subtitles) => {
-  const subtitleP = import("@/plugins/subtitle");
-  return async (art: Artplayer) => {
-    console.log("加载字幕插件中...");
-    const subtitlePlugin = await subtitleP;
-    art.controls.add(subtitlePlugin.newSubtitleControl(subtitle));
-    art.setting.add(subtitlePlugin.newSubtitleControl(subtitle));
-    return {
-      name: "subtitle"
-    };
-  };
-};
 
 const { state: currentMovie, execute: reqCurrentMovieApi } = currentMovieApi();
 const updateSources = async () => {

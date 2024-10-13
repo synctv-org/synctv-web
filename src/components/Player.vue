@@ -372,14 +372,6 @@ const addHotKeyEvnet = (art: Artplayer) => {
       window.removeEventListener("keydown", keydownEvent);
       window.removeEventListener("keyup", keyupEvent);
     });
-    // art.on("blur", () => {
-    //   window.addEventListener("keydown", keydownEvent);
-    //   window.addEventListener("keyup", keyupEvent);
-    // });
-    // art.on("focus", () => {
-    //   window.removeEventListener("keydown", keydownEvent);
-    //   window.removeEventListener("keyup", keyupEvent);
-    // });
   });
 };
 

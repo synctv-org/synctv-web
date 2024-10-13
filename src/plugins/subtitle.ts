@@ -1,5 +1,4 @@
-import type Artplayer from "artplayer";
-import type { ComponentOption } from "artplayer/types/component";
+import Artplayer from "artplayer";
 import type { Events } from "artplayer/types/events";
 
 const newSubtitleHtml = (name: string): HTMLElement => {
@@ -13,45 +12,63 @@ const newSubtitleHtml = (name: string): HTMLElement => {
   return SubtitleHtml;
 };
 
-export const newSubtitleControl = (
-  subtitles: Record<
-    string,
-    {
-      url: string;
-      type: string;
-    }
-  >,
-  controlName: string = "subtitle"
-): ComponentOption => {
-  subtitles["关闭"] = {
-    url: "",
-    type: ""
-  };
-  const subtitleHTML = newSubtitleHtml("字幕");
-  return {
-    name: controlName,
-    html: subtitleHTML,
-    position: "right",
-    selector: Object.keys(subtitles).map((key) => {
-      return {
-        html: key,
-        url: subtitles[key].url,
-        type: subtitles[key].type
-      };
-    }),
-    onSelect(this: Artplayer, selector: any) {
-      if (selector.html === "关闭") {
-        this.subtitle.show = false;
-        this.emit("artplayer-plugin-ass:visible" as keyof Events, false);
-      } else if (selector.type.toLowerCase() === "ass") {
-        this.subtitle.show = false;
-        this.emit("artplayer-plugin-ass:switch" as keyof Events, selector.url);
+export function artplayerSubtitle(subtitles: Record<string, { url: string; type: string }>) {
+  return (art: Artplayer) => {
+    subtitles["关闭"] = { url: "", type: "" };
+    const subtitleHTML = newSubtitleHtml("字幕");
+
+    const selector = Object.keys(subtitles).map((key) => ({
+      html: key,
+      url: subtitles[key].url,
+      type: subtitles[key].type
+    }));
+
+    const onSelect = (item: any) => {
+      if (item.html === "关闭") {
+        art.subtitle.show = false;
+        art.emit("artplayer-plugin-ass:visible" as keyof Events, false);
+      } else if (item.type.toLowerCase() === "ass") {
+        art.subtitle.show = false;
+        art.emit("artplayer-plugin-ass:switch" as keyof Events, item.url);
       } else {
-        this.emit("artplayer-plugin-ass:visible" as keyof Events, false);
-        this.subtitle.switch(selector.url, { type: selector.type });
-        this.subtitle.show = true;
+        art.emit("artplayer-plugin-ass:visible" as keyof Events, false);
+        art.subtitle.switch(item.url, { type: item.type });
+        art.subtitle.show = true;
       }
       return subtitleHTML.outerHTML;
+    };
+
+    const isMobile = Artplayer.utils.isMobile;
+
+    const updateControls = () => {
+      if (!isMobile || art.fullscreen) {
+        art.controls.update({
+          name: "subtitle",
+          position: "right",
+          html: subtitleHTML.outerHTML,
+          selector: selector,
+          onSelect
+        });
+      } else if (art.controls["subtitle"]) {
+        art.controls.remove("subtitle");
+      }
+    };
+
+    updateControls();
+
+    art.setting.update({
+      name: "subtitle",
+      html: subtitleHTML.outerHTML,
+      selector: selector,
+      onSelect
+    });
+
+    if (isMobile) {
+      art.on("fullscreen", updateControls);
     }
+
+    return {
+      name: "artplayerSubtitle"
+    };
   };
-};
+}
