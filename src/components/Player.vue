@@ -245,6 +245,7 @@ const newPlayerOption = (html: HTMLDivElement): Option => {
     customType: {
       flv: playFlv,
       m3u8: playM3u8,
+      m3u: playM3u8,
       mpd: playMpd,
       mes: playMse,
       ts: playMpegts,

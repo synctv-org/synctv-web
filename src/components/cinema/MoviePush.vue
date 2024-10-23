@@ -43,7 +43,6 @@ enum pushType {
   MOVIE = 0,
   DIR,
   LIVE,
-  PROXY_LIVE,
   RTMP_SOURCE,
   BILIBILI,
   ALIST,
@@ -102,7 +101,7 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
       name: "直播流",
       comment: "",
       advanced: true,
-      showProxy: false,
+      showProxy: true,
       defaultType: "",
       allowedTypes: [
         {
@@ -118,17 +117,6 @@ const movieTypeRecords: Map<pushType, movieTypeRecord> = new Map([
           value: "m3u8"
         }
       ]
-    }
-  ],
-  [
-    pushType.PROXY_LIVE,
-    {
-      name: "代理直播流",
-      comment: "仅支持rtmp和flv代理",
-      advanced: true,
-      showProxy: false,
-      defaultType: "",
-      allowedTypes: []
     }
   ],
   [
@@ -223,17 +211,6 @@ const selectPushType = () => {
         proxy: false,
         live: true,
         rtmpSource: true,
-        headers: {}
-      };
-      break;
-    case pushType.PROXY_LIVE:
-      newMovieInfo.value = {
-        url: newMovieInfo.value.url,
-        name: newMovieInfo.value.name,
-        type: movieTypeRecords.get(selectedMovieType.value)?.defaultType || "",
-        proxy: true,
-        live: true,
-        rtmpSource: false,
         headers: {}
       };
       break;
@@ -423,11 +400,7 @@ const getBiliBiliVendors = async () => {
     <div class="card-body flex justify-around flex-wrap">
       <div
         class="w-full"
-        v-if="
-          selectedMovieType === pushType.MOVIE ||
-          selectedMovieType === pushType.LIVE ||
-          selectedMovieType === pushType.PROXY_LIVE
-        "
+        v-if="selectedMovieType === pushType.MOVIE || selectedMovieType === pushType.LIVE"
       >
         <input
           type="text"
