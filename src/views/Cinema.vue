@@ -22,12 +22,10 @@ import type { options } from "@/components/Player.vue";
 import RoomInfo from "@/components/cinema/RoomInfo.vue";
 import MovieList from "@/components/cinema/MovieList.vue";
 import MoviePush from "@/components/cinema/MoviePush.vue";
-import type { Subtitles } from "@/types/Movie";
 import { RoomMemberPermission } from "@/types/Room";
 import artplayerPluginAss from "@/plugins/artplayer-plugin-ass";
 import { newSyncPlugin } from "@/plugins/sync";
-import artplayerPluginQuality from "@/plugins/quality";
-import artplayerPluginAudioTrack from "@/plugins/audio";
+import artplayerPluginMediaControl from "@/plugins/control";
 import { artplayPluginSource } from "@/plugins/source";
 import { currentMovieApi } from "@/services/apis/movie";
 import { userStore } from "@/stores/user";
@@ -162,10 +160,7 @@ const playerOption = computed<options>(() => {
       }),
       // WARN: room.currentStatus 变了会导致重载
       newSyncPlugin(sendElement, room.currentStatus, () => room.currentExpireId),
-      // 画质
-      artplayerPluginQuality(),
-      // 音轨
-      artplayerPluginAudioTrack()
+      artplayerPluginMediaControl()
     ]
   };
 

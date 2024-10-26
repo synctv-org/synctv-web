@@ -276,18 +276,7 @@ const mountPlayer = () => {
     destroyOldCustomPlayLib(art);
   });
   addHotKeyEvnet(art);
-  setSubtitleOffsetRange(art);
   Emits("get-instance", art);
-};
-
-const setSubtitleOffsetRange = (art: Artplayer) => {
-  const setRange = () => {
-    const { $range } = art.setting.find("subtitle-offset");
-    $range.min = "-5";
-    $range.max = "5";
-    $range.step = "0.1";
-  };
-  art.on("setting", setRange);
 };
 
 const cleanHotKeyEvent = (art: Artplayer, keys: number[]) => {
