@@ -15,6 +15,8 @@ const switchSource = (art: Artplayer, source: artplayPluginSource) => {
   });
   if (art.controls["quality"]) art.controls.remove("quality");
   if (art.setting.find("quality")) art.setting.remove("quality");
+  if (art.controls["audio"]) art.controls.remove("audio");
+  if (art.setting.find("audio")) art.setting.remove("audio");
   destroyOldCustomPlayLib(art);
   art.option.type = source.type;
   art.url = source.url;
