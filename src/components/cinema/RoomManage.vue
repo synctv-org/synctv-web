@@ -87,7 +87,7 @@ const { updateSet, isUpdating } = useUpdateRoomSettings(Props.token, Props.roomI
 
 // 更新房间密码
 const password = ref("");
-const { state: newToken, execute: reqUpdateRoomPasswordApi } = updateRoomPasswordApi();
+const { execute: reqUpdateRoomPasswordApi } = updateRoomPasswordApi();
 const changePassword = async () => {
   try {
     strLengthLimit(password.value, 32);
@@ -101,16 +101,11 @@ const changePassword = async () => {
       }
     });
 
-    if (newToken.value) {
-      ElNotification({
-        title: "更新成功",
-        type: "success"
-      });
-      roomPwd.value = password.value;
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    }
+    ElNotification({
+      title: "更新成功",
+      type: "success"
+    });
+    roomPwd.value = password.value;
   } catch (err: any) {
     console.error(err);
     ElNotification({

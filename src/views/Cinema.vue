@@ -420,7 +420,7 @@ onMounted(async () => {
 
   // 获取用户信息
   try {
-    if (!myInfo.value) await getMyInfo(roomID.value);
+    await getMyInfo(roomID.value);
   } catch (err: any) {
     console.error(err);
     ElNotification({

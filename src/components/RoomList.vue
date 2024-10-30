@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { nextTick, onMounted, ref, watch } from "vue";
 import { ElNotification, ElMessageBox } from "element-plus";
 import {
   roomStatus,
@@ -75,9 +75,7 @@ const getRoomList = async (showMsg = false) => {
 };
 
 const JoinRoomDialog = ref(false);
-const JoinRoomC = ref<InstanceType<typeof JoinRoom>>();
 const openJoinRoomDialog = () => {
-  JoinRoomC.value?.init();
   JoinRoomDialog.value = true;
 };
 const joinThisRoom = async (item: RoomList) => {
@@ -387,12 +385,16 @@ const exitRoom = async (roomId: string) => {
     </div>
   </div>
 
-  <el-dialog v-model="JoinRoomDialog" class="rounded-lg dark:bg-zinc-800 w-[443px] max-sm:w-[90%]">
+  <el-dialog
+    v-model="JoinRoomDialog"
+    :destroy-on-close="true"
+    class="rounded-lg dark:bg-zinc-800 w-[443px] max-sm:w-[90%]"
+  >
     <template #header>
       <div class="overflow-hidden text-ellipsis">
         <span class="truncate">加入房间</span>
       </div>
     </template>
-    <JoinRoom :item="formData" ref="joinRoomC" :disableInitReq="true" />
+    <JoinRoom :item="formData" :disableInitReq="true" />
   </el-dialog>
 </template>
