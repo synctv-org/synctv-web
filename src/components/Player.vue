@@ -275,7 +275,7 @@ const mountPlayer = () => {
   art.on("destroy", () => {
     destroyOldCustomPlayLib(art);
   });
-  addHotKeyEvnet(art);
+  // addHotKeyEvnet(art);
   Emits("get-instance", art);
 };
 
@@ -285,85 +285,85 @@ const cleanHotKeyEvent = (art: Artplayer, keys: number[]) => {
   });
 };
 
-const addHotKeyEvnet = (art: Artplayer) => {
-  cleanHotKeyEvent(art, [32, 37, 39]);
+// const addHotKeyEvnet = (art: Artplayer) => {
+//   cleanHotKeyEvent(art, [32, 37, 39]);
 
-  let fastForwardTimer: number | null = null;
-  let originalPlaybackRate: number | null = null;
-  let isLongPress = false;
+//   let fastForwardTimer: number | null = null;
+//   let originalPlaybackRate: number | null = null;
+//   let isLongPress = false;
 
-  const newStartFastForward = (rate: number) => {
-    return () => {
-      originalPlaybackRate = art.playbackRate;
-      art.playbackRate = rate;
-      isLongPress = true;
-    };
-  };
+//   const newStartFastForward = (rate: number) => {
+//     return () => {
+//       originalPlaybackRate = art.playbackRate;
+//       art.playbackRate = rate;
+//       isLongPress = true;
+//     };
+//   };
 
-  const stopFastForward = () => {
-    if (fastForwardTimer) {
-      clearTimeout(fastForwardTimer);
-      fastForwardTimer = null;
-    }
-    if (originalPlaybackRate) {
-      art.playbackRate = originalPlaybackRate;
-    }
-    isLongPress = false;
-  };
+//   const stopFastForward = () => {
+//     if (fastForwardTimer) {
+//       clearTimeout(fastForwardTimer);
+//       fastForwardTimer = null;
+//     }
+//     if (originalPlaybackRate) {
+//       art.playbackRate = originalPlaybackRate;
+//     }
+//     isLongPress = false;
+//   };
 
-  const keydownEvent = (e: KeyboardEvent) => {
-    if (document.activeElement !== document.body && document.activeElement) return;
-    switch (e.key) {
-      case "ArrowLeft":
-        if (!fastForwardTimer) {
-          fastForwardTimer = window.setTimeout(
-            newStartFastForward(1 / Artplayer.FAST_FORWARD_VALUE),
-            Artplayer.FAST_FORWARD_TIME
-          );
-        }
-        break;
-      case "ArrowRight":
-        if (!fastForwardTimer) {
-          fastForwardTimer = window.setTimeout(
-            newStartFastForward(Artplayer.FAST_FORWARD_VALUE),
-            Artplayer.FAST_FORWARD_TIME
-          );
-        }
-        break;
-      case " ":
-        art.toggle();
-        e.preventDefault();
-        break;
-    }
-  };
+//   const keydownEvent = (e: KeyboardEvent) => {
+//     if (document.activeElement !== document.body && document.activeElement) return;
+//     switch (e.key) {
+//       case "ArrowLeft":
+//         if (!fastForwardTimer) {
+//           fastForwardTimer = window.setTimeout(
+//             newStartFastForward(1 / Artplayer.FAST_FORWARD_VALUE),
+//             Artplayer.FAST_FORWARD_TIME
+//           );
+//         }
+//         break;
+//       case "ArrowRight":
+//         if (!fastForwardTimer) {
+//           fastForwardTimer = window.setTimeout(
+//             newStartFastForward(Artplayer.FAST_FORWARD_VALUE),
+//             Artplayer.FAST_FORWARD_TIME
+//           );
+//         }
+//         break;
+//       case " ":
+//         art.toggle();
+//         e.preventDefault();
+//         break;
+//     }
+//   };
 
-  const keyupEvent = (e: KeyboardEvent) => {
-    if (document.activeElement !== document.body && document.activeElement) return;
-    switch (e.key) {
-      case "ArrowLeft":
-        if (!isLongPress) {
-          art.seek = art.currentTime - Artplayer.SEEK_STEP;
-        }
-        stopFastForward();
-        break;
-      case "ArrowRight":
-        if (!isLongPress) {
-          art.seek = art.currentTime + Artplayer.SEEK_STEP;
-        }
-        stopFastForward();
-        break;
-    }
-  };
+//   const keyupEvent = (e: KeyboardEvent) => {
+//     if (document.activeElement !== document.body && document.activeElement) return;
+//     switch (e.key) {
+//       case "ArrowLeft":
+//         if (!isLongPress) {
+//           art.seek = art.currentTime - Artplayer.SEEK_STEP;
+//         }
+//         stopFastForward();
+//         break;
+//       case "ArrowRight":
+//         if (!isLongPress) {
+//           art.seek = art.currentTime + Artplayer.SEEK_STEP;
+//         }
+//         stopFastForward();
+//         break;
+//     }
+//   };
 
-  art.once("ready", () => {
-    window.addEventListener("keydown", keydownEvent);
-    window.addEventListener("keyup", keyupEvent);
-    art.once("destroy", () => {
-      window.removeEventListener("keydown", keydownEvent);
-      window.removeEventListener("keyup", keyupEvent);
-    });
-  });
-};
+//   art.once("ready", () => {
+//     window.addEventListener("keydown", keydownEvent);
+//     window.addEventListener("keyup", keyupEvent);
+//     art.once("destroy", () => {
+//       window.removeEventListener("keydown", keydownEvent);
+//       window.removeEventListener("keyup", keyupEvent);
+//     });
+//   });
+// };
 
 onMounted(() => {
   mountPlayer();
