@@ -342,7 +342,7 @@ const confirmCancelPlayback = async () => {
   <!-- 编辑 Header -->
   <customHeaders
     ref="customHeadersDialog"
-    :customHeader="cMovieInfo.headers"
+    :headers="cMovieInfo.headers"
     @updateHeaders="updateHeaders"
   />
 

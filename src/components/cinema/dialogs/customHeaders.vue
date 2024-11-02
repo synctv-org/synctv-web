@@ -3,7 +3,9 @@ import { onMounted, ref, reactive } from "vue";
 import { ElNotification, ElMessage } from "element-plus";
 
 const props = defineProps<{
-  customHeader: any;
+  headers: {
+    [key: string]: string;
+  };
 }>();
 
 const rArray = reactive<{ [propName: string]: string }[]>([]);
@@ -12,8 +14,8 @@ const emit = defineEmits(["updateHeaders"]);
 
 const open = ref(false);
 const openDialog = () => {
-  Object.keys(props.customHeader ?? {}).map((key: any) => {
-    rArray.push({ [key]: props.customHeader[key] });
+  Object.keys(props.headers).map((key: any) => {
+    rArray.push({ [key]: props.headers[key] });
   });
   open.value = true;
 };

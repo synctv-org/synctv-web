@@ -276,10 +276,8 @@ const selectPushType = () => {
   newMovieInfo.value.type = movieTypeRecords.get(selectedMovieType.value)?.defaultType || "";
 };
 
-const stringHeader = ref(JSON.stringify(newMovieInfo.value.headers));
-
-const updateHeaders = (header: { [key: string]: string }) => {
-  newMovieInfo.value.headers = header;
+const updateHeaders = (headers: { [key: string]: string }) => {
+  newMovieInfo.value.headers = headers;
 };
 
 const updateSubtitles = (
@@ -318,10 +316,6 @@ const pushMovie = async () => {
   }
 
   try {
-    console.log(stringHeader.value);
-    console.log(JSON.parse(stringHeader.value));
-
-    newMovieInfo.value.headers = JSON.parse(stringHeader.value);
     for (const key in newMovieInfo.value) {
       strLengthLimit(key, 32);
     }
@@ -531,7 +525,7 @@ const getBiliBiliVendors = async () => {
   <!-- 自定义Header对话框 -->
   <customHeaders
     ref="customHeadersDialog"
-    :custom-header="newMovieInfo.headers"
+    :headers="newMovieInfo.headers"
     @updateHeaders="updateHeaders"
   />
 
