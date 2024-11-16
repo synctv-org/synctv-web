@@ -61,13 +61,14 @@ export const useSettings = () => {
   const defaultProxySettings: Map<string, settingType> = new Map([
     ["allow_proxy_to_local", { value: false, name: "允许代理到本机地址" }],
     ["live_proxy", { value: false, name: "允许代理直播流" }],
-    ["movie_proxy", { value: false, name: "允许代理普通视频" }]
+    ["movie_proxy", { value: false, name: "允许代理普通视频" }],
+    ["proxy_cache_enable", { value: false, name: "缓存代理视频" }]
   ]);
 
   const defaultRtmpSettings: Map<string, settingType> = new Map([
     [
       "custom_publish_host",
-      { value: "", placeholder: "example.com:1935", name: "自定义推流 Host" }
+      { value: "", placeholder: "example.com:1935", name: "自定义推流 Host", comment: "用户推流时使用的 Host" }
     ],
     [
       "rtmp_player",
@@ -77,7 +78,7 @@ export const useSettings = () => {
         name: "允许使用 RTMP 播放器"
       }
     ],
-    ["ts_disguised_as_png", { value: false, name: "ts伪装成png图片" }]
+    ["ts_disguised_as_png", { value: false, name: "ts伪装成png图片", comment: "m3u8 的 ts 文件可被 CDN 缓存" }]
   ]);
 
   const defaultUserSettings: Map<string, settingType> = new Map([
@@ -121,7 +122,7 @@ export const useSettings = () => {
   ]);
 
   const defaultServerSettings: Map<string, settingType> = new Map([
-    ["host", { value: false, name: "host" }],
+    ["host", { value: false, name: "HOST", comment: "用于邮件、OAuth2 等" }],
     ["version", { value: false, name: "版本", disabled: true }]
   ]);
 
