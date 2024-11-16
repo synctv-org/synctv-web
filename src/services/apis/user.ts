@@ -97,7 +97,7 @@ export const oAuth2Platforms = useDefineApi<
   },
   {
     [platform: string]: {
-      providerUserID: string;
+      providerUserId: string;
       createdAt: number;
     };
   }
@@ -142,7 +142,7 @@ export const getBindEmailCaptchaApi = useDefineApi<
     };
   },
   {
-    captchaID: string;
+    captchaId: string;
     captchaBase64: string;
   }
 >({
@@ -158,7 +158,7 @@ export const sendBindEmailCodeApi = useDefineApi<
     };
     data: {
       email: string;
-      captchaID: string;
+      captchaId: string;
       answer: string;
     };
   },

@@ -18,7 +18,7 @@ const { token, info, getUserInfo } = userStore();
 const bindEmailDialog = ref<InstanceType<typeof BindEmail>>();
 interface ProviderType {
   name: string;
-  providerUserID: string;
+  providerUserId: string;
   createdAt: number;
 }
 
@@ -42,13 +42,13 @@ const getProviders = async () => {
         if (state.value[key].createdAt === 0) {
           unbind.value.push({
             name: key,
-            providerUserID: state.value[key].providerUserID,
+            providerUserId: state.value[key].providerUserId,
             createdAt: state.value[key].createdAt
           });
         } else {
           bind.value.push({
             name: key,
-            providerUserID: state.value[key].providerUserID,
+            providerUserId: state.value[key].providerUserId,
             createdAt: state.value[key].createdAt
           });
         }
@@ -182,7 +182,7 @@ onMounted(async () => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="providerUserID" label="账号ID" />
+        <el-table-column prop="providerUserId" label="账号ID" />
         <el-table-column prop="createdAt" label="绑定时间">
           <template #default="scope">
             {{ new Date(scope.row.createdAt).toLocaleString() }}

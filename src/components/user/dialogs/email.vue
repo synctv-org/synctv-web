@@ -12,7 +12,7 @@ const emit = defineEmits(["updateUInfo"]);
 interface FormData {
   email: string;
   captcha: string;
-  captchaID: string;
+  captchaId: string;
   answer: string;
 }
 
@@ -27,7 +27,7 @@ const formDataRef = ref<FormInstance>();
 const formData = reactive<FormData>({
   email: "",
   captcha: "",
-  captchaID: "",
+  captchaId: "",
   answer: ""
 });
 const rules = reactive<FormRules<FormData>>({
@@ -67,7 +67,7 @@ const toSendEmailCode = async () => {
       },
       data: {
         email,
-        captchaID: formData.captchaID,
+        captchaId: formData.captchaId,
         answer: formData.answer
       }
     });
@@ -118,7 +118,7 @@ const refreshCaptcha = async () => {
       Authorization: token.value
     }
   });
-  if (captcha.value) formData.captchaID = captcha.value.captchaID;
+  if (captcha.value) formData.captchaId = captcha.value.captchaId;
 };
 </script>
 

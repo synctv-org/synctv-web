@@ -45,7 +45,7 @@ const {
   execute: reqAccountInfo,
   isLoading: getAListAccountInfoLoading
 } = getAListAccountInfo();
-const getAccountInfo = async (serverID: string) => {
+const getAccountInfo = async (serverId: string) => {
   try {
     infoDialog.value = true;
     await reqAccountInfo({
@@ -53,7 +53,7 @@ const getAccountInfo = async (serverID: string) => {
         Authorization: userToken.value
       },
       params: {
-        serverID
+        serverId
       }
     });
   } catch (err: any) {
@@ -149,11 +149,11 @@ const closeLoginDialog = () => {
   >
     <div class="-mt-5">
       <el-table :data="binds" v-loading="getBindsLoading">
-        <el-table-column prop="serverID" label="serverID">
+        <el-table-column prop="serverId" label="serverId">
           <template #default="scope">
             <div class="flex overflow-hidden text-ellipsis max-w-[260px]">
-              <span class="truncate mr-1">{{ scope.row.serverID }}</span>
-              <CopyButton size="small" :value="scope.row.serverID" />
+              <span class="truncate mr-1">{{ scope.row.serverId }}</span>
+              <CopyButton size="small" :value="scope.row.serverId" />
             </div>
           </template>
         </el-table-column>
@@ -172,14 +172,14 @@ const closeLoginDialog = () => {
               confirm-button-text="是"
               cancel-button-text="否"
               title="你确定要解除绑定吗？"
-              @confirm="aListLogout(scope.row.serverID)"
+              @confirm="aListLogout(scope.row.serverId)"
             >
               <template #reference>
                 <el-button link type="danger" size="small"> 解绑 </el-button>
               </template>
             </el-popconfirm>
 
-            <el-button link type="primary" size="small" @click="getAccountInfo(scope.row.serverID)">
+            <el-button link type="primary" size="small" @click="getAccountInfo(scope.row.serverId)">
               详情
             </el-button>
           </template>

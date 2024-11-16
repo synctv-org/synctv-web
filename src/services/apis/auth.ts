@@ -104,7 +104,7 @@ export const getPublicSettings = useDefineApi<any, PublicSettings>({
 export const getRegCaptchaApi = useDefineApi<
   any,
   {
-    captchaID: string;
+    captchaId: string;
     captchaBase64: string;
   }
 >({
@@ -117,7 +117,7 @@ export const sendRegCodeApi = useDefineApi<
   {
     data: {
       email: string;
-      captchaID: string;
+      captchaId: string;
       answer: string;
     };
   },
@@ -131,7 +131,7 @@ export const sendRegCodeApi = useDefineApi<
 export const getResetCaptchaApi = useDefineApi<
   any,
   {
-    captchaID: string;
+    captchaId: string;
     captchaBase64: string;
   }
 >({
@@ -144,7 +144,7 @@ export const sendResetCodeApi = useDefineApi<
   {
     data: {
       email: string;
-      captchaID: string;
+      captchaId: string;
       answer: string;
     };
   },

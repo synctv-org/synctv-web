@@ -34,11 +34,11 @@ const { execute: passwordRegisterApi } = usePasswordRegisterApi();
 const { state: oauth2SignupEnabled, execute: getOAuth2SignupEnabled } = OAuth2SignupEnabled();
 const { execute: loginOAuth2 } = loginWithOAuth2();
 
-const formData = ref<EmailRegForm & { captchaID: string; answer: string }>({
+const formData = ref<EmailRegForm & { captchaId: string; answer: string }>({
   email: "",
   password: "",
   captcha: "",
-  captchaID: "",
+  captchaId: "",
   answer: ""
 });
 
@@ -73,7 +73,7 @@ const toSendRegCode = async () => {
     await sendRegCode({
       data: {
         email,
-        captchaID: formData.value.captchaID,
+        captchaId: formData.value.captchaId,
         answer: formData.value.answer
       }
     });
@@ -251,7 +251,7 @@ const toRegister = async () => {
 
 const refreshRegCaptcha = async () => {
   await getRegCaptcha();
-  if (captcha.value) formData.value.captchaID = captcha.value.captchaID;
+  if (captcha.value) formData.value.captchaId = captcha.value.captchaId;
 };
 
 const resetForm = () => {
@@ -259,7 +259,7 @@ const resetForm = () => {
     email: "",
     password: "",
     captcha: "",
-    captchaID: "",
+    captchaId: "",
     answer: ""
   };
   passwordFormData.value = {

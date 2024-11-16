@@ -138,7 +138,7 @@ export const getAListBinds = useDefineApi<
     };
   },
   {
-    serverID: string;
+    serverId: string;
     host: string;
   }[]
 >({
@@ -167,7 +167,7 @@ export const getAListAccountInfo = useDefineApi<
   {
     headers: { Authorization: string };
     params: {
-      serverID: string;
+      serverId: string;
     };
   },
   {
@@ -224,7 +224,7 @@ export const getEmbyBinds = useDefineApi<
     };
   },
   {
-    serverID: string;
+    serverId: string;
     host: string;
   }[]
 >({

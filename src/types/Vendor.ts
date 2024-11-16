@@ -4,7 +4,7 @@ export interface Backend {
     comment?: string;
     tls?: boolean;
     jwtSecret?: string;
-    customCA?: string;
+    customCa?: string;
     timeOut?: string;
     consul?: Consul;
     etcd?: Etcd;

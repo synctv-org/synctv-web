@@ -18,7 +18,7 @@ const defaultData: Backend = {
     comment: "",
     tls: false,
     jwtSecret: "",
-    customCA: "",
+    customCa: "",
     timeOut: "",
     consul: {
       serviceName: "",

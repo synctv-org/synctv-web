@@ -20,11 +20,11 @@ const { execute: sendResetCode, isLoading: sendResetCodeLoading } = sendResetCod
 const _captcha = useRouteQuery("captcha");
 const _email = useRouteQuery("email");
 const step = ref(1);
-const formData = ref<EmailRegForm & { captchaID: string; answer: string }>({
+const formData = ref<EmailRegForm & { captchaId: string; answer: string }>({
   email: "",
   password: "",
   captcha: "",
-  captchaID: "",
+  captchaId: "",
   answer: ""
 });
 const emailProvider = ref(settings?.emailWhitelistEnabled && settings?.emailWhitelist[0]);
@@ -50,7 +50,7 @@ const toSendResetCode = async () => {
     await sendResetCode({
       data: {
         email,
-        captchaID: formData.value.captchaID,
+        captchaId: formData.value.captchaId,
         answer: formData.value.answer
       }
     });
@@ -131,7 +131,7 @@ const toReset = async () => {
 
 const refreshRegCaptcha = async () => {
   await getRegCaptcha();
-  if (captcha.value) formData.value.captchaID = captcha.value.captchaID;
+  if (captcha.value) formData.value.captchaId = captcha.value.captchaId;
 };
 
 const resetForm = () =>
@@ -139,7 +139,7 @@ const resetForm = () =>
     email: "",
     password: "",
     captcha: "",
-    captchaID: "",
+    captchaId: "",
     answer: ""
   });
 
