@@ -12,19 +12,31 @@ const newSubtitleHtml = (name: string): HTMLElement => {
   return SubtitleHtml;
 };
 
+const disableSubtitleStr = "关闭";
+
 export function artplayerSubtitle(subtitles: Record<string, { url: string; type: string }>) {
   return (art: Artplayer) => {
-    subtitles["关闭"] = { url: "", type: "" };
     const subtitleHTML = newSubtitleHtml("字幕");
+
+    const subtitleKeys = Object.keys(subtitles);
+    const hasOnlyOneSubtitle = subtitleKeys.length === 1;
 
     const selector = Object.keys(subtitles).map((key) => ({
       html: key,
       url: subtitles[key].url,
-      type: subtitles[key].type
+      type: subtitles[key].type,
+      default: hasOnlyOneSubtitle && key !== disableSubtitleStr
     }));
 
+    selector.push({
+      html: disableSubtitleStr,
+      url: "",
+      type: "",
+      default: false
+    });
+
     const onSelect = (item: any) => {
-      if (item.html === "关闭") {
+      if (item.html === disableSubtitleStr) {
         art.subtitle.show = false;
         art.emit("artplayer-plugin-ass:visible" as keyof Events, false);
       } else if (item.type.toLowerCase() === "ass") {
@@ -62,6 +74,13 @@ export function artplayerSubtitle(subtitles: Record<string, { url: string; type:
       selector: selector,
       onSelect
     });
+
+    if (hasOnlyOneSubtitle) {
+      const firstSubtitle = subtitles[subtitleKeys[0]];
+      if (firstSubtitle) {
+        onSelect(firstSubtitle);
+      }
+    }
 
     if (isMobile) {
       art.on("fullscreen", updateControls);

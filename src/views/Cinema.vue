@@ -44,7 +44,7 @@ onBeforeUnmount(() => {
   watchers.forEach((w) => w());
 });
 
-const { getMovies, getCurrentMovie } = useMovieApi(token.value, roomID.value);
+const { getMovies, getCurrentMovie, isLoadingCurrent } = useMovieApi(token.value, roomID.value);
 const { getMyInfo, myInfo } = useRoomApi();
 const { state: roomInfo, execute: reqRoomInfoApi } = roomInfoApi();
 const { hasMemberPermission } = useRoomPermission();
@@ -483,7 +483,14 @@ onMounted(async () => {
           </div>
         </div>
         <div class="card-body max-sm:pb-3 max-sm:px-3" ref="noPlayArea" v-else>
-          <img class="mx-auto" src="/src/assets/something-lost.webp" />
+          <div v-if="isLoadingCurrent" class="flex justify-center items-center h-[550px]">
+            <div class="loading-spinner">
+              <div class="bounce1"></div>
+              <div class="bounce2"></div>
+              <div class="bounce3"></div>
+            </div>
+          </div>
+          <img v-else class="mx-auto" src="/src/assets/something-lost.webp" />
         </div>
       </div>
     </el-col>
@@ -556,5 +563,38 @@ onMounted(async () => {
 .chatArea {
   overflow-y: scroll;
   height: 67vh;
+}
+
+.loading-spinner {
+  margin: 0 auto;
+  width: 70px;
+  text-align: center;
+  
+  > div {
+    width: 18px;
+    height: 18px;
+    background-color: #409eff;
+    border-radius: 100%;
+    display: inline-block;
+    animation: bounce 1.4s infinite ease-in-out both;
+    margin: 0 3px;
+  }
+
+  .bounce1 {
+    animation-delay: -0.32s;
+  }
+
+  .bounce2 {
+    animation-delay: -0.16s;
+  }
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { 
+    transform: scale(0);
+  } 
+  40% { 
+    transform: scale(1.0);
+  }
 }
 </style>

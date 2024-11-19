@@ -61,7 +61,8 @@ export const useMovieApi = (token: string, roomId: string) => {
   };
 
   // 获取正在播放的影片
-  const { state: currentMovie, execute: reqCurrentMovieApi } = currentMovieApi();
+  const { state: currentMovie, execute: reqCurrentMovieApi, isLoading: isLoadingCurrent } =
+    currentMovieApi();
   const getCurrentMovie = async () => {
     try {
       await reqCurrentMovieApi({
@@ -332,7 +333,7 @@ export const useMovieApi = (token: string, roomId: string) => {
 
     getCurrentMovie,
     currentMovie,
-
+    isLoadingCurrent,
     selectMovies,
     swapMovie,
 

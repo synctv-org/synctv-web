@@ -73,6 +73,16 @@ class HLSProvider implements MediaProvider {
   setAudioTrack(trackId: number) {
     this.hls.audioTrack = trackId;
   }
+
+  isAutoQuality() {
+    return this.hls.currentLevel === -1;
+  }
+
+  setAutoQuality(enabled: boolean) {
+    if (enabled) {
+      this.hls.currentLevel = -1;
+    }
+  }
 }
 
 class DASHProvider implements MediaProvider {
@@ -90,12 +100,12 @@ class DASHProvider implements MediaProvider {
     return this.dash.getSettings().streaming.abr.autoSwitchBitrate["video"];
   }
 
-  setQuality(level: number | string) {
-    if (level === "auto") {
+  setQuality(level: number) {
+    if (level === -1) {
       this.setAutoQuality(true);
     } else {
       this.setAutoQuality(false);
-      this.dash.setQualityFor("video", level as number);
+      this.dash.setQualityFor("video", level);
     }
   }
 
