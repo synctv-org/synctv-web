@@ -31,12 +31,13 @@ const openDialog = async () => {
 
 const { execute, state, isLoading } = getAListFileList();
 
-const getFileList = async (path: string, page: number, max: number) => {
+const getFileList = async (path: string, page: number, max: number, keyword?: string) => {
   try {
     await execute({
       headers: { Authorization: userToken.value },
       data: {
-        path: path
+        path: path,
+        keyword: keyword || ""
       },
       params: {
         page: page,
@@ -108,7 +109,7 @@ defineExpose({
       :fileList="state"
       @to-dir="getFileList"
       :is-loading="isLoading"
-      :enable-search="false"
+      :enable-search="true"
     >
       <template #footer>
         <el-button

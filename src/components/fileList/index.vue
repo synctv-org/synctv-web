@@ -10,7 +10,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  toDir: [path: string, page: number, max: number, keywords?: string];
+  toDir: [path: string, page: number, max: number, keyword?: string];
 }>();
 
 const keywords = ref("");

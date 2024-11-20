@@ -29,13 +29,13 @@ const openDialog = async () => {
 };
 
 const { execute, state, isLoading } = getEmbyFileList();
-const getFileList = async (path: string, page: number, max: number, keywords?: string) => {
+const getFileList = async (path: string, page: number, max: number, keyword?: string) => {
   try {
     await execute({
       headers: { Authorization: userToken.value },
       data: {
         path: path,
-        keywords: keywords || ""
+        keyword: keyword || ""
       },
       params: {
         page: page,

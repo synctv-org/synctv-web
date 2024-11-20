@@ -190,6 +190,7 @@ export const getAListFileList = useDefineApi<
     headers: { Authorization: string };
     data: {
       path: string;
+      keyword: string;
     };
     params: {
       page: number;
@@ -290,6 +291,7 @@ export const getEmbyFileList = useDefineApi<
     headers: { Authorization: string };
     data: {
       path: string;
+      keyword: string;
     };
     params: {
       page: number;
