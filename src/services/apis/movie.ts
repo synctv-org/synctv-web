@@ -2,30 +2,6 @@ import { useDefineApi } from "@/stores/useDefineApi";
 import type { EditMovieInfo } from "@/types/Movie";
 import type { Status } from "@/proto/message";
 import type { BaseMovieInfo, MovieInfo, CurrentMovie } from "@/types/Movie";
-// 获取影片列表，包括正在播放
-export const movieListApi = useDefineApi<
-  {
-    params: {
-      page: number;
-      max: number;
-    };
-    headers: {
-      Authorization: string;
-      "X-Room-Id": string;
-    };
-  },
-  {
-    current: {
-      movie: MovieInfo;
-      status: Status;
-    };
-    movies: MovieInfo[] | [];
-    total: number;
-  }
->({
-  url: "/api/room/movie/list",
-  method: "GET"
-});
 
 export interface MoviePath {
   name: string;
@@ -41,6 +17,7 @@ export const moviesApi = useDefineApi<
       max: number;
       subPath?: string;
       id?: string;
+      keyword?: string;
     };
     headers: {
       Authorization: string;

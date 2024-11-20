@@ -55,6 +55,9 @@ const {
   dynamic
 } = useMovieApi(Props.token, Props.roomId);
 
+// 搜索关键词
+const searchKeyword = ref("");
+
 // 打开编辑对话框
 const editDialog = ref(false);
 const openEditDialog = (item: MovieInfo) => {
@@ -88,6 +91,17 @@ const confirmCancelPlayback = async () => {
   await changeCurrentMovie("", true);
   emits("send-msg", "PLAYER：播放已取消");
 };
+
+// 重写switchDir方法以清空搜索框
+const handleSwitchDir = async (id: string, subPath?: string) => {
+  await switchDir(id, subPath);
+  searchKeyword.value = ""; // 切换目录后清空搜索框
+}
+
+// 处理搜索
+const handleSearch = () => {
+  getMovies(undefined, undefined, searchKeyword.value);
+}
 </script>
 
 <template>
@@ -97,11 +111,23 @@ const confirmCancelPlayback = async () => {
     <div class="card-body">
       <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item v-for="item in room.folder" :key="item.id">
-          <el-button link @click="switchDir(item.id, item.subPath)">
+          <el-button link @click="handleSwitchDir(item.id, item.subPath)">
             {{ item.name }}
           </el-button>
         </el-breadcrumb-item>
       </el-breadcrumb>
+
+      <!-- 搜索框 -->
+      <div class="my-4 flex">
+        <input 
+          type="text" 
+          v-model="searchKeyword"
+          class="l-input m-0 p-2 flex-1 mr-2" 
+          placeholder="搜索"
+          @keyup.enter="handleSearch"
+        />
+        <button class="btn" @click="handleSearch">搜索</button>
+      </div>
 
       <el-skeleton v-if="moviesLoading" :rows="1" animated />
       <div
@@ -193,7 +219,7 @@ const confirmCancelPlayback = async () => {
           <button
             v-if="can(RoomMemberPermission.PermissionSetCurrentMovie) && item.base?.isFolder"
             class="btn btn-dense m-0 mr-1"
-            @click="switchDir(item['id'], item.subPath)"
+            @click="handleSwitchDir(item['id'], item.subPath)"
           >
             进入
             <el-icon width="18px">
@@ -260,8 +286,8 @@ const confirmCancelPlayback = async () => {
         :pager-count="5"
         layout="sizes, prev, pager, next, jumper"
         :total="room.totalMovies"
-        @size-change="getMovies()"
-        @current-change="getMovies()"
+        @size-change="handleSearch()"
+        @current-change="handleSearch()"
       />
 
       <div></div>
@@ -294,7 +320,7 @@ const confirmCancelPlayback = async () => {
             <button class="btn btn-error mx-2">清空当前目录</button>
           </template>
         </el-popconfirm>
-        <button class="btn btn-success" @click="getMovies()">更新列表</button>
+        <button class="btn btn-success" @click="handleSearch()">更新列表</button>
       </div>
     </div>
   </div>

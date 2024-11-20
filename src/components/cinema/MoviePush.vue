@@ -12,8 +12,6 @@ import bilibiliParse from "@/components/cinema/dialogs/bilibiliParse.vue";
 import alist from "@/components/fileList/alist.vue";
 import emby from "@/components/fileList/emby.vue";
 
-const Emits = defineEmits(["getMovies"]);
-
 const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
 const customSubtitlesDialog = ref<InstanceType<typeof customSubtitles>>();
 const bilibiliParseDialog = ref<InstanceType<typeof bilibiliParse>>();
@@ -332,7 +330,6 @@ const pushMovie = async () => {
       type: "success"
     });
     newMovieInfo.value.name = newMovieInfo.value.url = "";
-    Emits("getMovies");
   } catch (err: any) {
     console.log(err);
     ElNotification({

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from "vue";
+import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { ElNotification, ElMessageBox } from "element-plus";
 import {
   roomStatus,
@@ -102,8 +102,7 @@ onMounted(() => {
   getRoomList();
 });
 
-// 监听 props 变化，清空旧数据并刷新
-watch(
+const unwatch = watch(
   () => [...Object.values(props)],
   () => {
     thisRoomList.value = [];
@@ -115,9 +114,12 @@ watch(
     search.value = "all";
     status.value = "";
     getRoomList();
-  },
-  { immediate: true }
+  }
 );
+
+onUnmounted(() => {
+  unwatch();
+});
 
 const getStatusColor = (status: RoomStatus) => {
   switch (status) {

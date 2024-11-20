@@ -554,7 +554,7 @@ onMounted(async () => {
       :xs="24"
       class="mb-5 max-sm:mb-2"
     >
-      <MoviePush @getMovies="getMovies()" :token="token" :roomId="roomID" />
+      <MoviePush :token="token" :roomId="roomID" />
     </el-col>
   </el-row>
 </template>
@@ -569,7 +569,7 @@ onMounted(async () => {
   margin: 0 auto;
   width: 70px;
   text-align: center;
-  
+
   > div {
     width: 18px;
     height: 18px;
@@ -590,11 +590,13 @@ onMounted(async () => {
 }
 
 @keyframes bounce {
-  0%, 80%, 100% { 
+  0%,
+  80%,
+  100% {
     transform: scale(0);
-  } 
-  40% { 
-    transform: scale(1.0);
+  }
+  40% {
+    transform: scale(1);
   }
 }
 </style>
