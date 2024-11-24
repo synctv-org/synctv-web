@@ -208,7 +208,7 @@ const newPlayerOption = (html: HTMLDivElement): Option => {
     url: Props.options.url,
     isLive: Props.options.isLive,
     container: html,
-    volume: 25, // 音量
+    volume: 0.3, // 音量
     autoSize: false, // 隐藏黑边
     autoMini: false,
     theme: "#00a1d6",
