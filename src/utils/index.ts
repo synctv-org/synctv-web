@@ -71,7 +71,7 @@ export const formatTime = (date: Date) => {
 };
 
 export const destroyOldCustomPlayLib = (art: any) => {
-  for (const key of ["dash", "m3u8", "hls", "ts", "mpd", "torrent"]) {
+  for (const key of ["dash", "m3u8", "hls", "ts", "mpd", "torrent", "flv"]) {
     if (art[key]) {
       art[key].destroy();
       art[key] = undefined;
