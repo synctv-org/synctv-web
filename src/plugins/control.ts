@@ -165,8 +165,6 @@ export default function artplayerPluginMediaControl() {
 
       const currentQuality = provider.getCurrentQuality();
       const isAuto = provider.isAutoQuality?.() ?? currentQuality === -1;
-      const defaultLevel = qualities[currentQuality];
-      const defaultHtml = isAuto ? auto : getName(defaultLevel);
 
       const selector = uniqBy(
         qualities.map((item, index) => ({
@@ -185,11 +183,11 @@ export default function artplayerPluginMediaControl() {
         });
       }
 
-      updateControl("quality", title, defaultHtml, selector, qualityIcon, (item: any) => {
+      updateControl("quality", title, selector, qualityIcon, (item: any) => {
         provider.setQuality(item.value);
         art.loading.show = true;
         art.notice.show = `${title}: ${item.html}`;
-        return item.html;
+        return title;
       });
     }
 
@@ -204,8 +202,6 @@ export default function artplayerPluginMediaControl() {
       };
 
       const currentTrack = provider.getCurrentAudioTrack();
-      const defaultTrack = tracks[currentTrack];
-      const defaultHtml = getName(defaultTrack);
 
       const selector = uniqBy(
         tracks.map((item, index) => ({
@@ -216,18 +212,17 @@ export default function artplayerPluginMediaControl() {
         "html"
       );
 
-      updateControl("audio", title, defaultHtml, selector, audioIcon, (item: any) => {
+      updateControl("audio", title, selector, audioIcon, (item: any) => {
         provider.setAudioTrack(item.value);
         art.loading.show = true;
         art.notice.show = `${title}: ${item.html}`;
-        return item.html;
+        return title;
       });
     }
 
     function updateControl(
       name: string,
       title: string,
-      defaultHtml: string,
       selector: any[],
       icon: string,
       onSelect: (item: any) => string
@@ -243,7 +238,7 @@ export default function artplayerPluginMediaControl() {
           art.controls.update({
             name,
             position: "right",
-            html: defaultHtml,
+            html: title,
             style: { padding: "0 10px" },
             selector,
             onSelect
@@ -257,7 +252,6 @@ export default function artplayerPluginMediaControl() {
 
       art.setting.update({
         name,
-        tooltip: defaultHtml,
         html: title,
         icon,
         width: 200,
