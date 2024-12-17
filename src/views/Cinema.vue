@@ -9,7 +9,7 @@ import {
   nextTick
 } from "vue";
 import type { WatchStopHandle } from "vue";
-import { useWebSocket, useResizeObserver, useLocalStorage } from "@vueuse/core";
+import { useWebSocket, useResizeObserver } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
 import { roomStore } from "@/stores/room";
 import { ElNotification, ElMessage } from "element-plus";
@@ -17,7 +17,7 @@ import { useMovieApi } from "@/hooks/useMovie";
 import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUint8Array, formatTime } from "@/utils";
-import { MessageType, Message, Status } from "@/proto/message";
+import { MessageType, Message, Status, messageTypeToJSON } from "@/proto/message";
 import type { options } from "@/components/Player.vue";
 import RoomInfo from "@/components/cinema/RoomInfo.vue";
 import MovieList from "@/components/cinema/MovieList.vue";
@@ -34,7 +34,7 @@ import { artplayerSubtitle } from "@/plugins/subtitle";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
-const { info, token, isLogin } = userStore();
+const { token } = userStore();
 // 获取房间信息
 const room = roomStore();
 const roomID = useRouteParams<string>("roomId");
@@ -84,6 +84,7 @@ const sendElement = (msg: Message) => {
     msg.timestamp = Date.now();
   }
   console.groupCollapsed("Ws Send");
+  console.log(messageTypeToJSON(msg.type));
   console.log(msg);
   console.groupEnd();
   return send(Message.encode(msg).finish() as any, false);
@@ -281,8 +282,124 @@ const setPlayerStatus = (status: Status) => {
   player.plugins["syncPlugin"].setAndNoPublishStatus(status);
 };
 
+let peerConnections: { [key: string]: RTCPeerConnection } = {};
+let localStream = ref<MediaStream | undefined>(undefined);
+
+const joinWebRTC = async () => {
+  try {
+    localStream.value = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    ElMessage.error(`获取媒体流失败！${err}`);
+    return;
+  }
+  await sendElement(
+    Message.create({
+      type: MessageType.WEBRTC_JOIN
+    })
+  );
+};
+
+const exitWebRTC = async () => {
+  for (const id in peerConnections) {
+    const pc = peerConnections[id];
+    pc.close();
+    delete peerConnections[id];
+  }
+  localStream.value!.getTracks().forEach((track) => track.stop());
+  localStream.value = undefined;
+  await sendElement(
+    Message.create({
+      type: MessageType.WEBRTC_LEAVE
+    })
+  );
+};
+
+const handleWebrtcJoin = async (msg: Message) => {
+  const pc = createPeerConnection(msg.webrtcData!.from);
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  sendElement(
+    Message.create({
+      type: MessageType.WEBRTC_OFFER,
+      webrtcData: {
+        data: JSON.stringify(offer),
+        to: msg.webrtcData!.from
+      }
+    })
+  );
+};
+
+const handleWebrtcOffer = async (msg: Message) => {
+  const data = JSON.parse(msg.webrtcData!.data);
+  const pc = createPeerConnection(msg.webrtcData!.from);
+  await pc.setRemoteDescription(new RTCSessionDescription(data));
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  // 将Answer发送给发送Offer的用户
+  sendElement(
+    Message.create({
+      type: MessageType.WEBRTC_ANSWER,
+      webrtcData: {
+        data: JSON.stringify(answer),
+        to: msg.webrtcData!.from
+      }
+    })
+  );
+};
+
+const createPeerConnection = (id: string) => {
+  const pc = new RTCPeerConnection({
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+  });
+  pc.onicecandidate = (event) => {
+    if (event.candidate) {
+      sendElement(
+        Message.create({
+          type: MessageType.WEBRTC_ICE_CANDIDATE,
+          webrtcData: {
+            data: JSON.stringify(event.candidate),
+            to: id
+          }
+        })
+      );
+    }
+  };
+  pc.ontrack = (event) => {
+    // const remoteStream = event.streams[0];
+    // if (remoteStream) {
+    //   const videoElement = document.createElement("video");
+    //   videoElement.srcObject = remoteStream;
+    //   videoElement.play();
+    // }
+    const remoteAudio = document.createElement("audio");
+    remoteAudio.srcObject = event.streams[0];
+    remoteAudio.play().catch((error) => {
+      console.error("Audio playback failed:", error);
+    });
+  };
+
+  localStream.value!.getTracks().forEach((track) => pc.addTrack(track, localStream.value!));
+  peerConnections[id] = pc;
+  return pc;
+};
+
+const handleWebrtcAnswer = async (msg: Message) => {
+  const data = JSON.parse(msg.webrtcData!.data);
+  const pc = peerConnections[msg.webrtcData!.from];
+  if (!pc) return;
+  await pc.setRemoteDescription(new RTCSessionDescription(data));
+};
+
+const handleWebrtcIceCandidate = async (msg: Message) => {
+  const data: RTCIceCandidateInit = JSON.parse(msg.webrtcData!.data);
+  const pc = peerConnections[msg.webrtcData!.from];
+  if (!pc) return;
+  await pc.addIceCandidate(new RTCIceCandidate(data));
+};
+
 const handleElementMessage = (msg: Message) => {
   console.groupCollapsed("Ws Message");
+  console.log(messageTypeToJSON(msg.type));
   console.info(msg);
   console.groupEnd();
   switch (msg.type) {
@@ -293,6 +410,24 @@ const handleElementMessage = (msg: Message) => {
         message: msg.errorMessage,
         type: "error"
       });
+      break;
+    }
+
+    case MessageType.WEBRTC_JOIN: {
+      handleWebrtcJoin(msg);
+      break;
+    }
+
+    case MessageType.WEBRTC_OFFER: {
+      handleWebrtcOffer(msg);
+      break;
+    }
+    case MessageType.WEBRTC_ANSWER: {
+      handleWebrtcAnswer(msg);
+      break;
+    }
+    case MessageType.WEBRTC_ICE_CANDIDATE: {
+      handleWebrtcIceCandidate(msg);
       break;
     }
 
@@ -313,7 +448,6 @@ const handleElementMessage = (msg: Message) => {
     case MessageType.STATUS:
     case MessageType.CHECK_STATUS:
     case MessageType.SYNC: {
-      console.log(msg.type);
       switch (msg.type) {
         case MessageType.CHECK_STATUS:
           ElNotification({
@@ -496,7 +630,25 @@ onMounted(async () => {
     </el-col>
     <el-col :md="6" class="mb-5 max-sm:mb-2">
       <div class="card h-full">
-        <div class="card-title">在线聊天</div>
+        <div class="card-title">
+          在线聊天
+          <el-button
+            v-if="!localStream && can(RoomMemberPermission.PermissionWebRTC)"
+            @click="joinWebRTC"
+            type="primary"
+            size="small"
+            style="float: right"
+            >加入语音</el-button
+          >
+          <el-button
+            v-else-if="localStream && can(RoomMemberPermission.PermissionWebRTC)"
+            @click="exitWebRTC"
+            type="primary"
+            size="small"
+            style="float: right"
+            >退出语音</el-button
+          >
+        </div>
         <div class="card-body mb-2">
           <div class="chatArea" ref="chatArea">
             <div class="message" v-for="item in chatMsgList" :key="item">

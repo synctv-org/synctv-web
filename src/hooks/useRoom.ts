@@ -461,7 +461,8 @@ export const useRoomPermission = () => {
     [RoomMemberPermission.PermissionEditMovie]: "编辑影片",
     [RoomMemberPermission.PermissionSetCurrentMovie]: "老板换碟",
     [RoomMemberPermission.PermissionSetCurrentStatus]: "同步视频进度",
-    [RoomMemberPermission.PermissionSendChatMessage]: "聊天和弹幕"
+    [RoomMemberPermission.PermissionSendChatMessage]: "聊天和弹幕",
+    [RoomMemberPermission.PermissionWebRTC]: "加入语音"
   };
 
   const roomMemberPermissionKeys = Object.keys(RoomMemberPermission)

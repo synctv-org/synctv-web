@@ -25,6 +25,7 @@ export enum RoomMemberPermission {
   PermissionSetCurrentMovie = 1 << 4,
   PermissionSetCurrentStatus = 1 << 5,
   PermissionSendChatMessage = 1 << 6,
+  PermissionWebRTC = 1 << 7,
 
   // AllPermissions = (2 ^ 32) - 1,
   NoPermission = 0
