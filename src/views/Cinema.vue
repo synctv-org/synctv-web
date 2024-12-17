@@ -284,10 +284,94 @@ const setPlayerStatus = (status: Status) => {
 
 let peerConnections: { [key: string]: RTCPeerConnection } = {};
 let localStream = ref<MediaStream | undefined>(undefined);
+let remoteAudioElements: {[key: string]: HTMLAudioElement} = {};
+
+// 音频设备列表
+const audioInputDevices = ref<MediaDeviceInfo[]>([]);
+const audioOutputDevices = ref<MediaDeviceInfo[]>([]);
+const selectedAudioInput = ref("");
+const selectedAudioOutput = ref("");
+
+const outputVolume = ref(1.0); // 扬声器音量
+const isMuted = ref(false); // 麦克风静音状态
+
+// 获取音频设备列表
+const getAudioDevices = async () => {
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  audioInputDevices.value = devices.filter((device) => device.kind === "audioinput");
+  audioOutputDevices.value = devices.filter((device) => device.kind === "audiooutput");
+};
+
+// 切换麦克风静音状态
+const toggleMute = () => {
+  if (!localStream.value) return;
+  isMuted.value = !isMuted.value;
+  localStream.value.getAudioTracks().forEach(track => {
+    track.enabled = !isMuted.value;
+  });
+};
+
+// 切换麦克风
+const switchMicrophone = async () => {
+  if (!localStream.value) return;
+
+  try {
+    const newStream = await navigator.mediaDevices.getUserMedia({
+      audio: { 
+        deviceId: selectedAudioInput.value,
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      }
+    });
+
+    // 停止旧轨道
+    localStream.value.getTracks().forEach((track) => track.stop());
+
+    // 替换所有PeerConnection中的轨道
+    const [audioTrack] = newStream.getTracks();
+    audioTrack.enabled = !isMuted.value; // 保持当前的静音状态
+
+    for (const pc of Object.values(peerConnections)) {
+      const sender = pc.getSenders().find((s) => s.track?.kind === "audio");
+      if (sender) {
+        await sender.replaceTrack(audioTrack);
+      }
+    }
+
+    localStream.value = newStream;
+  } catch (err) {
+    ElMessage.error(`切换麦克风失败: ${err}`);
+  }
+};
+
+// 切换扬声器
+const switchSpeaker = async () => {
+  try {
+    for (const audio of Object.values(remoteAudioElements)) {
+      if ("setSinkId" in audio) {
+        await (audio as any).setSinkId(selectedAudioOutput.value);
+        audio.volume = outputVolume.value;
+      }
+    }
+  } catch (err) {
+    ElMessage.error(`切换扬声器失败: ${err}`);
+  }
+};
+
+// 调整扬声器音量
+const adjustOutputVolume = () => {
+  Object.values(remoteAudioElements).forEach((audio) => {
+    audio.volume = outputVolume.value;
+  });
+};
 
 const joinWebRTC = async () => {
   try {
-    localStream.value = await navigator.mediaDevices.getUserMedia({ audio: true });
+    await getAudioDevices();
+    localStream.value = await navigator.mediaDevices.getUserMedia({
+      audio: selectedAudioInput.value ? { deviceId: selectedAudioInput.value } : true
+    });
   } catch (err) {
     ElMessage.error(`获取媒体流失败！${err}`);
     return;
@@ -329,6 +413,24 @@ const handleWebrtcJoin = async (msg: Message) => {
   );
 };
 
+const handleWebrtcLeave = async (msg: Message) => {
+  closePeerConnection(msg.webrtcData!.from);
+};
+
+const closePeerConnection = (id: string) => {
+  const pc = peerConnections[id];
+  if (pc) {
+    pc.close();
+    delete peerConnections[id];
+  }
+  const remoteAudio = remoteAudioElements[id];
+  if (remoteAudio) {
+    remoteAudio.pause();
+    remoteAudio.srcObject = null;
+    delete remoteAudioElements[id];
+  }
+};
+
 const handleWebrtcOffer = async (msg: Message) => {
   const data = JSON.parse(msg.webrtcData!.data);
   const pc = createPeerConnection(msg.webrtcData!.from);
@@ -349,7 +451,8 @@ const handleWebrtcOffer = async (msg: Message) => {
 
 const createPeerConnection = (id: string) => {
   const pc = new RTCPeerConnection({
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    iceCandidatePoolSize: 10
   });
   pc.onicecandidate = (event) => {
     if (event.candidate) {
@@ -365,14 +468,20 @@ const createPeerConnection = (id: string) => {
     }
   };
   pc.ontrack = (event) => {
-    // const remoteStream = event.streams[0];
-    // if (remoteStream) {
-    //   const videoElement = document.createElement("video");
-    //   videoElement.srcObject = remoteStream;
-    //   videoElement.play();
-    // }
     const remoteAudio = document.createElement("audio");
     remoteAudio.srcObject = event.streams[0];
+    remoteAudio.volume = outputVolume.value;
+    if (selectedAudioOutput.value && "setSinkId" in remoteAudio) {
+      (remoteAudio as any).setSinkId(selectedAudioOutput.value).catch((error: any) => {
+        console.error("扬声器设置失败:", error);
+      });
+    }
+    remoteAudio.style.display = "none";
+    remoteAudio.onended = () => {
+      document.body.removeChild(remoteAudio);
+      delete remoteAudioElements[id];
+    };
+    remoteAudioElements[id] = remoteAudio;
     remoteAudio.play().catch((error) => {
       console.error("Audio playback failed:", error);
     });
@@ -417,7 +526,10 @@ const handleElementMessage = (msg: Message) => {
       handleWebrtcJoin(msg);
       break;
     }
-
+    case MessageType.WEBRTC_LEAVE: {
+      handleWebrtcLeave(msg);
+      break;
+    }
     case MessageType.WEBRTC_OFFER: {
       handleWebrtcOffer(msg);
       break;
@@ -519,11 +631,24 @@ const chatArea = ref();
 // 设置聊天框高度
 const resetChatAreaHeight = () => {
   const h = playArea.value ? playArea : noPlayArea;
-  chatArea && h && (chatArea.value.style.height = h.value.scrollHeight - 112 + "px");
+  if (!chatArea.value || !h.value) return;
+  
+  // 计算基础高度
+  let baseHeight = h.value.scrollHeight - 112;
+  
+  // 如果有语音控制面板,减去其高度
+  if (audioControls.value && audioControls.value instanceof HTMLElement) {
+    baseHeight -= audioControls.value.offsetHeight + 16; // 16px for margin
+  }
+  
+  chatArea.value.style.height = `${baseHeight}px`;
 };
 
 const card = ref(null);
 useResizeObserver(card, resetChatAreaHeight);
+
+const audioControls = ref<HTMLElement | null>(null);
+useResizeObserver(audioControls, resetChatAreaHeight);
 
 const can = (p: RoomMemberPermission) => {
   if (!myInfo.value) return;
@@ -591,6 +716,16 @@ onMounted(async () => {
   );
 
   await p();
+
+  // 获取初始音频设备列表
+  await getAudioDevices();
+
+  // 监听设备变化
+  navigator.mediaDevices.addEventListener("devicechange", getAudioDevices);
+});
+
+onBeforeUnmount(() => {
+  navigator.mediaDevices.removeEventListener("devicechange", getAudioDevices);
 });
 </script>
 
@@ -648,6 +783,55 @@ onMounted(async () => {
             style="float: right"
             >退出语音</el-button
           >
+        </div>
+        <div ref="audioControls" v-show="localStream" class="card-body mb-2 audio-controls-container">
+          <div class="audio-controls">
+            <el-select
+              v-model="selectedAudioInput"
+              placeholder="选择麦克风"
+              @change="switchMicrophone"
+            >
+              <el-option
+                v-for="device in audioInputDevices"
+                :key="device.deviceId"
+                :label="device.label || `麦克风 ${device.deviceId.slice(0, 8)}`"
+                :value="device.deviceId"
+              />
+            </el-select>
+
+            <el-select
+              v-model="selectedAudioOutput"
+              placeholder="选择扬声器"
+              @change="switchSpeaker"
+            >
+              <el-option
+                v-for="device in audioOutputDevices"
+                :key="device.deviceId"
+                :label="device.label || `扬声器 ${device.deviceId.slice(0, 8)}`"
+                :value="device.deviceId"
+              />
+            </el-select>
+
+            <div class="volume-control">
+              <span>扬声器音量:</span>
+              <el-slider
+                v-model="outputVolume"
+                :min="0"
+                :max="1"
+                :step="0.1"
+                @change="adjustOutputVolume"
+              />
+            </div>
+
+            <el-button
+              @click="toggleMute"
+              :type="isMuted ? 'danger' : 'primary'"
+              size="small"
+              style="width: 100%"
+            >
+              {{ isMuted ? '取消闭麦' : '闭麦' }}
+            </el-button>
+          </div>
         </div>
         <div class="card-body mb-2">
           <div class="chatArea" ref="chatArea">
@@ -715,6 +899,7 @@ onMounted(async () => {
 .chatArea {
   overflow-y: scroll;
   height: 67vh;
+  transition: height 0.3s ease;
 }
 
 .loading-spinner {
@@ -738,6 +923,54 @@ onMounted(async () => {
 
   .bounce2 {
     animation-delay: -0.16s;
+  }
+}
+
+.audio-controls-container {
+  transition: all 0.3s ease-in-out;
+  transform-origin: top;
+  animation: slideDown 0.3s ease-in-out;
+}
+
+.audio-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+
+  .el-select {
+    width: 100%;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .volume-control {
+    animation: fadeIn 0.3s ease-in-out 0.1s;
+  }
+
+  .el-button {
+    animation: fadeIn 0.3s ease-in-out 0.2s;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
