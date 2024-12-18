@@ -282,9 +282,17 @@ const setPlayerStatus = (status: Status) => {
   player.plugins["syncPlugin"].setAndNoPublishStatus(status);
 };
 
-let peerConnections: { [key: string]: RTCPeerConnection } = {};
-let localStream = ref<MediaStream | undefined>(undefined);
+// key: userId:connId
+const peerConnections = ref<{ [key: string]: RTCPeerConnection }>({});
+const localStream = ref<MediaStream | undefined>(undefined);
 let remoteAudioElements: {[key: string]: HTMLAudioElement} = {};
+
+const peerConnectionsLengthWithUserId = computed(() => {
+  const userIdSet = new Set(
+    Object.keys(peerConnections.value).map(key => key.split(":")[0])
+  );
+  return userIdSet.size;
+});
 
 // 音频设备列表
 const audioInputDevices = ref<MediaDeviceInfo[]>([]);
@@ -332,8 +340,8 @@ const switchMicrophone = async () => {
     const [audioTrack] = newStream.getTracks();
     audioTrack.enabled = !isMuted.value; // 保持当前的静音状态
 
-    for (const pc of Object.values(peerConnections)) {
-      const sender = pc.getSenders().find((s) => s.track?.kind === "audio");
+    for (const pc of Object.values(peerConnections.value)) {
+      const sender = pc.getSenders().find((s: any) => s.track?.kind === "audio");
       if (sender) {
         await sender.replaceTrack(audioTrack);
       }
@@ -384,18 +392,18 @@ const joinWebRTC = async () => {
 };
 
 const exitWebRTC = async () => {
-  for (const id in peerConnections) {
-    const pc = peerConnections[id];
-    pc.close();
-    delete peerConnections[id];
-  }
-  localStream.value!.getTracks().forEach((track) => track.stop());
-  localStream.value = undefined;
   await sendElement(
     Message.create({
       type: MessageType.WEBRTC_LEAVE
     })
   );
+  for (const id in peerConnections.value) {
+    const pc = peerConnections.value[id];
+    pc.close();
+    delete peerConnections.value[id];
+  }
+  localStream.value!.getTracks().forEach((track) => track.stop());
+  localStream.value = undefined;
 };
 
 const handleWebrtcJoin = async (msg: Message) => {
@@ -418,10 +426,10 @@ const handleWebrtcLeave = async (msg: Message) => {
 };
 
 const closePeerConnection = (id: string) => {
-  const pc = peerConnections[id];
+  const pc = peerConnections.value[id];
   if (pc) {
     pc.close();
-    delete peerConnections[id];
+    delete peerConnections.value[id];
   }
   const remoteAudio = remoteAudioElements[id];
   if (remoteAudio) {
@@ -488,20 +496,20 @@ const createPeerConnection = (id: string) => {
   };
 
   localStream.value!.getTracks().forEach((track) => pc.addTrack(track, localStream.value!));
-  peerConnections[id] = pc;
+  peerConnections.value[id] = pc;
   return pc;
 };
 
 const handleWebrtcAnswer = async (msg: Message) => {
   const data = JSON.parse(msg.webrtcData!.data);
-  const pc = peerConnections[msg.webrtcData!.from];
+  const pc = peerConnections.value[msg.webrtcData!.from];
   if (!pc) return;
   await pc.setRemoteDescription(new RTCSessionDescription(data));
 };
 
 const handleWebrtcIceCandidate = async (msg: Message) => {
   const data: RTCIceCandidateInit = JSON.parse(msg.webrtcData!.data);
-  const pc = peerConnections[msg.webrtcData!.from];
+  const pc = peerConnections.value[msg.webrtcData!.from];
   if (!pc) return;
   await pc.addIceCandidate(new RTCIceCandidate(data));
 };
@@ -781,7 +789,7 @@ onBeforeUnmount(() => {
             type="primary"
             size="small"
             style="float: right"
-            >退出语音</el-button
+            >退出语音 ({{ peerConnectionsLengthWithUserId }})</el-button
           >
         </div>
         <div ref="audioControls" v-show="localStream" class="card-body mb-2 audio-controls-container">
