@@ -31,6 +31,7 @@ import { currentMovieApi } from "@/services/apis/movie";
 import { userStore } from "@/stores/user";
 import { roomInfoApi } from "@/services/apis/room";
 import { artplayerSubtitle } from "@/plugins/subtitle";
+import { sendDanmu, artplayerStreamDanmu } from "@/plugins/danmu";
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
@@ -50,17 +51,6 @@ const { state: roomInfo, execute: reqRoomInfoApi } = roomInfoApi();
 const { hasMemberPermission } = useRoomPermission();
 
 let player: Artplayer | undefined;
-
-const sendDanmuku = (msg: string) => {
-  if (!player || !player.plugins.artplayerPluginDanmuku) return;
-  player.plugins.artplayerPluginDanmuku.emit({
-    direct: true,
-    text: msg, // 弹幕文本
-    color: "#fff", // 弹幕局部颜色
-    border: false // 是否显示描边
-    //mode: 0, // 弹幕模式: 0表示滚动, 1静止
-  });
-};
 
 const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
 const { status, data, send, open } = useWebSocket(
@@ -149,7 +139,7 @@ const playerOption = computed<options>(() => {
     plugins: [
       // 弹幕
       artplayerPluginDanmuku({
-        danmuku: [],
+        danmuku: room.currentMovie.base!.danmu || [],
         speed: 8,
         async beforeEmit(danmu: any) {
           if (danmu.direct) {
@@ -161,7 +151,7 @@ const playerOption = computed<options>(() => {
       }),
       // WARN: room.currentStatus 变了会导致重载
       newSyncPlugin(sendElement, room.currentStatus, () => room.currentExpireId),
-      artplayerPluginMediaControl()
+      artplayerPluginMediaControl(),
     ]
   };
 
@@ -207,6 +197,10 @@ const playerOption = computed<options>(() => {
           subUrl: defaultUrl
         })
       );
+  }
+
+  if (room.currentMovie.base!.streamDanmu) {
+    option.plugins!.push(artplayerStreamDanmu(room.currentMovie.base!.streamDanmu));
   }
 
   return option;
@@ -285,12 +279,10 @@ const setPlayerStatus = (status: Status) => {
 // key: userId:connId
 const peerConnections = ref<{ [key: string]: RTCPeerConnection }>({});
 const localStream = ref<MediaStream | undefined>(undefined);
-let remoteAudioElements: {[key: string]: HTMLAudioElement} = {};
+let remoteAudioElements: { [key: string]: HTMLAudioElement } = {};
 
 const peerConnectionsLengthWithUserId = computed(() => {
-  const userIdSet = new Set(
-    Object.keys(peerConnections.value).map(key => key.split(":")[0])
-  );
+  const userIdSet = new Set(Object.keys(peerConnections.value).map((key) => key.split(":")[0]));
   return userIdSet.size;
 });
 
@@ -314,7 +306,7 @@ const getAudioDevices = async () => {
 const toggleMute = () => {
   if (!localStream.value) return;
   isMuted.value = !isMuted.value;
-  localStream.value.getAudioTracks().forEach(track => {
+  localStream.value.getAudioTracks().forEach((track) => {
     track.enabled = !isMuted.value;
   });
 };
@@ -325,11 +317,11 @@ const switchMicrophone = async () => {
 
   try {
     const newStream = await navigator.mediaDevices.getUserMedia({
-      audio: { 
+      audio: {
         deviceId: selectedAudioInput.value,
         echoCancellation: true,
         noiseSuppression: true,
-        autoGainControl: true,
+        autoGainControl: true
       }
     });
 
@@ -562,7 +554,7 @@ const handleElementMessage = (msg: Message) => {
       const messageWithTime = `${messageContent} <small>[${currentTime}]</small>`;
       // 添加消息到消息列表
       sendMsg(messageWithTime);
-      sendDanmuku(messageContent);
+      sendDanmu({ text: messageContent, border: true }, player);
       break;
     }
     case MessageType.STATUS:
@@ -640,15 +632,15 @@ const chatArea = ref();
 const resetChatAreaHeight = () => {
   const h = playArea.value ? playArea : noPlayArea;
   if (!chatArea.value || !h.value) return;
-  
+
   // 计算基础高度
   let baseHeight = h.value.scrollHeight - 112;
-  
+
   // 如果有语音控制面板,减去其高度
   if (audioControls.value && audioControls.value instanceof HTMLElement) {
     baseHeight -= audioControls.value.offsetHeight + 16; // 16px for margin
   }
-  
+
   chatArea.value.style.height = `${baseHeight}px`;
 };
 
@@ -792,7 +784,11 @@ onBeforeUnmount(() => {
             >退出语音 ({{ peerConnectionsLengthWithUserId }})</el-button
           >
         </div>
-        <div ref="audioControls" v-show="localStream" class="card-body mb-2 audio-controls-container">
+        <div
+          ref="audioControls"
+          v-show="localStream"
+          class="card-body mb-2 audio-controls-container"
+        >
           <div class="audio-controls">
             <el-select
               v-model="selectedAudioInput"
@@ -837,7 +833,7 @@ onBeforeUnmount(() => {
               size="small"
               style="width: 100%"
             >
-              {{ isMuted ? '取消闭麦' : '闭麦' }}
+              {{ isMuted ? "取消闭麦" : "闭麦" }}
             </el-button>
           </div>
         </div>

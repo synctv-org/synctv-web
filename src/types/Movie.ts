@@ -40,6 +40,8 @@ export interface BaseMovieInfo {
   };
   vendorInfo?: VendorInfo;
   subtitles?: Subtitles;
+  danmu?: string;
+  streamDanmu?: string;
   isFolder?: boolean;
   parentId?: string;
 }
