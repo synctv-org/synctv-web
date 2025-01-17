@@ -151,27 +151,25 @@ const playerOption = computed<options>(() => {
       }),
       // WARN: room.currentStatus 变了会导致重载
       newSyncPlugin(sendElement, room.currentStatus, () => room.currentExpireId),
-      artplayerPluginMediaControl(),
+      artplayerPluginMediaControl()
     ]
   };
 
-  if (room.currentMovie.base!.moreSources) {
-    const obj = room.currentMovie.base!.moreSources || [];
-    option.plugins!.push(
-      artplayPluginSource([
-        {
-          url: option.url,
-          html: "默认",
-          type: option.type || ""
-        },
-        ...obj.map((item) => ({
-          url: item.url,
-          html: item.name,
-          type: item.type
-        }))
-      ])
-    );
-  }
+  const obj = room.currentMovie.base!.moreSources || [];
+  option.plugins!.push(
+    artplayPluginSource([
+      {
+        url: option.url,
+        html: "默认",
+        type: option.type || ""
+      },
+      ...obj.map((item) => ({
+        url: item.url,
+        html: item.name,
+        type: item.type
+      }))
+    ])
+  );
 
   if (room.currentMovie.base!.subtitles) {
     let defaultUrl;
