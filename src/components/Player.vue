@@ -193,6 +193,7 @@ const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) =
           xhr.setRequestHeader(key, headers[key]);
         }
       },
+      startLevel: -1,
       fLoader: fLoader
     };
   }
