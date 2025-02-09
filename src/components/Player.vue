@@ -497,12 +497,12 @@ const cleanHotKeyEvent = (art: Artplayer, keys: number[]) => {
 // };
 
 // 格式化字节数的函数
-const formatBytes = (bytes: number) => {
-  if (bytes === 0) return "0 B";
+const formatKBytes = (kB: number) => {
+  if (kB === 0) return "0 KB";
   const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  const sizes = ["KB", "MB", "GB"];
+  const i = Math.floor(Math.log(kB) / Math.log(k));
+  return `${parseFloat((kB / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 };
 
 const toggleP2P = (e: boolean) => {
@@ -548,22 +548,22 @@ onBeforeUnmount(() => {
       <div v-if="defaultP2PEnabled && p2pStats" class="flex space-x-4 text-sm">
         <div class="flex items-center space-x-1">
           <el-tooltip content="HTTP下载量">
-            <span>↓HTTP: {{ formatBytes(p2pStats.totalHTTPDownloaded) }}</span>
+            <span>↓HTTP: {{ formatKBytes(p2pStats.totalHTTPDownloaded) }}</span>
           </el-tooltip>
         </div>
         <div class="flex items-center space-x-1">
           <el-tooltip content="P2P下载量">
-            <span>↓P2P: {{ formatBytes(p2pStats.totalP2PDownloaded) }}</span>
+            <span>↓P2P: {{ formatKBytes(p2pStats.totalP2PDownloaded) }}</span>
           </el-tooltip>
         </div>
         <div class="flex items-center space-x-1">
           <el-tooltip content="P2P上传量">
-            <span>↑P2P: {{ formatBytes(p2pStats.totalP2PUploaded) }}</span>
+            <span>↑P2P: {{ formatKBytes(p2pStats.totalP2PUploaded) }}</span>
           </el-tooltip>
         </div>
         <div class="flex items-center space-x-1">
           <el-tooltip content="P2P下载速度">
-            <span>Speed: {{ formatBytes(p2pStats.p2pDownloadSpeed) }}/s</span>
+            <span>Speed: {{ formatKBytes(p2pStats.p2pDownloadSpeed) }}/s</span>
           </el-tooltip>
         </div>
       </div>
