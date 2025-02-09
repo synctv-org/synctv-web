@@ -19,4 +19,5 @@ export interface PublicSettings {
   oauth2DisableSignup: boolean;
 
   guestEnable: boolean;
+  p2pZone: string;
 }

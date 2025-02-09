@@ -32,6 +32,9 @@ import { userStore } from "@/stores/user";
 import { roomInfoApi } from "@/services/apis/room";
 import { artplayerSubtitle } from "@/plugins/subtitle";
 import { sendDanmu, artplayerStreamDanmu } from "@/plugins/danmu";
+import { indexStore } from "@/stores";
+
+const { settings } = indexStore();
 
 const Player = defineAsyncComponent(() => import("@/components/Player.vue"));
 
@@ -136,6 +139,7 @@ const playerOption = computed<options>(() => {
     type: room.currentMovie.base!.type,
     isLive: room.currentMovie.base!.live,
     headers: room.currentMovie.base!.headers,
+    p2pZone: settings?.p2pZone,
     plugins: [
       // 弹幕
       artplayerPluginDanmuku({

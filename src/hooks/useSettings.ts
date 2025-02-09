@@ -123,7 +123,8 @@ export const useSettings = () => {
 
   const defaultServerSettings: Map<string, settingType> = new Map([
     ["host", { value: false, name: "HOST", comment: "用于邮件、OAuth2 等" }],
-    ["version", { value: false, name: "版本", disabled: true }]
+    ["version", { value: false, name: "版本", disabled: true }],
+    ["p2p_zone", { value: "hk", name: "Swarm Cloud 区域", placeholder: "cn or hk..." }]
   ]);
 
   const serverSettingsGroup: Map<settingGroupName, settingGroup> = new Map([

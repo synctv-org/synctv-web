@@ -5,8 +5,11 @@ import type { Option } from "artplayer/types/option";
 import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import type { PropType, Ref, WatchStopHandle } from "vue";
 import { destroyOldCustomPlayLib } from "@/utils";
-import type { P2pConfig as HlsP2pConfig } from "@swarmcloud/hls";
-import type { P2pConfig as DashP2pConfig } from "@swarmcloud/dashjs";
+import type { P2pConfig as HlsP2pConfig, TrackerZone as TrackerZoneHls } from "@swarmcloud/hls";
+import type {
+  P2pConfig as DashP2pConfig,
+  TrackerZone as TrackerZoneDash
+} from "@swarmcloud/dashjs";
 import { useLocalStorage } from "@vueuse/core";
 
 const watchers: WatchStopHandle[] = [];
@@ -29,7 +32,7 @@ const p2pStats = ref<p2pStatsType>();
 const resetP2P = () => {
   p2pEngine.value = undefined;
   p2pStats.value = undefined;
-}
+};
 
 const p2pOperation = {
   enableP2P: () => {
@@ -56,6 +59,7 @@ export interface options {
   type?: string;
   headers?: Record<string, string>;
   plugins?: ((art: Artplayer) => unknown)[];
+  p2pZone?: string;
 }
 
 const defaultP2PEnabled = useLocalStorage("defaultP2PEnabled", true);
@@ -102,7 +106,8 @@ const playMpd = async (player: HTMLMediaElement, url: string, art: any) => {
     return;
   }
   var p2pConfig: DashP2pConfig = {
-    p2pEnabled: defaultP2PEnabled.value
+    p2pEnabled: defaultP2PEnabled.value,
+    trackerZone: Props.options.p2pZone as TrackerZoneDash
   };
   const engine = new P2pEngineDash(d, p2pConfig);
   engine.on("stats", (stats) => {
@@ -212,7 +217,8 @@ const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) =
 
   var p2pConfig: HlsP2pConfig = {
     live: art.option.isLive,
-    p2pEnabled: defaultP2PEnabled.value
+    p2pEnabled: defaultP2PEnabled.value,
+    trackerZone: Props.options.p2pZone as TrackerZoneHls
   };
 
   if (!Hls.isSupported()) {
@@ -490,7 +496,6 @@ const cleanHotKeyEvent = (art: Artplayer, keys: number[]) => {
 //   });
 // };
 
-
 // 格式化字节数的函数
 const formatBytes = (bytes: number) => {
   if (bytes === 0) return "0 B";
@@ -531,39 +536,39 @@ onBeforeUnmount(() => {
   <div ref="father"></div>
 
   <div v-if="p2pEngine" class="p2p-panel mt-2 px-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-          <el-switch
-            v-model="defaultP2PEnabled"
-            @change="toggleP2P"
-            active-text="启用P2P"
-            inactive-text="关闭P2P"
-          />
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <el-switch
+          v-model="defaultP2PEnabled"
+          @change="toggleP2P"
+          active-text="启用P2P"
+          inactive-text="关闭P2P"
+        />
+      </div>
+      <div v-if="defaultP2PEnabled && p2pStats" class="flex space-x-4 text-sm">
+        <div class="flex items-center space-x-1">
+          <el-tooltip content="HTTP下载量">
+            <span>↓HTTP: {{ formatBytes(p2pStats.totalHTTPDownloaded) }}</span>
+          </el-tooltip>
         </div>
-        <div v-if="defaultP2PEnabled && p2pStats" class="flex space-x-4 text-sm">
-          <div class="flex items-center space-x-1">
-            <el-tooltip content="HTTP下载量">
-              <span>↓HTTP: {{ formatBytes(p2pStats.totalHTTPDownloaded) }}</span>
-            </el-tooltip>
-          </div>
-          <div class="flex items-center space-x-1">
-            <el-tooltip content="P2P下载量">
-              <span>↓P2P: {{ formatBytes(p2pStats.totalP2PDownloaded) }}</span>
-            </el-tooltip>
-          </div>
-          <div class="flex items-center space-x-1">
-            <el-tooltip content="P2P上传量">
-              <span>↑P2P: {{ formatBytes(p2pStats.totalP2PUploaded) }}</span>
-            </el-tooltip>
-          </div>
-          <div class="flex items-center space-x-1">
-            <el-tooltip content="P2P下载速度">
-              <span>Speed: {{ formatBytes(p2pStats.p2pDownloadSpeed) }}/s</span>
-            </el-tooltip>
-          </div>
+        <div class="flex items-center space-x-1">
+          <el-tooltip content="P2P下载量">
+            <span>↓P2P: {{ formatBytes(p2pStats.totalP2PDownloaded) }}</span>
+          </el-tooltip>
+        </div>
+        <div class="flex items-center space-x-1">
+          <el-tooltip content="P2P上传量">
+            <span>↑P2P: {{ formatBytes(p2pStats.totalP2PUploaded) }}</span>
+          </el-tooltip>
+        </div>
+        <div class="flex items-center space-x-1">
+          <el-tooltip content="P2P下载速度">
+            <span>Speed: {{ formatBytes(p2pStats.p2pDownloadSpeed) }}/s</span>
+          </el-tooltip>
         </div>
       </div>
     </div>
+  </div>
 </template>
 
 <style>
