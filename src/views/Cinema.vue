@@ -8,7 +8,7 @@ import {
   defineAsyncComponent,
   nextTick
 } from "vue";
-import type { WatchStopHandle } from "vue";
+import type { Ref, WatchStopHandle } from "vue";
 import { useWebSocket, useResizeObserver } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
 import { roomStore } from "@/stores/room";
@@ -18,7 +18,7 @@ import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import { strLengthLimit, blobToUint8Array, formatTime } from "@/utils";
 import { MessageType, Message, Status, messageTypeToJSON } from "@/proto/message";
-import type { options } from "@/components/Player.vue";
+import type { options, p2pOperation, p2pStatsType } from "@/components/Player.vue";
 import RoomInfo from "@/components/cinema/RoomInfo.vue";
 import MovieList from "@/components/cinema/MovieList.vue";
 import MoviePush from "@/components/cinema/MoviePush.vue";
@@ -50,7 +50,7 @@ const { getMyInfo, myInfo } = useRoomApi();
 const { state: roomInfo, execute: reqRoomInfoApi } = roomInfoApi();
 const { hasMemberPermission } = useRoomPermission();
 
-let player: Artplayer | undefined;
+let player: Ref<Artplayer | undefined> | undefined = ref<Artplayer | undefined>(undefined);
 
 const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
 const { status, data, send, open } = useWebSocket(
@@ -228,7 +228,7 @@ const updateSources = async () => {
     if (!player) return;
     room.currentExpireId = currentMovie.value.expireId;
     const moreSources = currentMovie.value.movie.base.moreSources || [];
-    player.plugins["source"].updateSources([
+    player.value!.plugins["source"].updateSources([
       {
         url: currentMovie.value.movie.base.url,
         html: "默认",
@@ -251,8 +251,8 @@ const updateSources = async () => {
 };
 
 const getPlayerInstance = (art: Artplayer) => {
-  player = art;
-  listenPlayerType(player);
+  player.value = art;
+  listenPlayerType(player.value!);
 };
 
 const playType = ref<string | undefined>();
@@ -270,8 +270,8 @@ const listenPlayerType = (player: Artplayer) => {
 };
 
 const setPlayerStatus = (status: Status) => {
-  if (!player) return;
-  player.plugins["syncPlugin"].setAndNoPublishStatus(status);
+  if (!player.value) return;
+  player.value!.plugins["syncPlugin"].setAndNoPublishStatus(status);
 };
 
 // key: userId:connId
@@ -552,7 +552,7 @@ const handleElementMessage = (msg: Message) => {
       const messageWithTime = `${messageContent} <small>[${currentTime}]</small>`;
       // 添加消息到消息列表
       sendMsg(messageWithTime);
-      sendDanmu({ text: messageContent, border: true }, player);
+      sendDanmu({ text: messageContent, border: true }, player.value!);
       break;
     }
     case MessageType.STATUS:
