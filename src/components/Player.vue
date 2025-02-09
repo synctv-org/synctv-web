@@ -5,6 +5,8 @@ import type { Option } from "artplayer/types/option";
 import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import type { PropType, WatchStopHandle } from "vue";
 import { destroyOldCustomPlayLib } from "@/utils";
+import type { P2pConfig as HlsP2pConfig } from "@swarmcloud/hls";
+import type { P2pConfig as DashP2pConfig } from "@swarmcloud/dashjs";
 
 const watchers: WatchStopHandle[] = [];
 
@@ -40,6 +42,7 @@ const Emits = defineEmits(["get-instance"]);
 
 const playMpd = async (player: HTMLMediaElement, url: string, art: any) => {
   const dashjs = await import("dashjs");
+  const P2pEngineDash = (await import("@swarmcloud/dashjs")).default;
 
   if (!dashjs.supportsMediaSource()) {
     art.notice.show = "Unsupported playback format: mpd";
@@ -52,6 +55,20 @@ const playMpd = async (player: HTMLMediaElement, url: string, art: any) => {
   d.initialize(player, url, false);
   art.dash = d;
   art.mpd = d;
+
+  if (!P2pEngineDash.isSupported()) {
+    return;
+  }
+  var p2pConfig: DashP2pConfig = {};
+  const engine = new P2pEngineDash(d, p2pConfig);
+  engine.on("stats", (stats) => {
+    console.group("p2p stats");
+    console.log(stats);
+    console.groupEnd();
+  });
+  d.on(dashjs.MediaPlayer.events.PROTECTION_DESTROYED, () => {
+    engine.destroy();
+  });
 };
 
 const playFlv = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
@@ -139,10 +156,29 @@ const playM2ts = async (player: HTMLMediaElement, url: string, art: Artplayer) =
 
 const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
   const Hls = (await import("hls.js")).default;
+  const P2pEngineHls = (await import("@swarmcloud/hls")).default;
+
+  var p2pConfig: HlsP2pConfig = {
+    live: art.option.isLive
+  };
 
   if (!Hls.isSupported()) {
     if (player.canPlayType("application/vnd.apple.mpegurl")) {
-      if (!player.src) player.src = url;
+      const engine = new P2pEngineHls(p2pConfig);
+      engine.on("stats", (stats) => {
+        console.group("p2p stats");
+        console.log(stats);
+        console.groupEnd();
+      });
+      engine
+        .registerServiceWorker()
+        .catch(() => {})
+        .finally(() => {
+          if (!player.src) player.src = url;
+        });
+      art.once("destroy", () => {
+        engine.destroy();
+      });
     } else {
       art.notice.show = "Unsupported playback format: m3u8";
     }
@@ -199,6 +235,21 @@ const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) =
   }
 
   const hls = new Hls(newHlsConfig(Props.options.headers));
+
+  p2pConfig.hlsjsInstance = hls;
+
+  const engine = new P2pEngineHls(p2pConfig);
+
+  engine.on("stats", (stats) => {
+    console.group("p2p stats");
+    console.log(stats);
+    console.groupEnd();
+  });
+
+  hls.once(Hls.Events.DESTROYING, () => {
+    engine.destroy();
+  });
+
   hls.loadSource(url);
   hls.attachMedia(player);
   art.hls = hls;

@@ -12,6 +12,8 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@swarmcloud/dashjs": "^0.8.1",
+    "@swarmcloud/hls": "^2.13.9",
     "@vueuse/core": "^11.0.3",
     "@vueuse/router": "^11.0.3",
     "animate.css": "^4.1.1",
