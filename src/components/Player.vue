@@ -23,26 +23,28 @@ Artplayer.FAST_FORWARD_VALUE = 3; // 设置长按倍速的速率
 Artplayer.FAST_FORWARD_TIME = 1000; // 设置长按加速的延迟时间（毫秒）
 
 let art: Artplayer;
-let p2pEngine: p2pOperationType | undefined;
+let p2pEngine: Ref<p2pOperationType | undefined> = ref(undefined);
 const p2pStats = ref<p2pStatsType>();
+
+const resetP2P = () => {
+  p2pEngine.value = undefined;
+  p2pStats.value = undefined;
+}
+
 const p2pOperation = {
   enableP2P: () => {
     defaultP2PEnabled.value = true;
-    if (p2pEngine) {
-      p2pEngine.enableP2P();
+    if (p2pEngine.value) {
+      p2pEngine.value.enableP2P();
+      p2pStats.value = undefined;
     }
   },
   disableP2P: () => {
     defaultP2PEnabled.value = false;
-    if (p2pEngine) {
-      p2pEngine.disableP2P();
+    if (p2pEngine.value) {
+      p2pEngine.value.disableP2P();
+      p2pStats.value = undefined;
     }
-  },
-  getP2PEnabledRef: (): Ref<boolean> => {
-    return defaultP2PEnabled;
-  },
-  getP2PStatsRef: (): Ref<p2pStatsType | undefined> => {
-    return p2pStats;
   }
 };
 
@@ -61,6 +63,7 @@ const defaultP2PEnabled = useLocalStorage("defaultP2PEnabled", true);
 export interface p2pOperationType {
   enableP2P(): void;
   disableP2P(): void;
+  destroy(): void;
 }
 
 export interface p2pStatsType {
@@ -115,8 +118,9 @@ const playMpd = async (player: HTMLMediaElement, url: string, art: any) => {
   });
   d.on(dashjs.MediaPlayer.events.PROTECTION_DESTROYED, () => {
     engine.destroy();
+    resetP2P();
   });
-  p2pEngine = engine;
+  p2pEngine.value = engine;
 };
 
 const playFlv = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
@@ -233,8 +237,9 @@ const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) =
         });
       art.once("destroy", () => {
         engine.destroy();
+        resetP2P();
       });
-      p2pEngine = engine;
+      p2pEngine.value = engine;
     } else {
       art.notice.show = "Unsupported playback format: m3u8";
     }
@@ -310,8 +315,9 @@ const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) =
 
   hls.once(Hls.Events.DESTROYING, () => {
     engine.destroy();
+    resetP2P();
   });
-  p2pEngine = engine;
+  p2pEngine.value = engine;
 
   hls.loadSource(url);
   hls.attachMedia(player);
@@ -389,6 +395,10 @@ const mountPlayer = () => {
   art = new Artplayer(newPlayerOption(newDiv));
   art.on("destroy", () => {
     destroyOldCustomPlayLib(art);
+    if (p2pEngine.value) {
+      p2pEngine.value.destroy();
+      p2pEngine.value = undefined;
+    }
   });
   // addHotKeyEvnet(art);
   Emits("get-instance", art);
@@ -491,11 +501,11 @@ const formatBytes = (bytes: number) => {
 };
 
 const toggleP2P = (e: boolean) => {
-  if (!p2pEngine) return;
+  if (!p2pEngine.value) return;
   if (e) {
-    p2pEngine.enableP2P();
+    p2pEngine.value.enableP2P();
   } else {
-    p2pEngine.disableP2P();
+    p2pEngine.value.disableP2P();
   }
 };
 
@@ -520,7 +530,7 @@ onBeforeUnmount(() => {
 <template>
   <div ref="father"></div>
 
-  <div class="p2p-panel mt-2 px-4">
+  <div v-if="p2pEngine" class="p2p-panel mt-2 px-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2">
           <el-switch
@@ -530,7 +540,7 @@ onBeforeUnmount(() => {
             inactive-text="关闭P2P"
           />
         </div>
-        <div v-if="p2pStats && defaultP2PEnabled" class="flex space-x-4 text-sm">
+        <div v-if="defaultP2PEnabled && p2pStats" class="flex space-x-4 text-sm">
           <div class="flex items-center space-x-1">
             <el-tooltip content="HTTP下载量">
               <span>↓HTTP: {{ formatBytes(p2pStats.totalHTTPDownloaded) }}</span>
