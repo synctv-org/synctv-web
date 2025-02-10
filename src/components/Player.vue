@@ -11,6 +11,10 @@ import type {
   TrackerZone as TrackerZoneDash
 } from "@swarmcloud/dashjs";
 import { useLocalStorage } from "@vueuse/core";
+import P2PEngineMedia, {
+  type P2pConfig as P2pConfigMedia,
+  type TrackerZone as TrackerZoneMedia
+} from "@swarmcloud/media";
 
 const watchers: WatchStopHandle[] = [];
 
@@ -86,6 +90,37 @@ const Props = defineProps({
 
 const Emits = defineEmits(["get-instance"]);
 
+const playMedia = async (player: HTMLMediaElement, url: string, art: any) => {
+  const p2pConfig: P2pConfigMedia = {
+    swFile: "sw.media.js",
+    p2pEnabled: defaultP2PEnabled.value,
+    trackerZone: Props.options.p2pZone as TrackerZoneMedia
+  };
+  const engine = new P2PEngineMedia(p2pConfig);
+  engine
+    .getProxiedUrl(url)
+    .then((proxiedUrl) => {
+      console.log(proxiedUrl);
+      player.src = proxiedUrl;
+    })
+    .catch((err) => {
+      console.error(err);
+      player.src = url;
+    });
+  engine.on("stats", (stats) => {
+    console.group("p2p stats");
+    console.log(stats);
+    console.groupEnd();
+    p2pStats.value = {
+      totalHTTPDownloaded: stats.totalHTTPDownloaded,
+      totalP2PDownloaded: stats.totalP2PDownloaded,
+      totalP2PUploaded: stats.totalP2PUploaded,
+      p2pDownloadSpeed: stats.p2pDownloadSpeed
+    };
+  });
+  p2pEngine.value = engine;
+};
+
 const playMpd = async (player: HTMLMediaElement, url: string, art: any) => {
   const dashjs = await import("dashjs");
   const P2pEngineDash = (await import("@swarmcloud/dashjs")).default;
@@ -107,7 +142,11 @@ const playMpd = async (player: HTMLMediaElement, url: string, art: any) => {
   }
   var p2pConfig: DashP2pConfig = {
     p2pEnabled: defaultP2PEnabled.value,
-    trackerZone: Props.options.p2pZone as TrackerZoneDash
+    trackerZone: Props.options.p2pZone as TrackerZoneDash,
+    signalConfig: {
+      main: "wss://gz.swarmcloud.net",
+      backup: "wss://signal.cdnbye.com"
+    }
   };
   const engine = new P2pEngineDash(d, p2pConfig);
   engine.on("stats", (stats) => {
@@ -216,9 +255,14 @@ const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) =
   const P2pEngineHls = (await import("@swarmcloud/hls")).default;
 
   var p2pConfig: HlsP2pConfig = {
+    swFile: "sw.js",
     live: art.option.isLive,
     p2pEnabled: defaultP2PEnabled.value,
-    trackerZone: Props.options.p2pZone as TrackerZoneHls
+    trackerZone: Props.options.p2pZone as TrackerZoneHls,
+    signalConfig: {
+      main: "wss://gz.swarmcloud.net",
+      backup: "wss://signal.cdnbye.com"
+    }
   };
 
   if (!Hls.isSupported()) {
@@ -370,6 +414,8 @@ const newPlayerOption = (html: HTMLDivElement): Option => {
       playsInline: true
     },
     customType: {
+      mp4: playMedia,
+      mkv: playMedia,
       flv: playFlv,
       m3u8: playM3u8,
       m3u: playM3u8,
