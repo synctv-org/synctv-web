@@ -14,7 +14,7 @@
   "dependencies": {
     "@swarmcloud/dashjs": "^0.8.1",
     "@swarmcloud/hls": "^2.13.9",
-    "@swarmcloud/media": "^1.2.0",
+    "@swarmcloud/media": "^1.2.1",
     "@vueuse/core": "^11.0.3",
     "@vueuse/router": "^11.0.3",
     "animate.css": "^4.1.1",

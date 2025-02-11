@@ -30,10 +30,11 @@ Artplayer.FAST_FORWARD_VALUE = 3; // 设置长按倍速的速率
 Artplayer.FAST_FORWARD_TIME = 1000; // 设置长按加速的延迟时间（毫秒）
 
 let art: Artplayer;
-let p2pEngine: Ref<p2pOperationType | undefined> = ref(undefined);
+const p2pEngine: Ref<p2pOperationType | undefined> = ref(undefined);
 const p2pStats = ref<p2pStatsType>();
 
 const resetP2P = () => {
+  if (p2pEngine.value) p2pEngine.value.destroy();
   p2pEngine.value = undefined;
   p2pStats.value = undefined;
 };
@@ -91,6 +92,8 @@ const Props = defineProps({
 const Emits = defineEmits(["get-instance"]);
 
 const playMedia = async (player: HTMLMediaElement, url: string, art: any) => {
+  resetP2P();
+
   const p2pConfig: P2pConfigMedia = {
     swFile: "/web/sw.media.js",
     p2pEnabled: defaultP2PEnabled.value,
@@ -112,16 +115,15 @@ const playMedia = async (player: HTMLMediaElement, url: string, art: any) => {
     console.log(stats);
     console.groupEnd();
     p2pStats.value = {
-      totalHTTPDownloaded: stats.totalHTTPDownloaded,
-      totalP2PDownloaded: stats.totalP2PDownloaded,
-      totalP2PUploaded: stats.totalP2PUploaded,
-      p2pDownloadSpeed: stats.p2pDownloadSpeed
+      ...stats
     };
   });
   p2pEngine.value = engine;
 };
 
 const playMpd = async (player: HTMLMediaElement, url: string, art: any) => {
+  resetP2P();
+
   const dashjs = await import("dashjs");
   const P2pEngineDash = (await import("@swarmcloud/dashjs")).default;
 
@@ -154,14 +156,10 @@ const playMpd = async (player: HTMLMediaElement, url: string, art: any) => {
     console.log(stats);
     console.groupEnd();
     p2pStats.value = {
-      totalHTTPDownloaded: stats.totalHTTPDownloaded,
-      totalP2PDownloaded: stats.totalP2PDownloaded,
-      totalP2PUploaded: stats.totalP2PUploaded,
-      p2pDownloadSpeed: stats.p2pDownloadSpeed
+      ...stats
     };
   });
   d.on(dashjs.MediaPlayer.events.PROTECTION_DESTROYED, () => {
-    engine.destroy();
     resetP2P();
   });
   p2pEngine.value = engine;
@@ -251,6 +249,8 @@ const playM2ts = async (player: HTMLMediaElement, url: string, art: Artplayer) =
 };
 
 const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) => {
+  resetP2P();
+
   const Hls = (await import("hls.js")).default;
   const P2pEngineHls = (await import("@swarmcloud/hls")).default;
 
@@ -273,10 +273,7 @@ const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) =
         console.log(stats);
         console.groupEnd();
         p2pStats.value = {
-          totalHTTPDownloaded: stats.totalHTTPDownloaded,
-          totalP2PDownloaded: stats.totalP2PDownloaded,
-          totalP2PUploaded: stats.totalP2PUploaded,
-          p2pDownloadSpeed: stats.p2pDownloadSpeed
+          ...stats
         };
       });
       engine
@@ -286,7 +283,6 @@ const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) =
           if (!player.src) player.src = url;
         });
       art.once("destroy", () => {
-        engine.destroy();
         resetP2P();
       });
       p2pEngine.value = engine;
@@ -356,15 +352,11 @@ const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) =
     console.log(stats);
     console.groupEnd();
     p2pStats.value = {
-      totalHTTPDownloaded: stats.totalHTTPDownloaded,
-      totalP2PDownloaded: stats.totalP2PDownloaded,
-      totalP2PUploaded: stats.totalP2PUploaded,
-      p2pDownloadSpeed: stats.p2pDownloadSpeed
+      ...stats
     };
   });
 
   hls.once(Hls.Events.DESTROYING, () => {
-    engine.destroy();
     resetP2P();
   });
   p2pEngine.value = engine;
@@ -447,10 +439,8 @@ const mountPlayer = () => {
   art = new Artplayer(newPlayerOption(newDiv));
   art.on("destroy", () => {
     destroyOldCustomPlayLib(art);
-    if (p2pEngine.value) {
-      p2pEngine.value.destroy();
-      p2pEngine.value = undefined;
-    }
+    resetP2P();
+    art.video.src = "";
   });
   // addHotKeyEvnet(art);
   Emits("get-instance", art);
