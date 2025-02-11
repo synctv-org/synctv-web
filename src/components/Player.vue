@@ -92,7 +92,7 @@ const Emits = defineEmits(["get-instance"]);
 
 const playMedia = async (player: HTMLMediaElement, url: string, art: any) => {
   const p2pConfig: P2pConfigMedia = {
-    swFile: "sw.media.js",
+    swFile: "/web/sw.media.js",
     p2pEnabled: defaultP2PEnabled.value,
     trackerZone: Props.options.p2pZone as TrackerZoneMedia
   };
@@ -255,7 +255,7 @@ const playM3u8 = async (player: HTMLMediaElement, url: string, art: Artplayer) =
   const P2pEngineHls = (await import("@swarmcloud/hls")).default;
 
   var p2pConfig: HlsP2pConfig = {
-    swFile: "sw.js",
+    swFile: "/web/sw.js",
     live: art.option.isLive,
     p2pEnabled: defaultP2PEnabled.value,
     trackerZone: Props.options.p2pZone as TrackerZoneHls,
