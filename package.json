@@ -12,9 +12,9 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@swarmcloud/dashjs": "^0.8.1",
-    "@swarmcloud/hls": "^2.13.9",
-    "@swarmcloud/media": "^1.2.1",
+    "@swarmcloud/dashjs": "^0.8.2",
+    "@swarmcloud/hls": "^2.14.2",
+    "@swarmcloud/media": "^1.2.4",
     "@vueuse/core": "^11.0.3",
     "@vueuse/router": "^11.0.3",
     "animate.css": "^4.1.1",
@@ -25,7 +25,7 @@
     "dashjs": "^4.7.4",
     "element-plus": "^2.9.3",
     "gsap": "^3.12.7",
-    "hls.js": "^1.5.19",
+    "hls.js": "^1.5.20",
     "less": "^4.2.1",
     "less-loader": "^12.2.0",
     "libass-wasm": "^4.1.0",
