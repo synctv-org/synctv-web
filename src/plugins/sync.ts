@@ -49,6 +49,7 @@ const newSyncControl = (art: Artplayer, publishStatus: (msg: Message) => boolean
         type: MessageType.SYNC
       })
     );
+    return ''
   };
 
   art.controls.add({
@@ -69,6 +70,7 @@ const newSyncControl = (art: Artplayer, publishStatus: (msg: Message) => boolean
     ],
     onSelect: syncControl
   });
+
 };
 
 export const newSyncPlugin = (

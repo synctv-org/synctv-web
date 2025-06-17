@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     Alist: typeof import('./src/components/fileList/alist.vue')['default']
     BilibiliParse: typeof import('./src/components/cinema/dialogs/bilibiliParse.vue')['default']
+    ContextMenu: typeof import('./src/components/ContextMenu.vue')['default']
     CopyButton: typeof import('./src/components/CopyButton.vue')['default']
     CustomHeaders: typeof import('./src/components/cinema/dialogs/customHeaders.vue')['default']
     CustomSubtitles: typeof import('./src/components/cinema/dialogs/customSubtitles.vue')['default']

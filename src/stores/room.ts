@@ -81,6 +81,6 @@ export const roomStore = defineStore("roomStore", () => {
     roomID,
     folder,
     lastFolderId,
-    lastFolderSubPath
+    lastFolderSubPath,
   };
 });
