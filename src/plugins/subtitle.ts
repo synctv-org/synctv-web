@@ -53,6 +53,12 @@ export function artplayerSubtitle(subtitles: Record<string, { url: string; type:
     const isMobile = Artplayer.utils.isMobile;
 
     const updateControls = () => {
+      // 先移除已存在的字幕控制按钮，避免重复
+      if (art.controls["subtitle"]) {
+        art.controls.remove("subtitle");
+      }
+
+      // 根据条件添加字幕控制按钮
       if (!isMobile || art.fullscreen) {
         art.controls.update({
           name: "subtitle",
@@ -61,8 +67,6 @@ export function artplayerSubtitle(subtitles: Record<string, { url: string; type:
           selector: selector,
           onSelect
         });
-      } else if (art.controls["subtitle"]) {
-        art.controls.remove("subtitle");
       }
     };
 
@@ -87,7 +91,13 @@ export function artplayerSubtitle(subtitles: Record<string, { url: string; type:
     }
 
     return {
-      name: "artplayerSubtitle"
+      name: "artplayerSubtitle",
+      // 添加销毁方法，确保清理资源
+      destroy: () => {
+        if (art.controls["subtitle"]) {
+          art.controls.remove("subtitle");
+        }
+      }
     };
   };
 }

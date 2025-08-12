@@ -8,12 +8,14 @@ import { useMovieApi } from "@/hooks/useMovie";
 import { useRoomApi, useRoomPermission } from "@/hooks/useRoom";
 import customHeaders from "@/components/cinema/dialogs/customHeaders.vue";
 import customSubtitles from "@/components/cinema/dialogs/customSubtitles.vue";
+import subtitleSettings from "@/components/cinema/dialogs/subtitleSettings.vue";
 import { RoomMemberPermission } from "@/types/Room";
 
 import { ArrowRight, FolderOpened } from "@element-plus/icons-vue";
 
 const customHeadersDialog = ref<InstanceType<typeof customHeaders>>();
 const customSubtitlesDialog = ref<InstanceType<typeof customSubtitles>>();
+const subtitleSettingsDialog = ref(false);
 
 const Props = defineProps<{
   token: string;
@@ -96,12 +98,12 @@ const confirmCancelPlayback = async () => {
 const handleSwitchDir = async (id: string, subPath?: string) => {
   await switchDir(id, subPath);
   searchKeyword.value = ""; // 切换目录后清空搜索框
-}
+};
 
 // 处理搜索
 const handleSearch = () => {
   getMovies(undefined, undefined, searchKeyword.value);
-}
+};
 </script>
 
 <template>
@@ -119,10 +121,10 @@ const handleSearch = () => {
 
       <!-- 搜索框 -->
       <div class="my-4 flex">
-        <input 
-          type="text" 
+        <input
+          type="text"
           v-model="searchKeyword"
-          class="l-input m-0 p-2 flex-1 mr-2" 
+          class="l-input m-0 p-2 flex-1 mr-2"
           placeholder="搜索"
           @keyup.enter="handleSearch"
         />
@@ -354,6 +356,12 @@ const handleSearch = () => {
       >
         <span class="text-sm min-w-fit"> 字幕列表 </span>
       </div>
+      <div
+        class="rounded-lg p-3 w-full bg-blue-50 hover:bg-blue-100 transition-all dark:bg-blue-700 hover:dark:bg-blue-800 cursor-pointer"
+        @click="subtitleSettingsDialog = true"
+      >
+        <span class="text-sm min-w-fit"> 字幕设置 </span>
+      </div>
       <div class="p-3"><b>温馨提示：</b>编辑后，需要重新点击播放才可应用</div>
     </el-form>
     <template #footer>
@@ -378,6 +386,9 @@ const handleSearch = () => {
     :custom-subtitles="cMovieInfo.subtitles ?? {}"
     @updateSubtitles="updateSubtitles"
   />
+
+  <!-- 字幕设置 -->
+  <subtitleSettings v-model="subtitleSettingsDialog" />
 
   <!-- 直播推流信息 -->
   <el-dialog

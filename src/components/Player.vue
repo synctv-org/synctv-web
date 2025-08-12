@@ -532,6 +532,25 @@ const cleanHotKeyEvent = (art: Artplayer, keys: number[]) => {
 //   });
 // };
 
+// 字幕大小预设
+const subtitleSizePresets = {
+  small: 14,
+  medium: 18,
+  large: 24,
+  extraLarge: 32
+};
+
+// 字幕大小设置（从localStorage读取，默认为medium）
+const subtitleSize = useLocalStorage("subtitle-size", "medium");
+
+// 获取当前字幕大小
+const getCurrentSubtitleSize = () => {
+  return (
+    subtitleSizePresets[subtitleSize.value as keyof typeof subtitleSizePresets] ||
+    subtitleSizePresets.medium
+  );
+};
+
 // 格式化字节数的函数
 const formatKBytes = (kB: number) => {
   if (kB === 0) return "0 KB";
@@ -550,6 +569,20 @@ const toggleP2P = (e: boolean) => {
   }
 };
 
+// 更新字幕大小的函数
+const updateSubtitleSize = () => {
+  if (!art) return;
+
+  const size = getCurrentSubtitleSize();
+  const subtitleElement = art.template.$player.querySelector(".art-subtitle") as HTMLElement;
+  if (subtitleElement) {
+    subtitleElement.style.fontSize = size + "px";
+    subtitleElement.style.fontWeight = "500";
+    subtitleElement.style.textShadow = "2px 2px 4px rgba(0, 0, 0, 0.8)";
+    subtitleElement.style.lineHeight = "1.4";
+  }
+};
+
 onMounted(() => {
   mountPlayer();
 
@@ -559,12 +592,21 @@ onMounted(() => {
       () => {
         mountPlayer();
       }
-    )
+    ),
+    // 监听字幕大小设置变化
+    watch(subtitleSize, () => {
+      updateSubtitleSize();
+    })
   );
 });
 
 onBeforeUnmount(() => {
   art.destroy();
+});
+
+// 暴露给父组件使用
+defineExpose({
+  updateSubtitleSize
 });
 </script>
 
