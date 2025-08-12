@@ -15,12 +15,12 @@ const config: UserConfigFnObject = ({ command, mode }): UserConfig => {
       host: true,
       proxy: {
         "/api": {
-          target: env.VITE_SERVER_TARGET || "http://127.0.0.1:8088",
+          target: env.VITE_SERVER_TARGET || "http://127.0.0.1:8080",
           changeOrigin: true,
           ws: true
         },
         "/oauth2": {
-          target: env.VITE_SERVER_TARGET || "http://127.0.0.1:8088",
+          target: env.VITE_SERVER_TARGET || "http://127.0.0.1:8080",
           changeOrigin: true,
           ws: false
         }

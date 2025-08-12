@@ -33,6 +33,7 @@ import { roomInfoApi } from "@/services/apis/room";
 import { artplayerSubtitle } from "@/plugins/subtitle";
 import { sendDanmu, artplayerStreamDanmu } from "@/plugins/danmu";
 import { indexStore } from "@/stores";
+import { artplayerSubtitleSettings } from "@/plugins/artplayer-subtitle-settings";
 
 const { settings } = indexStore();
 
@@ -156,6 +157,7 @@ const playerOption = computed<options>(() => {
       // WARN: room.currentStatus 变了会导致重载
       newSyncPlugin(sendElement, room.currentStatus, () => room.currentExpireId),
       artplayerPluginMediaControl(),
+      artplayerSubtitleSettings()
     ]
   };
 
