@@ -5,6 +5,7 @@ import type { Option } from "artplayer/types/option";
 import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import type { PropType, Ref, WatchStopHandle } from "vue";
 import { destroyOldCustomPlayLib } from "@/utils";
+import { artplayerSubtitleSettings } from "@/plugins/artplayer-subtitle-settings";
 import type { P2pConfig as HlsP2pConfig, TrackerZone as TrackerZoneHls } from "@swarmcloud/hls";
 import type {
   P2pConfig as DashP2pConfig,
@@ -395,7 +396,7 @@ const newPlayerOption = (html: HTMLDivElement): Option => {
     autoOrientation: true, // 移动端的网页全屏时，根据视频尺寸和视口尺寸，旋转播放器
     airplay: false, // 隔空播放
     type: Props.options.type,
-    plugins: Props.options.plugins,
+    plugins: [...(Props.options.plugins || []), artplayerSubtitleSettings()],
     subtitle: {
       encoding: "utf-8",
       escape: false
